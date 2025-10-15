@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { BeeLoaderComponent } from './shared/components/bee-loader/bee-loader.component';
 
 @Component({
   selector: 'app-root',
-  imports: [BeeLoaderComponent],
+  standalone: true,
+  imports: [RouterOutlet],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
