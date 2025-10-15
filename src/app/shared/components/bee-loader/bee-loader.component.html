@@ -1,0 +1,25 @@
+<div class="fixed inset-0 flex items-center justify-center bg-white/95 backdrop-blur-sm z-50">
+    <div class="text-center">
+        <!-- Animación Lottie -->
+        <div class="flex justify-center mb-4">
+            <ng-lottie [options]="options" width="200px" height="200px" class="lottie-animation">
+            </ng-lottie>
+        </div>
+
+        <!-- Mensaje de carga -->
+        @if (showMessage) {
+        <div class="space-y-2">
+            <p class="text-honey-dark text-lg font-semibold animate-pulse">
+                {{ message }}
+            </p>
+
+            <!-- Puntos animados -->
+            <div class="flex justify-center space-x-1">
+                <span class="dot-animation bg-honey-primary"></span>
+                <span class="dot-animation bg-honey-primary animation-delay-200"></span>
+                <span class="dot-animation bg-honey-primary animation-delay-400"></span>
+            </div>
+        </div>
+        }
+    </div>
+</div>

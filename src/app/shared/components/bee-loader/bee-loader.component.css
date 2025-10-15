@@ -1,0 +1,35 @@
+/* Animación de los puntos de carga */
+.dot-animation {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.animation-delay-200 {
+    animation-delay: -0.32s;
+}
+
+.animation-delay-400 {
+    animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0);
+        opacity: 0.5;
+    }
+
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Efecto hover en la animación Lottie */
+.lottie-animation {
+    filter: drop-shadow(0 4px 6px rgba(245, 158, 11, 0.2));
+}
