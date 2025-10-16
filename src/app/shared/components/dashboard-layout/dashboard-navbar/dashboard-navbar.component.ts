@@ -2,11 +2,16 @@ import { Component, inject, computed, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
+import { IconComponent } from '../../ui/icon/icon.component';
+import { IconName } from '../../ui/icon/types/icon.types';
 
 @Component({
     selector: 'app-dashboard-navbar',
     standalone: true,
-    imports: [CommonModule],
+    imports: [
+        CommonModule,
+        IconComponent
+    ],
     templateUrl: './dashboard-navbar.component.html',
     styleUrl: './dashboard-navbar.component.css'
 })
@@ -43,8 +48,27 @@ export class DashboardNavbarComponent {
                 return 'bg-blue-100 text-blue-800 border-blue-200';
             case 'APICULTOR':
                 return 'bg-green-100 text-green-800 border-green-200';
+            case 'MIELERA':
+                return 'bg-purple-100 text-purple-800 border-purple-200';
             default:
                 return 'bg-gray-100 text-gray-800 border-gray-200';
+        }
+    });
+
+    // Icono del rol para badge (opcional, para futuro uso)
+    roleIcon = computed<IconName>(() => {
+        const role = this.currentUser()?.role;
+        switch (role) {
+            case 'ADMINISTRADOR':
+                return 'crown';
+            case 'ACOPIADOR':
+                return 'building-office';
+            case 'APICULTOR':
+                return 'bee';
+            case 'MIELERA':
+                return 'honey';
+            default:
+                return 'user-circle';
         }
     });
 
@@ -59,6 +83,8 @@ export class DashboardNavbarComponent {
                 return 'Acopiador';
             case 'APICULTOR':
                 return 'Apicultor';
+            case 'MIELERA':
+                return 'Mielera';
             default:
                 return role;
         }
@@ -75,8 +101,7 @@ export class DashboardNavbarComponent {
      * Cerrar sesión
      */
     onLogout(): void {
-        if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
             this.authService.logout();
-        }
+        
     }
 }

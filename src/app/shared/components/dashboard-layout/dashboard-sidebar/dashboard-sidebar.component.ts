@@ -2,9 +2,11 @@ import { Component, inject, computed, output, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
+import { IconComponent } from '../../ui/icon/icon.component';
+import { IconName } from '../../ui/icon/types/icon.types';
 
 interface MenuItem {
-    icon: string;
+    icon: IconName;
     label: string;
     route: string;
     badge?: string;
@@ -17,7 +19,8 @@ interface MenuItem {
     imports: [
         CommonModule,
         RouterLink,
-        RouterLinkActive
+        RouterLinkActive,
+        IconComponent
     ],
     templateUrl: './dashboard-sidebar.component.html',
     styleUrl: './dashboard-sidebar.component.css'
@@ -35,39 +38,65 @@ export class DashboardSidebarComponent {
     // Usuario actual
     currentUser = computed(() => this.authService.getCurrentUser());
 
+    // Icono del rol actual para el header
+    roleIcon = computed<IconName>(() => {
+        const role = this.currentUser()?.role;
+        switch (role) {
+            case 'ADMINISTRADOR':
+                return 'crown';
+            case 'ACOPIADOR':
+                return 'building-office';
+            case 'APICULTOR':
+                return 'bee';
+            case 'MIELERA':
+                return 'honey';
+            default:
+                return 'user-circle';
+        }
+    });
+
     // Menú dinámico según rol
     menuItems = computed<MenuItem[]>(() => {
         const role = this.currentUser()?.role;
 
         if (role === 'ADMINISTRADOR') {
             return [
-                { icon: '📊', label: 'Dashboard', route: '/dashboard/admin' },
-                { icon: '👥', label: 'Usuarios', route: '/admin/usuarios' },
-                { icon: '🐝', label: 'Apicultores', route: '/admin/apicultores' },
-                { icon: '🏢', label: 'Proveedores', route: '/admin/proveedores' },
-                { icon: '🏞️', label: 'Apiarios', route: '/admin/apiarios' },
-                { icon: '📋', label: 'Reportes', route: '/admin/reportes' },
-                { icon: '⚙️', label: 'Configuración', route: '/admin/configuracion' }
+                { icon: 'chart-bar', label: 'Dashboard', route: '/dashboard/admin' },
+                { icon: 'users', label: 'Usuarios', route: '/admin/usuarios' },
+                { icon: 'bee', label: 'Apicultores', route: '/admin/apicultores' },
+                { icon: 'building-office', label: 'Proveedores', route: '/admin/proveedores' },
+                { icon: 'map-pin', label: 'Apiarios', route: '/admin/apiarios' },
+                { icon: 'document-text', label: 'Reportes', route: '/admin/reportes' },
+                { icon: 'cog-6-tooth', label: 'Configuración', route: '/admin/configuracion' }
             ];
         }
 
         if (role === 'ACOPIADOR') {
             return [
-                { icon: '📊', label: 'Dashboard', route: '/dashboard/acopiador' },
-                { icon: '🐝', label: 'Mis Apicultores', route: '/acopiador/apicultores' },
-                { icon: '🔗', label: 'Vincular Apicultor', route: '/acopiador/vincular' },
-                { icon: '🏞️', label: 'Ver Apiarios', route: '/acopiador/apiarios' },
-                { icon: '📦', label: 'Compras de Miel', route: '/acopiador/compras' }
+                { icon: 'chart-bar', label: 'Dashboard', route: '/dashboard/acopiador' },
+                { icon: 'bee', label: 'Mis Apicultores', route: '/acopiador/apicultores' },
+                { icon: 'link', label: 'Vincular Apicultor', route: '/acopiador/vincular' },
+                { icon: 'map-pin', label: 'Ver Apiarios', route: '/acopiador/apiarios' },
+                { icon: 'shopping-bag', label: 'Compras de Miel', route: '/acopiador/compras' }
             ];
         }
 
         if (role === 'APICULTOR') {
             return [
-                { icon: '📊', label: 'Dashboard', route: '/dashboard/apicultor' },
-                { icon: '🏞️', label: 'Mis Apiarios', route: '/apicultor/apiarios' },
-                { icon: '➕', label: 'Nuevo Apiario', route: '/apicultor/apiarios/nuevo' },
-                { icon: '🏢', label: 'Mis Proveedores', route: '/apicultor/proveedores' },
-                { icon: '👤', label: 'Mi Perfil', route: '/apicultor/perfil' }
+                { icon: 'chart-bar', label: 'Dashboard', route: '/dashboard/apicultor' },
+                { icon: 'map-pin', label: 'Mis Apiarios', route: '/apicultor/apiarios' },
+                { icon: 'plus', label: 'Nuevo Apiario', route: '/apicultor/apiarios/nuevo' },
+                { icon: 'building-office', label: 'Mis Proveedores', route: '/apicultor/proveedores' },
+                { icon: 'user-circle', label: 'Mi Perfil', route: '/apicultor/perfil' }
+            ];
+        }
+
+        if (role === 'MIELERA') {
+            return [
+                { icon: 'chart-bar', label: 'Dashboard', route: '/dashboard/mielera' },
+                { icon: 'honey', label: 'Producción', route: '/mielera/produccion' },
+                { icon: 'shopping-bag', label: 'Compras', route: '/mielera/compras' },
+                { icon: 'document-text', label: 'Reportes', route: '/mielera/reportes' }
             ];
         }
 
