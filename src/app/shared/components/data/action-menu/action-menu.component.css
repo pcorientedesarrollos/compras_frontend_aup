@@ -1,0 +1,148 @@
+/* Menu Container */
+.action-menu {
+    @apply absolute mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden;
+    animation: slideDown 0.15s ease-out;
+}
+
+.action-menu.position-left {
+    @apply left-0;
+}
+
+.action-menu.position-right {
+    @apply right-0;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Section Header */
+.section-header {
+    @apply px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide bg-gray-50 border-b border-gray-200;
+}
+
+/* Menu Item */
+.menu-item {
+    @apply w-full flex items-center gap-2 px-4 py-2.5 text-sm text-left text-gray-700 hover:bg-gray-50 transition-colors duration-150;
+}
+
+.menu-item:focus {
+    @apply outline-none bg-gray-50;
+}
+
+.menu-item.disabled {
+    @apply text-gray-400 cursor-not-allowed opacity-50 hover:bg-transparent;
+}
+
+/* Item Icon */
+.item-icon {
+    @apply flex-shrink-0 text-gray-500;
+}
+
+.menu-item:not(.disabled):hover .item-icon {
+    @apply text-gray-700;
+}
+
+/* Item Label */
+.item-label {
+    @apply flex-1;
+}
+
+/* Variants */
+.menu-item.variant-primary {
+    @apply text-blue-600;
+}
+
+.menu-item.variant-primary:hover:not(.disabled) {
+    @apply bg-blue-50 text-blue-700;
+}
+
+.menu-item.variant-success {
+    @apply text-green-600;
+}
+
+.menu-item.variant-success:hover:not(.disabled) {
+    @apply bg-green-50 text-green-700;
+}
+
+.menu-item.variant-warning {
+    @apply text-amber-600;
+}
+
+.menu-item.variant-warning:hover:not(.disabled) {
+    @apply bg-amber-50 text-amber-700;
+}
+
+.menu-item.variant-danger {
+    @apply text-red-600;
+}
+
+.menu-item.variant-danger:hover:not(.disabled) {
+    @apply bg-red-50 text-red-700;
+}
+
+.menu-item.variant-info {
+    @apply text-blue-600;
+}
+
+.menu-item.variant-info:hover:not(.disabled) {
+    @apply bg-blue-50 text-blue-700;
+}
+
+/* Separators */
+.separator {
+    @apply border-t border-gray-200 my-1;
+}
+
+.section-separator {
+    @apply border-t border-gray-200;
+}
+
+/* Confirmation Dialog */
+.confirmation-dialog {
+    @apply p-4;
+}
+
+.confirmation-header {
+    @apply flex items-center gap-2 mb-3;
+}
+
+.confirmation-message {
+    @apply text-sm text-gray-600 mb-4;
+}
+
+.confirmation-actions {
+    @apply flex gap-2 justify-end;
+}
+
+.btn-cancel,
+.btn-confirm {
+    @apply px-4 py-2 text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.btn-cancel {
+    @apply text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:ring-gray-500;
+}
+
+.btn-confirm {
+    @apply text-white bg-honey-primary hover:bg-honey-dark focus:ring-honey-primary;
+}
+
+.btn-confirm.btn-danger {
+    @apply bg-red-600 hover:bg-red-700 focus:ring-red-500;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .action-menu {
+        @apply w-56;
+    }
+}

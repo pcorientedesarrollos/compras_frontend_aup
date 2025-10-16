@@ -58,7 +58,10 @@ export type IconName =
     | 'arrow-right'              // → Siguiente
     | 'arrow-up'                 // ↑ Arriba
     | 'arrow-down'               // ↓ Abajo
-
+    | 'ellipsis-vertical'        
+    | 'ellipsis-horizontal'
+    
+    
     // ============================================================================
     // 📊 CATEGORÍA 4: DASHBOARD Y MÉTRICAS
     // ============================================================================

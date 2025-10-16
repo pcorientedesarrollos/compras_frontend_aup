@@ -1,0 +1,64 @@
+<!-- Menu Dropdown -->
+@if (isOpen() && hasContent()) {
+<div class="action-menu" [class.position-left]="position() === 'left'" [class.position-right]="position() === 'right'"
+    (click)="$event.stopPropagation()">
+
+    <!-- Confirmation Dialog -->
+    @if (pendingAction(); as action) {
+    <div class="confirmation-dialog">
+        <div class="confirmation-header">
+            <app-icon name="exclamation-triangle" class="text-amber-500" />
+            <h4 class="font-semibold text-gray-900">
+                {{ action.confirm!.title }}
+            </h4>
+        </div>
+
+        <p class="confirmation-message">
+            {{ action.confirm!.message }}
+        </p>
+
+        <div class="confirmation-actions">
+            <button type="button" (click)="cancelAction()" class="btn-cancel">
+                Cancelar
+            </button>
+            <button type="button" (click)="confirmAction()" class="btn-confirm"
+                [class.btn-danger]="action.variant === 'danger'">
+                Confirmar
+            </button>
+        </div>
+    </div>
+    } @else {
+    <!-- Menu Items -->
+    @for (section of sections(); track trackBySectionLabel($index, section)) {
+    <!-- Section Header -->
+    @if (section.label) {
+    <div class="section-header">
+        {{ section.label }}
+    </div>
+    }
+
+    <!-- Section Items -->
+    @for (item of section.items; track trackByKey($index, item)) {
+    <button type="button" (click)="onItemClick(item, $event)" [class]="getItemClasses(item)"
+        [disabled]="isItemDisabled(item, row())" [title]="item.label">
+
+        @if (item.icon) {
+        <app-icon [name]="item.icon" size="sm" class="item-icon" />
+        }
+
+        <span class="item-label">{{ item.label }}</span>
+    </button>
+
+    @if (item.separator && !$last) {
+    <div class="separator"></div>
+    }
+    }
+
+    <!-- Separator between sections -->
+    @if (!$last) {
+    <div class="section-separator"></div>
+    }
+    }
+    }
+</div>
+}

@@ -87,6 +87,11 @@ export const OUTLINE_ICONS: Record<string, string> = {
 
     'arrow-down': `<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />`,
 
+    'ellipsis-vertical': `<path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />`,
+
+    'ellipsis-horizontal': `<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />`,
+
+
     // ============================================================================
     // 📊 CATEGORÍA 4: DASHBOARD Y MÉTRICAS
     // ============================================================================

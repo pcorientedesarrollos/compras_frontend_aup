@@ -1,0 +1,71 @@
+<div class="pagination-container">
+    <!-- Page Size Selector -->
+    @if (showPageSize() && totalItems() > 0) {
+    <div class="page-size-selector">
+        <label for="pageSize" class="text-sm text-gray-600">
+            Mostrar:
+        </label>
+        <select id="pageSize" [value]="pageSize()" (change)="onPageSizeChange($event)" class="page-size-select">
+            @for (option of pageSizeOptions(); track option) {
+            <option [value]="option">{{ option }}</option>
+            }
+        </select>
+        <span class="text-sm text-gray-600">registros</span>
+    </div>
+    }
+
+    <!-- Pagination Controls -->
+    @if (totalPages() > 1) {
+    <div class="pagination-controls">
+        <!-- First Page Button -->
+        <button type="button" (click)="goToFirstPage()" [disabled]="isFirstPage()" class="pagination-button"
+            title="Primera página" aria-label="Ir a la primera página">
+            <app-icon name="chevron-left" size="sm" />
+        </button>
+
+        <!-- Previous Page Button -->
+        <button type="button" (click)="goToPreviousPage()" [disabled]="isFirstPage()" class="pagination-button"
+            title="Página anterior" aria-label="Ir a la página anterior">
+            <app-icon name="chevron-left" size="sm" />
+        </button>
+
+        <!-- Page Numbers -->
+        <div class="page-numbers">
+            @for (page of pageNumbers(); track page) {
+            @if (isPageNumber(page)) {
+            <!-- Page Button -->
+            <button type="button" (click)="goToPage(page)" [class.active]="page === currentPage()" class="page-button"
+                [attr.aria-label]="'Ir a la página ' + page"
+                [attr.aria-current]="page === currentPage() ? 'page' : null">
+                {{ page }}
+            </button>
+            } @else {
+            <!-- Ellipsis -->
+            <span class="page-ellipsis">{{ page }}</span>
+            }
+            }
+        </div>
+
+        <!-- Next Page Button -->
+        <button type="button" (click)="goToNextPage()" [disabled]="isLastPage()" class="pagination-button"
+            title="Página siguiente" aria-label="Ir a la página siguiente">
+            <app-icon name="chevron-right" size="sm" />
+        </button>
+
+        <!-- Last Page Button -->
+        <button type="button" (click)="goToLastPage()" [disabled]="isLastPage()" class="pagination-button"
+            title="Última página" aria-label="Ir a la última página">
+            <app-icon name="chevron-left" size="sm" />
+        </button>
+    </div>
+    }
+
+    <!-- Info Text -->
+    @if (showInfo()) {
+    <div class="pagination-info">
+        <span class="text-sm text-gray-600">
+            {{ infoText() }}
+        </span>
+    </div>
+    }
+</div>

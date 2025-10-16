@@ -1,0 +1,130 @@
+/* Container */
+.editable-cell {
+    @apply w-full;
+}
+
+/* Input Wrapper */
+.input-wrapper {
+    @apply flex items-center gap-2;
+}
+
+/* Input Field */
+.editable-input {
+    @apply flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-honey-primary focus:border-transparent transition-all;
+}
+
+.editable-input:hover:not(:disabled) {
+    @apply border-gray-400;
+}
+
+.editable-input.has-error {
+    @apply border-red-300 focus:ring-red-500 focus:border-red-500;
+}
+
+.editable-input.saving {
+    @apply bg-gray-50 cursor-wait;
+}
+
+.editable-input:disabled {
+    @apply bg-gray-50 cursor-not-allowed opacity-75;
+}
+
+/* Action Buttons */
+.action-buttons {
+    @apply flex items-center gap-1 flex-shrink-0;
+}
+
+.action-button {
+    @apply w-7 h-7 rounded flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1;
+}
+
+.action-button:disabled {
+    @apply opacity-50 cursor-not-allowed;
+}
+
+/* Save Button */
+.save-button {
+    @apply text-green-600 hover:bg-green-50 focus:ring-green-500;
+}
+
+.save-button:disabled {
+    @apply text-gray-400 hover:bg-transparent;
+}
+
+/* Cancel Button */
+.cancel-button {
+    @apply text-red-600 hover:bg-red-50 focus:ring-red-500;
+}
+
+/* Spinner */
+.spinner {
+    @apply flex items-center justify-center w-7 h-7;
+}
+
+/* Validation Error */
+.validation-error {
+    @apply flex items-center gap-1 mt-1 text-xs text-red-600;
+}
+
+.error-icon {
+    @apply flex-shrink-0;
+}
+
+.error-text {
+    @apply flex-1;
+}
+
+/* Helper Text */
+.helper-text {
+    @apply mt-1 text-xs text-gray-500 text-right;
+}
+
+/* Animations */
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-4px);
+    }
+
+    75% {
+        transform: translateX(4px);
+    }
+}
+
+.editable-input.has-error {
+    animation: shake 0.3s ease-in-out;
+}
+
+/* Number Input - Remove Spinners */
+.editable-input[type="number"]::-webkit-inner-spin-button,
+.editable-input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.editable-input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* Focus State Enhancement */
+.editable-input:focus {
+    @apply shadow-sm;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .editable-input {
+        @apply text-base;
+        /* Evitar zoom en iOS */
+    }
+
+    .action-button {
+        @apply w-8 h-8;
+        /* Botones más grandes en mobile */
+    }
+}

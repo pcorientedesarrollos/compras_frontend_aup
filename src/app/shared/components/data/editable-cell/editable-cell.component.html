@@ -1,0 +1,51 @@
+<div class="editable-cell" (click)="$event.stopPropagation()">
+    <div class="input-wrapper">
+        <!-- Input Field -->
+        <input #inputRef [type]="inputType()" [(ngModel)]="tempValue" [placeholder]="editConfig().placeholder"
+            [maxlength]="editConfig().maxLength ?? null" [disabled]="saving()" (input)="onInputChange($event)"
+            (keydown)="onKeyDown($event)" (blur)="onBlur()" class="editable-input" [class.has-error]="!isValid()"
+            [class.saving]="saving()" />
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            @if (saving()) {
+            <!-- Loading Spinner -->
+            <div class="spinner">
+                <svg class="animate-spin h-4 w-4 text-honey-primary" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+            </div>
+            } @else {
+            <!-- Save Button -->
+            <button type="button" (click)="handleSave(); $event.stopPropagation()" [disabled]="!canSave()"
+                class="action-button save-button" title="Guardar (Enter)" aria-label="Guardar cambios">
+                <app-icon name="check" size="sm" />
+            </button>
+
+            <!-- Cancel Button -->
+            <button type="button" (click)="handleCancel(); $event.stopPropagation()" class="action-button cancel-button"
+                title="Cancelar (Escape)" aria-label="Cancelar edición">
+                <app-icon name="x-mark" size="sm" />
+            </button>
+            }
+        </div>
+    </div>
+
+    <!-- Validation Error -->
+    @if (validationError()) {
+    <div class="validation-error">
+        <app-icon name="exclamation-circle" size="xs" class="error-icon" />
+        <span class="error-text">{{ validationError() }}</span>
+    </div>
+    }
+
+    <!-- Helper Text -->
+    @if (!validationError() && editConfig().maxLength) {
+    <div class="helper-text">
+        {{ tempValue().length }} / {{ editConfig().maxLength }}
+    </div>
+    }
+</div>

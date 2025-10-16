@@ -1,0 +1,97 @@
+<div class="table-filters">
+    <!-- Filters Row -->
+    <div class="filters-row">
+        @for (filter of filters(); track trackByKey($index, filter)) {
+        <div class="filter-control" [style.width]="filter.width">
+            <label [for]="filter.key" class="filter-label">
+                @if (filter.icon) {
+                <app-icon [name]="filter.icon" size="xs" class="mr-1" />
+                }
+                {{ filter.label }}
+            </label>
+
+            <!-- TEXT INPUT -->
+            @if (filter.type === 'text') {
+            <input [id]="filter.key" type="text" [value]="getFilterValue(filter.key)" [placeholder]="filter.placeholder"
+                [disabled]="filter.disabled" (input)="onFilterChange(filter.key, $any($event.target).value)"
+                class="filter-input" />
+            }
+
+            <!-- SELECT -->
+            @if (filter.type === 'select') {
+            <select [id]="filter.key" [value]="getFilterValue(filter.key)" [disabled]="filter.disabled"
+                (change)="onFilterChange(filter.key, $any($event.target).value)" class="filter-select">
+                @for (option of filter.options; track option.value) {
+                <option [value]="option.value">
+                    {{ option.label }}
+                </option>
+                }
+            </select>
+            }
+
+            <!-- NUMBER INPUT -->
+            @if (filter.type === 'number') {
+            <input [id]="filter.key" type="number" [value]="getFilterValue(filter.key)"
+                [placeholder]="filter.placeholder" [disabled]="filter.disabled"
+                (input)="onFilterChange(filter.key, $any($event.target).value)" class="filter-input" />
+            }
+
+            <!-- DATE INPUT -->
+            @if (filter.type === 'date') {
+            <input [id]="filter.key" type="date" [value]="getFilterValue(filter.key)" [disabled]="filter.disabled"
+                (change)="onFilterChange(filter.key, $any($event.target).value)" class="filter-input" />
+            }
+
+            <!-- BOOLEAN CHECKBOX -->
+            @if (filter.type === 'boolean') {
+            <div class="filter-checkbox">
+                <input [id]="filter.key" type="checkbox" [checked]="getFilterValue(filter.key)"
+                    [disabled]="filter.disabled" (change)="onFilterChange(filter.key, $any($event.target).checked)"
+                    class="checkbox-input" />
+                <label [for]="filter.key" class="checkbox-label">
+                    {{ filter.placeholder || 'Activo' }}
+                </label>
+            </div>
+            }
+        </div>
+        }
+    </div>
+
+    <!-- Active Filters & Actions Row -->
+    <div class="actions-row">
+        <!-- Active Filters Pills -->
+        <div class="active-filters">
+            @if (showActivePills() && hasActiveFilters()) {
+            <span class="active-label">Filtros activos:</span>
+
+            @for (activeFilter of activeFilters(); track trackByActiveKey($index, activeFilter)) {
+            <button type="button" (click)="onFilterRemove(activeFilter.key)" class="filter-pill"
+                [class]="'pill-' + getPillColor($index)" [title]="'Click para eliminar filtro: ' + activeFilter.label">
+                <span class="pill-label">{{ activeFilter.displayValue }}</span>
+                <app-icon name="x-mark" size="xs" class="pill-icon" />
+            </button>
+            }
+            } @else if (showActivePills()) {
+            <span class="no-filters-text">Sin filtros aplicados</span>
+            }
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+            <!-- Result Count -->
+            @if (showResultCount() && resultText()) {
+            <span class="result-count">
+                {{ resultText() }}
+            </span>
+            }
+
+            <!-- Clear Button -->
+            @if (showClearButton()) {
+            <app-button variant="outline" size="sm" iconLeft="x-circle" [disabled]="!hasActiveFilters()"
+                (clicked)="onClearAll()">
+                Limpiar
+            </app-button>
+            }
+        </div>
+    </div>
+</div>
