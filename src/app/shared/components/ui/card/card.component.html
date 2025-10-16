@@ -1,0 +1,33 @@
+<!-- 
+  ============================================================================
+  🎴 CARD TEMPLATE - SISTEMA OAXACA MIEL
+  ============================================================================
+  
+  Template del componente Card con secciones opcionales:
+  - Header (card-header)
+  - Body (card-body) - siempre presente
+  - Footer (card-footer)
+  
+  ============================================================================
+-->
+
+<div [class]="cardClasses()" [ngStyle]="borderStyle()">
+
+    <!-- HEADER (opcional) -->
+    <div class="card-header">
+        <ng-content select="[card-header]"></ng-content>
+    </div>
+
+    <!-- BODY (siempre presente) -->
+    <div [class]="bodyClasses()">
+        <ng-content select="[card-body]"></ng-content>
+        <!-- Si no hay card-body explícito, usa el contenido default -->
+        <ng-content></ng-content>
+    </div>
+
+    <!-- FOOTER (opcional) -->
+    <div class="card-footer">
+        <ng-content select="[card-footer]"></ng-content>
+    </div>
+
+</div>

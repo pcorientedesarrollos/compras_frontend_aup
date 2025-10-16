@@ -1,0 +1,64 @@
+<!-- 
+  ============================================================================
+  🚨 ALERT TEMPLATE - SISTEMA OAXACA MIEL
+  ============================================================================
+  
+  Template del componente Alert con soporte para:
+  - Múltiples tipos (success, error, warning, info)
+  - Título opcional
+  - Dismissible
+  - Auto-close
+  - Iconos
+  
+  ============================================================================
+-->
+
+@if (isVisible()) {
+<div [class]="alertClasses()" role="alert">
+
+    <div class="alert-content">
+
+        <!-- Icono -->
+        <div class="alert-icon">
+            <app-icon [name]="defaultIcon()" size="lg" />
+        </div>
+
+        <!-- Texto -->
+        <div class="alert-text">
+
+            <!-- Título (opcional) -->
+            @if (title()) {
+            <h4 class="alert-title">
+                {{ title() }}
+            </h4>
+            }
+
+            <!-- Mensaje -->
+            <div class="alert-message">
+                <ng-content></ng-content>
+            </div>
+
+        </div>
+
+        <!-- Botón cerrar -->
+        @if (dismissible()) {
+        <button type="button" class="alert-close" (click)="close()" aria-label="Cerrar alerta">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clip-rule="evenodd" />
+            </svg>
+        </button>
+        }
+
+    </div>
+
+    <!-- Barra de progreso para auto-close -->
+    @if (autoClose() && isVisible()) {
+    <div class="alert-progress-container">
+        <div class="alert-progress-bar" [style.animation-duration]="duration() + 'ms'"></div>
+    </div>
+    }
+
+</div>
+}

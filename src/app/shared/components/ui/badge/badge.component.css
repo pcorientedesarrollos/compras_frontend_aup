@@ -1,0 +1,144 @@
+/**
+ * ============================================================================
+ * 🏷️ BADGE STYLES - SISTEMA OAXACA MIEL
+ * ============================================================================
+ * 
+ * Estilos del componente Badge con variantes de color
+ * 
+ * ============================================================================
+ */
+
+/* ============================================================================
+   BASE STYLES
+   ============================================================================ */
+
+.badge-base {
+    @apply inline-flex items-center justify-center;
+    @apply font-medium rounded-full;
+    @apply transition-all duration-200 ease-in-out;
+    @apply whitespace-nowrap;
+}
+
+/* ============================================================================
+   SIZES
+   ============================================================================ */
+
+.badge-sm {
+    @apply px-2 py-0.5 text-xs;
+    @apply gap-1;
+}
+
+.badge-md {
+    @apply px-2.5 py-0.5 text-sm;
+    @apply gap-1.5;
+}
+
+.badge-lg {
+    @apply px-3 py-1 text-base;
+    @apply gap-2;
+}
+
+/* ============================================================================
+   VARIANTS - SUCCESS (Verde)
+   ============================================================================ */
+
+.badge-success {
+    @apply bg-green-100 text-green-800;
+    @apply border border-green-200;
+}
+
+.badge-success .badge-dot {
+    @apply bg-green-500;
+}
+
+/* ============================================================================
+   VARIANTS - WARNING (Amarillo)
+   ============================================================================ */
+
+.badge-warning {
+    @apply bg-yellow-100 text-yellow-800;
+    @apply border border-yellow-200;
+}
+
+.badge-warning .badge-dot {
+    @apply bg-yellow-500;
+}
+
+/* ============================================================================
+   VARIANTS - DANGER (Rojo)
+   ============================================================================ */
+
+.badge-danger {
+    @apply bg-red-100 text-red-800;
+    @apply border border-red-200;
+}
+
+.badge-danger .badge-dot {
+    @apply bg-red-500;
+}
+
+/* ============================================================================
+   VARIANTS - INFO (Azul)
+   ============================================================================ */
+
+.badge-info {
+    @apply bg-blue-100 text-blue-800;
+    @apply border border-blue-200;
+}
+
+.badge-info .badge-dot {
+    @apply bg-blue-500;
+}
+
+/* ============================================================================
+   VARIANTS - DEFAULT (Gris)
+   ============================================================================ */
+
+.badge-default {
+    @apply bg-gray-100 text-gray-800;
+    @apply border border-gray-200;
+}
+
+.badge-default .badge-dot {
+    @apply bg-gray-500;
+}
+
+/* ============================================================================
+   DOT INDICATOR
+   ============================================================================ */
+
+.badge-dot {
+    @apply w-2 h-2 rounded-full;
+    @apply flex-shrink-0;
+}
+
+/* ============================================================================
+   ICON
+   ============================================================================ */
+
+.badge-icon {
+    @apply flex-shrink-0;
+}
+
+/* ============================================================================
+   TEXT
+   ============================================================================ */
+
+.badge-text {
+    @apply leading-none;
+}
+
+/* ============================================================================
+   REMOVE BUTTON
+   ============================================================================ */
+
+.badge-remove {
+    @apply ml-1 flex-shrink-0;
+    @apply hover:opacity-70;
+    @apply transition-opacity duration-150;
+    @apply focus:outline-none;
+}
+
+.badge-remove:active {
+    @apply transform scale-90;
+}

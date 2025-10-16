@@ -1,0 +1,218 @@
+/**
+ * ============================================================================
+ * 🚨 ALERT STYLES - SISTEMA OAXACA MIEL
+ * ============================================================================
+ * 
+ * Estilos del componente Alert con variantes de tipo
+ * 
+ * ============================================================================
+ */
+
+/* ============================================================================
+   BASE STYLES
+   ============================================================================ */
+
+.alert-base {
+    @apply rounded-lg border-l-4 shadow-md;
+    @apply transition-all duration-300 ease-in-out;
+    @apply overflow-hidden;
+    @apply animate-slide-in;
+}
+
+.alert-hidden {
+    @apply opacity-0 transform translate-x-full;
+}
+
+/* ============================================================================
+   CONTENT LAYOUT
+   ============================================================================ */
+
+.alert-content {
+    @apply flex items-start p-4 gap-3;
+}
+
+/* ============================================================================
+   ICON
+   ============================================================================ */
+
+.alert-icon {
+    @apply flex-shrink-0;
+}
+
+/* ============================================================================
+   TEXT
+   ============================================================================ */
+
+.alert-text {
+    @apply flex-1 min-w-0;
+}
+
+.alert-title {
+    @apply font-bold text-sm mb-1;
+}
+
+.alert-message {
+    @apply text-sm;
+}
+
+/* ============================================================================
+   CLOSE BUTTON
+   ============================================================================ */
+
+.alert-close {
+    @apply flex-shrink-0 p-1 rounded-md;
+    @apply transition-all duration-150;
+    @apply hover:opacity-70;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.alert-close:active {
+    @apply transform scale-90;
+}
+
+/* ============================================================================
+   VARIANTS - SUCCESS (Verde)
+   ============================================================================ */
+
+.alert-success {
+    @apply bg-green-50 border-green-500;
+}
+
+.alert-success .alert-icon {
+    @apply text-green-500;
+}
+
+.alert-success .alert-title {
+    @apply text-green-800;
+}
+
+.alert-success .alert-message {
+    @apply text-green-700;
+}
+
+.alert-success .alert-close {
+    @apply text-green-500 hover:bg-green-100;
+    @apply focus:ring-green-500;
+}
+
+/* ============================================================================
+   VARIANTS - ERROR (Rojo)
+   ============================================================================ */
+
+.alert-error {
+    @apply bg-red-50 border-red-500;
+}
+
+.alert-error .alert-icon {
+    @apply text-red-500;
+}
+
+.alert-error .alert-title {
+    @apply text-red-800;
+}
+
+.alert-error .alert-message {
+    @apply text-red-700;
+}
+
+.alert-error .alert-close {
+    @apply text-red-500 hover:bg-red-100;
+    @apply focus:ring-red-500;
+}
+
+/* ============================================================================
+   VARIANTS - WARNING (Amarillo)
+   ============================================================================ */
+
+.alert-warning {
+    @apply bg-yellow-50 border-yellow-500;
+}
+
+.alert-warning .alert-icon {
+    @apply text-yellow-500;
+}
+
+.alert-warning .alert-title {
+    @apply text-yellow-800;
+}
+
+.alert-warning .alert-message {
+    @apply text-yellow-700;
+}
+
+.alert-warning .alert-close {
+    @apply text-yellow-500 hover:bg-yellow-100;
+    @apply focus:ring-yellow-500;
+}
+
+/* ============================================================================
+   VARIANTS - INFO (Azul)
+   ============================================================================ */
+
+.alert-info {
+    @apply bg-blue-50 border-blue-500;
+}
+
+.alert-info .alert-icon {
+    @apply text-blue-500;
+}
+
+.alert-info .alert-title {
+    @apply text-blue-800;
+}
+
+.alert-info .alert-message {
+    @apply text-blue-700;
+}
+
+.alert-info .alert-close {
+    @apply text-blue-500 hover:bg-blue-100;
+    @apply focus:ring-blue-500;
+}
+
+/* ============================================================================
+   PROGRESS BAR (Auto-close)
+   ============================================================================ */
+
+.alert-progress-container {
+    @apply h-1 bg-black/10;
+}
+
+.alert-progress-bar {
+    @apply h-full bg-current;
+    @apply animate-progress;
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+
+@keyframes slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes progress {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
+}
+
+.animate-slide-in {
+    animation: slide-in 0.3s ease-out;
+}
+
+.animate-progress {
+    animation: progress linear;
+}

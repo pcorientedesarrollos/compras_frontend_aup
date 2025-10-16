@@ -1,0 +1,179 @@
+/**
+ * ============================================================================
+ * 🪟 MODAL STYLES - SISTEMA OAXACA MIEL
+ * ============================================================================
+ * 
+ * Estilos del componente Modal con backdrop y animaciones
+ * 
+ * ============================================================================
+ */
+
+/* ============================================================================
+   BACKDROP / OVERLAY
+   ============================================================================ */
+
+.modal-backdrop {
+    @apply fixed inset-0 z-50;
+    @apply bg-black/50 backdrop-blur-sm;
+    @apply flex items-center justify-center;
+    @apply p-4;
+    @apply overflow-y-auto;
+    @apply animate-fade-in;
+}
+
+/* ============================================================================
+   MODAL CONTENT
+   ============================================================================ */
+
+.modal-content {
+    @apply bg-white rounded-lg shadow-2xl;
+    @apply w-full;
+    @apply max-h-[90vh];
+    @apply flex flex-col;
+    @apply animate-slide-in;
+    @apply my-auto;
+}
+
+/* ============================================================================
+   HEADER
+   ============================================================================ */
+
+.modal-header {
+    @apply flex items-center justify-between;
+    @apply px-6 py-4;
+    @apply border-b border-gray-200;
+    @apply flex-shrink-0;
+}
+
+.modal-title {
+    @apply flex-1 min-w-0;
+}
+
+.modal-title h3 {
+    @apply text-lg font-bold text-gray-900;
+    @apply truncate;
+}
+
+.modal-close-button {
+    @apply ml-4 p-2 rounded-lg;
+    @apply text-gray-400 hover:text-gray-600 hover:bg-gray-100;
+    @apply transition-all duration-200;
+    @apply flex-shrink-0;
+    @apply focus:outline-none focus:ring-2 focus:ring-honey-primary;
+}
+
+.modal-close-button:active {
+    @apply transform scale-90;
+}
+
+/* ============================================================================
+   BODY
+   ============================================================================ */
+
+.modal-body {
+    @apply px-6 py-4;
+    @apply overflow-y-auto;
+    @apply flex-1;
+    @apply text-gray-700;
+}
+
+/* Estilos de scrollbar personalizado */
+.modal-body::-webkit-scrollbar {
+    @apply w-2;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded-lg;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-lg;
+    @apply hover:bg-gray-400;
+}
+
+/* Si el body está vacío, ocultarlo */
+.modal-body:empty {
+    @apply hidden;
+}
+
+/* ============================================================================
+   FOOTER
+   ============================================================================ */
+
+.modal-footer {
+    @apply px-6 py-4;
+    @apply border-t border-gray-200;
+    @apply flex items-center justify-end gap-2;
+    @apply flex-shrink-0;
+    @apply bg-gray-50;
+}
+
+/* Si el footer está vacío, ocultarlo */
+.modal-footer:empty {
+    @apply hidden;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 640px) {
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        @apply px-4 py-3;
+    }
+
+    .modal-content {
+        @apply max-h-[95vh];
+    }
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.2s ease-out;
+}
+
+.animate-slide-in {
+    animation: slide-in 0.3s ease-out;
+}
+
+/* ============================================================================
+   ACCESSIBILITY
+   ============================================================================ */
+
+/* Focus visible para navegación por teclado */
+.modal-close-button:focus-visible {
+    @apply ring-2 ring-honey-primary ring-offset-2;
+}
+
+/* Prevenir scroll en dispositivos táctiles cuando modal está abierto */
+body.modal-open {
+    @apply overflow-hidden;
+}
