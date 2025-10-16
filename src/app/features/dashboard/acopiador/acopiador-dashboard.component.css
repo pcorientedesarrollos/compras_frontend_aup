@@ -1,0 +1,7 @@
+/* Reutiliza estilos similares al admin dashboard */
+/* Transiciones suaves */
+* {
+    transition-property: transform, box-shadow;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-in-out;
+}

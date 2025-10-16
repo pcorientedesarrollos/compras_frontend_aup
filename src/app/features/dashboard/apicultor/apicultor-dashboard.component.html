@@ -1,0 +1,155 @@
+<div class="space-y-6">
+
+    <!-- Header con saludo -->
+    <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold mb-2">
+                    ¡Bienvenido, {{ currentUser()?.nombre }}! 🐝
+                </h1>
+                <p class="text-green-100">
+                    Panel de Apicultor · Gestión de Apiarios
+                </p>
+            </div>
+            <div class="hidden md:block">
+                <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                    <span class="text-4xl">🍯</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Métricas Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        @for (metric of metrics; track metric.title) {
+        <div class="bg-white rounded-lg shadow-md p-5 hover:shadow-lg transition-shadow">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <p class="text-sm text-gray-600 mb-1">{{ metric.title }}</p>
+                    <p class="text-3xl font-bold text-gray-800">{{ metric.value }}</p>
+                </div>
+
+                <div [class]="'w-12 h-12 rounded-lg flex items-center justify-center ' + metric.bgColor">
+                    <span class="text-2xl">{{ metric.icon }}</span>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+
+    <!-- Acciones Rápidas -->
+    <div>
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <span class="mr-2">⚡</span>
+            Acciones Rápidas
+        </h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            @for (action of quickActions; track action.route) {
+            <a [routerLink]="action.route"
+                [class]="'block p-5 rounded-lg text-white shadow-md hover:shadow-xl transition-all transform hover:scale-105 ' + action.color">
+                <div class="text-3xl mb-3">{{ action.icon }}</div>
+                <h3 class="text-lg font-bold mb-1">{{ action.title }}</h3>
+                <p class="text-sm text-white/80">{{ action.description }}</p>
+            </a>
+            }
+        </div>
+    </div>
+
+    <!-- Mis Apiarios y Proveedores -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Mis Apiarios -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="mr-2">🏞️</span>
+                Mis Apiarios
+            </h2>
+
+            <div class="space-y-3">
+                @for (i of [1,2,3,4]; track i) {
+                <div
+                    class="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
+                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-lg">📍</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-800 truncate">
+                            Apiario {{ i }} - Zona Norte
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            {{ (i * 30) }} colmenas · Oaxaca, MX
+                        </p>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
+                }
+            </div>
+
+            <div class="mt-4 text-center">
+                <a routerLink="/apicultor/apiarios"
+                    class="text-sm text-green-600 hover:text-green-800 font-medium transition-colors">
+                    Ver todos mis apiarios →
+                </a>
+            </div>
+        </div>
+
+        <!-- Proveedores Vinculados -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <span class="mr-2">🏢</span>
+                Proveedores Vinculados
+            </h2>
+
+            <div class="space-y-3">
+                @for (i of [1,2,3]; track i) {
+                <div class="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span class="text-lg">🏢</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-800 truncate">
+                            Proveedor {{ i }}
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            Vinculado desde 2024
+                        </p>
+                    </div>
+                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                        Activo
+                    </span>
+                </div>
+                }
+            </div>
+
+            <div class="mt-4 text-center">
+                <a routerLink="/apicultor/proveedores"
+                    class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                    Ver mis proveedores →
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Tips para Apicultores -->
+    <div class="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg border border-amber-200 p-6">
+        <div class="flex items-start space-x-3">
+            <div class="flex-shrink-0">
+                <span class="text-3xl">💡</span>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2">
+                    Consejo del Día
+                </h3>
+                <p class="text-sm text-gray-700">
+                    Recuerda mantener actualizadas las ubicaciones GPS de tus apiarios para una mejor trazabilidad.
+                    Esto ayuda a garantizar la calidad y origen de tu miel.
+                </p>
+            </div>
+        </div>
+    </div>
+
+</div>

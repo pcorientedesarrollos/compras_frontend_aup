@@ -1,0 +1,40 @@
+/* Estilos adicionales para el layout (Tailwind hace la mayoría del trabajo) */
+
+/* Asegurar que el sidebar tenga scroll suave */
+aside {
+    scrollbar-width: thin;
+    scrollbar-color: #F59E0B #f3f4f6;
+}
+
+/* Webkit scrollbar para sidebar */
+aside::-webkit-scrollbar {
+    width: 6px;
+}
+
+aside::-webkit-scrollbar-track {
+    background: #f3f4f6;
+}
+
+aside::-webkit-scrollbar-thumb {
+    background: #F59E0B;
+    border-radius: 3px;
+}
+
+aside::-webkit-scrollbar-thumb:hover {
+    background: #92400E;
+}
+
+/* Animación suave para el backdrop */
+.backdrop-enter {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

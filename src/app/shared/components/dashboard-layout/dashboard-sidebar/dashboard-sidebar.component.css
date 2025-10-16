@@ -1,0 +1,50 @@
+/* Scrollbar personalizado para el sidebar */
+aside {
+    scrollbar-width: thin;
+    scrollbar-color: #F59E0B #f3f4f6;
+}
+
+aside::-webkit-scrollbar {
+    width: 6px;
+}
+
+aside::-webkit-scrollbar-track {
+    background: #f3f4f6;
+}
+
+aside::-webkit-scrollbar-thumb {
+    background: #F59E0B;
+    border-radius: 3px;
+}
+
+aside::-webkit-scrollbar-thumb:hover {
+    background: #92400E;
+}
+
+/* Animación para items del menú */
+nav a {
+    position: relative;
+    overflow: hidden;
+}
+
+nav a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: #F59E0B;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+nav a:hover::before,
+nav a.active::before {
+    transform: translateX(0);
+}
+
+/* Efecto ripple al hacer click */
+nav a:active {
+    transform: scale(0.98);
+}

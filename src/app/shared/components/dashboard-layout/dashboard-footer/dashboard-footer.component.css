@@ -1,0 +1,15 @@
+/* Estilos adicionales para el footer */
+
+footer {
+    margin-top: auto;
+}
+
+/* Hover effect para links */
+footer a {
+    transition: color 0.2s ease-in-out;
+}
+
+footer a:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}

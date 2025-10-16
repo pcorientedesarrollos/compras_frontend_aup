@@ -1,0 +1,7 @@
+/* Estilos reutilizables */
+/* Transiciones suaves para todos los elementos interactivos */
+a,
+button,
+div {
+    transition: all 0.2s ease-in-out;
+}

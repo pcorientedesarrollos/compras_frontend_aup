@@ -1,0 +1,96 @@
+<aside [class]="
+    'fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] w-64 ' +
+    'transition-transform duration-300 ease-in-out ' +
+    'bg-white border-r border-gray-200 overflow-y-auto ' +
+    'lg:translate-x-0 ' +
+    (isOpen() ? 'translate-x-0' : '-translate-x-full')
+  ">
+
+    <div class="flex flex-col h-full">
+
+        <!-- Header del sidebar con info de rol -->
+        <div class="p-4 bg-gradient-to-r from-honey-primary/10 to-amber-100/50 border-b border-amber-200">
+            <div class="flex items-center space-x-2">
+                <div
+                    class="w-10 h-10 bg-gradient-to-br from-honey-primary to-amber-600 rounded-lg flex items-center justify-center">
+                    @switch (currentUser()?.role) {
+                    @case ('ADMINISTRADOR') {
+                    <span class="text-white text-xl">👑</span>
+                    }
+                    @case ('ACOPIADOR') {
+                    <span class="text-white text-xl">🏢</span>
+                    }
+                    @case ('APICULTOR') {
+                    <span class="text-white text-xl">🐝</span>
+                    }
+                    }
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-800 truncate">
+                        {{ currentUser()?.nombre }}
+                    </p>
+                    <p class="text-xs text-gray-600">
+                        @switch (currentUser()?.role) {
+                        @case ('ADMINISTRADOR') {
+                        <span>Administrador</span>
+                        }
+                        @case ('ACOPIADOR') {
+                        <span>Acopiador</span>
+                        }
+                        @case ('APICULTOR') {
+                        <span>Apicultor</span>
+                        }
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menú de navegación -->
+        <nav class="flex-1 p-3 space-y-1">
+            @for (item of menuItems(); track item.route) {
+            <a [routerLink]="item.route" routerLinkActive="bg-honey-primary text-white shadow-md"
+                [routerLinkActiveOptions]="{ exact: true }" (click)="onMenuItemClick(item.route)"
+                class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-honey-primary/10 hover:text-honey-dark transition-all duration-200 group cursor-pointer">
+
+                <!-- Icono -->
+                <span class="text-xl group-hover:scale-110 transition-transform">
+                    {{ item.icon }}
+                </span>
+
+                <!-- Label -->
+                <span class="flex-1 text-sm font-medium">
+                    {{ item.label }}
+                </span>
+
+                <!-- Badge (opcional) -->
+                @if (item.badge) {
+                <span
+                    [class]="'px-2 py-0.5 text-xs font-semibold rounded-full ' + (item.badgeClass || 'bg-red-100 text-red-800')">
+                    {{ item.badge }}
+                </span>
+                }
+
+                <!-- Icono de flecha al hover -->
+                <svg class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </a>
+            }
+        </nav>
+
+        <!-- Footer del sidebar -->
+        <div class="p-4 border-t border-gray-200 bg-gray-50">
+            <div class="flex items-center space-x-2 text-xs text-gray-500">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clip-rule="evenodd" />
+                </svg>
+                <span>Sistema de Trazabilidad</span>
+            </div>
+        </div>
+
+    </div>
+</aside>
