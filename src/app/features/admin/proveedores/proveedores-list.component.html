@@ -1,0 +1,114 @@
+<div class="proveedores-container">
+    <!-- Header -->
+    <div class="header-section">
+        <div class="header-content">
+            <div class="flex items-center space-x-3">
+                <div class="icon-wrapper">
+                    <app-icon name="building-office" size="xl" color="text-honey-primary" />
+                </div>
+                <div>
+                    <h1 class="page-title">Proveedores</h1>
+                    <p class="page-subtitle">Gestión de acopiadores y mieleras</p>
+                </div>
+            </div>
+
+            <div class="header-stats">
+                <div class="stat-card">
+                    <div class="stat-icon bg-blue-100">
+                        <app-icon name="chart-bar" size="md" color="text-blue-600" />
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Total Proveedores</p>
+                        <p class="stat-value">{{ totalItems() }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-section">
+        <app-table-filters [filters]="filterConfig()" [filterState]="filterState()" [resultCount]="proveedores().length"
+            [totalCount]="totalItems()" [showResultCount]="true" [showActivePills]="true"
+            (filtersChange)="onFiltersChange($event)" (filterRemove)="onFilterRemove($event)"
+            (clearAll)="clearAllFilters()">
+        </app-table-filters>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-section">
+        <app-honey-table [columns]="columns()" [data]="proveedores()" [config]="tableConfig()"
+            [rowActions]="rowActions()" rowKey="idProveedor" (actionClick)="onActionClick($event)">
+        </app-honey-table>
+
+        <!-- Paginación -->
+        @if (totalPages() > 1) {
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <p class="text-sm text-gray-600">
+                    Mostrando
+                    <span class="font-semibold">{{ (currentPage() - 1) * pageSize() + 1 }}</span>
+                    -
+                    <span class="font-semibold">{{ Math.min(currentPage() * pageSize(), totalItems()) }}</span>
+                    de
+                    <span class="font-semibold">{{ totalItems() }}</span>
+                    proveedores
+                </p>
+            </div>
+
+            <div class="pagination-controls">
+                <!-- Botón Anterior -->
+                <button class="pagination-button" [disabled]="currentPage() === 1"
+                    (click)="onPageChange(currentPage() - 1)">
+                    <app-icon name="chevron-left" size="sm" />
+                    Anterior
+                </button>
+
+                <!-- Números de página -->
+                <div class="page-numbers">
+                    @for (page of [1, 2, 3, 4, 5]; track page) {
+                    @if (page <= totalPages()) { <button class="page-number" [class.active]="currentPage() === page"
+                        (click)="onPageChange(page)">
+                        {{ page }}
+                        </button>
+                        }
+                        }
+
+                        @if (totalPages() > 5) {
+                        <span class="page-ellipsis">...</span>
+                        <button class="page-number" [class.active]="currentPage() === totalPages()"
+                            (click)="onPageChange(totalPages())">
+                            {{ totalPages() }}
+                        </button>
+                        }
+                </div>
+
+                <!-- Botón Siguiente -->
+                <button class="pagination-button" [disabled]="currentPage() === totalPages()"
+                    (click)="onPageChange(currentPage() + 1)">
+                    Siguiente
+                    <app-icon name="chevron-right" size="sm" />
+                </button>
+            </div>
+
+            <!-- Selector de tamaño de página -->
+            <div class="page-size-selector">
+                <label class="text-sm text-gray-600">Mostrar:</label>
+                <select class="page-size-select" [value]="pageSize()"
+                    (change)="onPageSizeChange(+$any($event.target).value)">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+        </div>
+        }
+    </div>
+
+    <!-- Modal de Detalle -->
+    @if (selectedProveedor()) {
+    <app-proveedor-detail-modal [proveedor]="selectedProveedor()!" [isOpen]="isModalOpen()" (close)="closeModal()">
+    </app-proveedor-detail-modal>
+    }
+</div>

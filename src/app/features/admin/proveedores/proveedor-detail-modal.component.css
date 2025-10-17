@@ -1,0 +1,240 @@
+/* ============================================================================
+   🏢 PROVEEDOR DETAIL MODAL STYLES
+   ============================================================================ */
+
+/* Modal Overlay */
+.modal-overlay {
+    @apply fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Modal Container */
+.modal-container {
+    @apply bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col overflow-hidden;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ============================================================================
+   HEADER
+   ============================================================================ */
+
+.modal-header {
+    @apply bg-gradient-to-r from-honey-primary/10 to-amber-100/50 border-b border-amber-200;
+}
+
+.header-content {
+    @apply flex items-center justify-between p-6;
+}
+
+.icon-wrapper {
+    @apply w-14 h-14 bg-gradient-to-br from-honey-primary/20 to-amber-100 rounded-xl flex items-center justify-center;
+}
+
+.modal-title {
+    @apply text-xl font-bold text-gray-900;
+}
+
+.modal-subtitle {
+    @apply text-sm text-gray-600 mt-1;
+}
+
+.separator {
+    @apply mx-2 text-gray-400;
+}
+
+.close-button {
+    @apply w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-200 transition-colors text-gray-600 hover:text-gray-900;
+}
+
+/* Tabs Navigation */
+.tabs-nav {
+    @apply flex border-t border-amber-200 bg-white;
+}
+
+.tab-button {
+    @apply flex items-center space-x-2 px-6 py-3 text-sm font-medium text-gray-600 border-b-2 border-transparent hover:bg-gray-50 hover:text-gray-900 transition-all;
+}
+
+.tab-button.active {
+    @apply text-honey-primary border-honey-primary bg-honey-primary/5;
+}
+
+/* ============================================================================
+   BODY
+   ============================================================================ */
+
+.modal-body {
+    @apply flex-1 overflow-y-auto p-6;
+}
+
+.tab-content {
+    @apply space-y-6;
+}
+
+/* Info Grid */
+.info-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+.info-section {
+    @apply bg-gray-50 rounded-lg p-4 space-y-4;
+}
+
+.section-title {
+    @apply text-sm font-bold text-gray-700 uppercase tracking-wide mb-3 pb-2 border-b border-gray-200;
+}
+
+.info-item {
+    @apply flex flex-col space-y-1;
+}
+
+.info-item label {
+    @apply text-xs text-gray-500 uppercase tracking-wide;
+}
+
+.info-item span {
+    @apply text-sm text-gray-900;
+}
+
+/* Apicultores Tab */
+.apicultores-header {
+    @apply mb-4 pb-4 border-b border-gray-200;
+}
+
+/* Pagination */
+.pagination-container {
+    @apply flex items-center justify-between mt-4 pt-4 border-t border-gray-200;
+}
+
+.pagination-button {
+    @apply flex items-center space-x-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+}
+
+.pagination-button:hover:not(:disabled) {
+    @apply bg-honey-primary/10 border-honey-primary text-honey-dark;
+}
+
+.pagination-info {
+    @apply text-sm text-gray-600 font-medium;
+}
+
+/* Mapa Tab */
+.map-section {
+    @apply space-y-6;
+}
+
+.map-info {
+    @apply flex flex-wrap gap-6 p-4 bg-gray-50 rounded-lg;
+}
+
+.coordinate-item {
+    @apply flex items-center space-x-3;
+}
+
+.coordinate-item label {
+    @apply text-xs text-gray-500 uppercase;
+}
+
+.coordinate-item span {
+    @apply text-sm text-gray-900;
+}
+
+.map-placeholder {
+    @apply h-96 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-center;
+}
+
+/* ============================================================================
+   FOOTER
+   ============================================================================ */
+
+.modal-footer {
+    @apply flex items-center justify-end space-x-3 p-6 bg-gray-50 border-t border-gray-200;
+}
+
+.footer-button {
+    @apply flex items-center space-x-2 px-6 py-2.5 rounded-lg font-medium transition-all;
+}
+
+.footer-button.secondary {
+    @apply bg-white text-gray-700 border border-gray-300 hover:bg-gray-50;
+}
+
+.footer-button.primary {
+    @apply bg-honey-primary text-white hover:bg-honey-dark;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .modal-container {
+        @apply max-h-[95vh] mx-2;
+    }
+
+    .info-grid {
+        @apply grid-cols-1;
+    }
+
+    .tabs-nav {
+        @apply overflow-x-auto;
+    }
+
+    .tab-button {
+        @apply flex-shrink-0 px-4 py-2 text-xs;
+    }
+
+    .modal-header {
+        @apply p-4;
+    }
+
+    .modal-body {
+        @apply p-4;
+    }
+
+    .modal-footer {
+        @apply p-4;
+    }
+}
+
+/* ============================================================================
+   SCROLLBAR CUSTOM
+   ============================================================================ */
+
+.modal-body::-webkit-scrollbar {
+    @apply w-2;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    @apply bg-gray-100;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    @apply bg-gray-400 rounded-full;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500;
+}

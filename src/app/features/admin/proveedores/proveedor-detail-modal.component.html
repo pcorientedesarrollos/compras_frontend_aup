@@ -1,0 +1,222 @@
+<!-- Modal Overlay -->
+@if (isOpen()) {
+<div class="modal-overlay" (click)="onClose()" (keydown)="onKeydown($event)">
+    <!-- Modal Container -->
+    <div class="modal-container" (click)="onModalClick($event)">
+
+        <!-- Header -->
+        <div class="modal-header">
+            <div class="header-content">
+                <div class="flex items-center space-x-3">
+                    <div class="icon-wrapper">
+                        <app-icon name="building-office" size="xl" color="text-honey-primary" />
+                    </div>
+                    <div>
+                        <h2 class="modal-title">{{ proveedor().nombre }}</h2>
+                        <p class="modal-subtitle">
+                            ID: {{ proveedor().idProveedor }}
+                            @if (proveedor().tipo) {
+                            <span class="separator">•</span>
+                            <span>{{ proveedor().tipo }}</span>
+                            }
+                        </p>
+                    </div>
+                </div>
+
+                <button class="close-button" (click)="onClose()" title="Cerrar (Esc)">
+                    <app-icon name="x-mark" size="md" />
+                </button>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div class="tabs-nav">
+                @for (tab of tabs(); track tab.id) {
+                <button class="tab-button" [class.active]="isTabActive(tab.id)" (click)="selectTab(tab.id)">
+                    <app-icon [name]="tab.icon" size="sm" />
+                    <span>{{ tab.label }}</span>
+                </button>
+                }
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+
+            <!-- TAB 1: INFORMACIÓN GENERAL -->
+            @if (activeTab() === 'general') {
+            <div class="tab-content">
+                <div class="info-grid">
+
+                    <!-- Columna 1 -->
+                    <div class="info-section">
+                        <h3 class="section-title">Datos Generales</h3>
+
+                        <div class="info-item">
+                            <label>Nombre / Razón Social:</label>
+                            <span class="font-semibold">{{ proveedor().nombre }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Tipo de Proveedor:</label>
+                            @if (proveedor().tipo) {
+                            <app-badge [variant]="proveedor().tipo === 'ACOPIADOR' ? 'info' : 'success'" size="sm">
+                                {{ proveedor().tipo }}
+                            </app-badge>
+                            } @else {
+                            <span class="text-gray-500">No especificado</span>
+                            }
+                        </div>
+
+                        <div class="info-item">
+                            <label>Estado:</label>
+                            <app-badge [variant]="obtenerVarianteBadgeEstado(proveedor().activoInactivo)" size="sm">
+                                {{ obtenerTextoEstado(proveedor().activoInactivo) }}
+                            </app-badge>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Registro SAGARPA:</label>
+                            <span>{{ proveedor().idSagarpa || 'Sin registro' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Columna 2 -->
+                    <div class="info-section">
+                        <h3 class="section-title">Producción</h3>
+
+                        <div class="info-item">
+                            <label>Tipo de Miel:</label>
+                            <span class="font-semibold">{{ proveedor().tipoDeMielNombre || 'No especificado' }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Cantidad (kg):</label>
+                            <span class="font-mono text-honey-dark font-bold">
+                                {{ proveedor().cantidad !== null ? proveedor().cantidad!.toLocaleString('es-MX', {
+                                minimumFractionDigits: 2 }) : '0.00' }} kg
+                            </span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Apicultores Asociados:</label>
+                            <span class="font-bold text-blue-600">{{ proveedor().cantidadApicultores }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>ID Empresa:</label>
+                            <span>{{ proveedor().empresa || 'No especificado' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Columna 3 -->
+                    <div class="info-section">
+                        <h3 class="section-title">Referencias</h3>
+
+                        <div class="info-item">
+                            <label>ID Comprador:</label>
+                            <span>{{ proveedor().idComprador || 'N/A' }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>ID Datos Fiscales:</label>
+                            <span>{{ proveedor().idDatosFiscales || 'N/A' }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>ID Dirección:</label>
+                            <span>{{ proveedor().idDireccion || 'N/A' }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>ID Estado:</label>
+                            <span>{{ proveedor().idEstado || 'N/A' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+
+            <!-- TAB 2: APICULTORES -->
+            @if (activeTab() === 'apicultores') {
+            <div class="tab-content">
+                <div class="apicultores-header">
+                    <p class="text-sm text-gray-600">
+                        Total de apicultores asociados:
+                        <span class="font-bold text-gray-900">{{ proveedor().cantidadApicultores }}</span>
+                    </p>
+                </div>
+
+                <app-honey-table [columns]="apicultoresColumns()" [data]="apicultores()"
+                    [config]="apicultoresTableConfig()" rowKey="id">
+                </app-honey-table>
+
+                <!-- Paginación (si hay más de 10) -->
+                @if (apicultorestotalPages() > 1) {
+                <div class="pagination-container">
+                    <button class="pagination-button" [disabled]="apicultoresPage() === 1"
+                        (click)="onApicultoresPageChange(apicultoresPage() - 1)">
+                        <app-icon name="chevron-left" size="sm" />
+                        Anterior
+                    </button>
+
+                    <span class="pagination-info">
+                        Página {{ apicultoresPage() }} de {{ apicultorestotalPages() }}
+                    </span>
+
+                    <button class="pagination-button" [disabled]="apicultoresPage() === apicultorestotalPages()"
+                        (click)="onApicultoresPageChange(apicultoresPage() + 1)">
+                        Siguiente
+                        <app-icon name="chevron-right" size="sm" />
+                    </button>
+                </div>
+                }
+            </div>
+            }
+
+            <!-- TAB 3: MAPA GPS -->
+            @if (activeTab() === 'mapa') {
+            <div class="tab-content">
+                <div class="map-section">
+                    <div class="map-info">
+                        <div class="coordinate-item">
+                            <app-icon name="map-pin" size="md" color="text-honey-primary" />
+                            <div>
+                                <label>Latitud:</label>
+                                <span class="font-mono font-bold">{{ proveedor().latitud }}</span>
+                            </div>
+                        </div>
+                        <div class="coordinate-item">
+                            <app-icon name="map-pin" size="md" color="text-honey-primary" />
+                            <div>
+                                <label>Longitud:</label>
+                                <span class="font-mono font-bold">{{ proveedor().longitud }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TODO: Integrar componente de Leaflet Map -->
+                    <div class="map-placeholder">
+                        <app-icon name="map" size="2xl" color="text-gray-400" />
+                        <p class="text-gray-600 mt-4">Mapa GPS</p>
+                        <p class="text-sm text-gray-500">
+                            {{ proveedor().latitud }}, {{ proveedor().longitud }}
+                        </p>
+                        <p class="text-xs text-gray-400 mt-2">
+                            (Integración con Leaflet pendiente)
+                        </p>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+            <button class="footer-button secondary" (click)="onClose()">
+                <app-icon name="x-mark" size="sm" />
+                Cerrar
+            </button>
+        </div>
+    </div>
+</div>
+}
