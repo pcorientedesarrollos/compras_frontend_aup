@@ -35,7 +35,7 @@ import {
 
 // Servicios
 import { ProveedorService } from '../../../core/services/proveedor.service';
-import { ProveedorDetailModalComponent } from '../proveedores/proveedor-detail-modal.component';
+import { ProveedorDetailModalComponent } from './proveedor-detail-modal.component';
 
 @Component({
     selector: 'app-proveedores-list',
@@ -411,6 +411,46 @@ export class ProveedoresListComponent implements OnInit {
     // ============================================================================
     // EVENT HANDLERS - TABLA
     // ============================================================================
+
+    /**
+     * ✅ Manejar ordenamiento de columnas (LOCAL)
+     */
+    onSort(event: { column: string; direction: 'asc' | 'desc' | null }): void {
+        if (!event.direction) {
+            // Sin ordenamiento, restaurar filtrados originales
+            this.applyFiltersAndPagination();
+            return;
+        }
+
+        const filtered = [...this.filteredProveedores()];
+
+        filtered.sort((a, b) => {
+            const aValue = a[event.column as keyof ProveedorAPI];
+            const bValue = b[event.column as keyof ProveedorAPI];
+
+            // Manejar valores null/undefined
+            if (aValue == null && bValue == null) return 0;
+            if (aValue == null) return 1;
+            if (bValue == null) return -1;
+
+            // Comparación según tipo
+            if (typeof aValue === 'string' && typeof bValue === 'string') {
+                const comparison = aValue.toLowerCase().localeCompare(bValue.toLowerCase());
+                return event.direction === 'asc' ? comparison : -comparison;
+            }
+
+            if (typeof aValue === 'number' && typeof bValue === 'number') {
+                return event.direction === 'asc' ? aValue - bValue : bValue - aValue;
+            }
+
+            return 0;
+        });
+
+        // Aplicar paginación después del ordenamiento
+        const start = (this.currentPage() - 1) * this.pageSize();
+        const end = start + this.pageSize();
+        this.paginatedProveedores.set(filtered.slice(start, end));
+    }
 
     /**
      * Manejar acción en una fila

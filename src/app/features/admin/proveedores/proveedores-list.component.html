@@ -38,7 +38,7 @@
     <!-- Tabla -->
     <div class="table-section">
         <app-honey-table [columns]="columns()" [data]="paginatedProveedores()" [config]="tableConfig()"
-            [rowActions]="rowActions()" (actionClick)="onActionClick($event)">
+            [rowActions]="rowActions()" (actionClick)="onActionClick($event)" (sort)="onSort($event)">
         </app-honey-table>
 
         <!-- Paginación -->
