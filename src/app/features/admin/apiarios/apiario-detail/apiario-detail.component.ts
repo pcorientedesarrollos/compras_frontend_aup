@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * 🐝 APIARIO DETAIL COMPONENT - SISTEMA OAXACA MIEL
+ * 🏠 APIARIO DETAIL COMPONENT - SISTEMA OAXACA MIEL
  * ============================================================================
  * 
  * Formulario para crear y editar apiarios
@@ -16,7 +16,7 @@
  * ============================================================================
  */
 
-import { Component, computed, signal, inject, DestroyRef, OnInit } from '@angular/core';
+import { Component, computed, signal, inject, DestroyRef, OnInit, effect } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -24,6 +24,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 
 // Componentes reutilizables
 import { IconComponent } from '../../../../shared/components/ui/icon/icon.component';
+import { AutocompleteSelectComponent } from '../../../../shared/components/ui/autocomplete-select/autocomplete-select.component';
 
 // Modelos
 import {
@@ -46,6 +47,7 @@ type FormMode = 'create' | 'edit';
         CommonModule,
         ReactiveFormsModule,
         IconComponent,
+        AutocompleteSelectComponent,
     ],
     templateUrl: './apiario-detail.component.html',
     styleUrl: './apiario-detail.component.css'
@@ -86,6 +88,9 @@ export class ApiarioDetailComponent implements OnInit {
     /** Error de geolocalización */
     geolocationError = signal<string | null>(null);
 
+    /** ✅ SIGNAL para validez del formulario (REACTIVO) */
+    private formValidSignal = signal<boolean>(false);
+
     // ============================================================================
     // FORM
     // ============================================================================
@@ -106,8 +111,8 @@ export class ApiarioDetailComponent implements OnInit {
         this.mode() === 'create' ? 'Crear Apiario' : 'Actualizar Apiario'
     );
 
-    /** Si el formulario es válido */
-    isFormValid = computed(() => this.apiarioForm?.valid || false);
+    /** ✅ Si el formulario es válido (AHORA REACTIVO) */
+    isFormValid = computed(() => this.formValidSignal());
 
     /** Apicultores filtrados disponibles (ACTIVOS) */
     apicultoresActivos = computed(() =>
@@ -122,6 +127,7 @@ export class ApiarioDetailComponent implements OnInit {
         this.initForm();
         this.loadApicultores();
         this.checkMode();
+        this.setupFormValidation();
     }
 
     // ============================================================================
@@ -139,6 +145,21 @@ export class ApiarioDetailComponent implements OnInit {
             latitud: ['', [Validators.required, Validators.min(-90), Validators.max(90)]],
             longitud: ['', [Validators.required, Validators.min(-180), Validators.max(180)]]
         });
+    }
+
+    /**
+     * ✅ NUEVO: Configurar validación reactiva del formulario
+     */
+    private setupFormValidation(): void {
+        // Suscribirse a cambios de validez del formulario
+        this.apiarioForm.statusChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => {
+                this.formValidSignal.set(this.apiarioForm.valid);
+            });
+
+        // Actualizar estado inicial
+        this.formValidSignal.set(this.apiarioForm.valid);
     }
 
     /**
@@ -412,4 +433,18 @@ export class ApiarioDetailComponent implements OnInit {
             this.router.navigate(['/admin/apiarios']);
         }
     }
+
+    /**
+     * ✅ NUEVO: Regresar al listado sin confirmación
+     */
+    goBack(): void {
+        this.router.navigate(['/admin/apiarios']);
+    }
+
+    /**
+     * ✅ NUEVO: Formatear label del apicultor para el autocomplete
+     */
+    formatApicultorLabel = (apicultor: ApicultorAPI): string => {
+        return `${apicultor.codigo} - ${apicultor.nombre}`;
+    };
 }

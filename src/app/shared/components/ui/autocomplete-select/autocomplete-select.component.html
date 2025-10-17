@@ -1,0 +1,78 @@
+<!-- ============================================================================
+     🔍 AUTOCOMPLETE SELECT - TEMPLATE
+     ============================================================================ -->
+
+<div class="autocomplete-container">
+    <!-- Label -->
+    @if (label) {
+    <label class="autocomplete-label">
+        {{ label }}
+        @if (required) {
+        <span class="text-red-500">*</span>
+        }
+    </label>
+    }
+
+    <!-- Input Container -->
+    <div class="autocomplete-input-wrapper" [class.disabled]="disabled" [class.error]="hasError()">
+
+        <!-- Input de búsqueda -->
+        <input #searchInput type="text" class="autocomplete-input" [value]="displayText()"
+            (input)="onSearchChange($event)" (focus)="onInputFocus()" (keydown)="onKeyDown($event)"
+            [placeholder]="placeholder" [disabled]="disabled" autocomplete="off" />
+
+        <!-- Iconos de acción -->
+        <div class="autocomplete-actions">
+            <!-- Botón limpiar (solo si hay selección) -->
+            @if (selectedOption() && !disabled) {
+            <button type="button" class="clear-button" (click)="clearSelection($event)" tabindex="-1">
+                <app-icon name="x-mark" size="sm" />
+            </button>
+            }
+
+            <!-- Icono chevron -->
+            <button type="button" class="chevron-button" (click)="openDropdown()" [disabled]="disabled" tabindex="-1">
+                <app-icon [name]="isOpen() ? 'chevron-up' : 'chevron-down'" size="sm" />
+            </button>
+        </div>
+    </div>
+
+    <!-- Dropdown de opciones -->
+    @if (isOpen()) {
+    <div class="autocomplete-dropdown" [style.max-height.px]="maxVisibleOptions * 48">
+
+        <!-- Lista de opciones filtradas -->
+        @if (hasResults()) {
+        <div class="autocomplete-options">
+            @for (option of filteredOptions(); track option[optionValue]; let idx = $index) {
+            <button type="button" class="autocomplete-option" [class.selected]="isSelected(option)"
+                [class.highlighted]="isHighlighted(idx)" [attr.data-index]="idx" (click)="selectOption(option)"
+                (mouseenter)="highlightedIndex.set(idx)">
+                <!-- Icono de check si está seleccionado -->
+                <div class="option-content">
+                    <span class="option-text">{{ getOptionLabel(option) }}</span>
+                    @if (isSelected(option)) {
+                    <app-icon name="check" size="sm" class="text-honey-primary" />
+                    }
+                </div>
+            </button>
+            }
+        </div>
+        } @else {
+        <!-- Sin resultados -->
+        <div class="no-results">
+            <app-icon name="magnifying-glass" size="md" class="text-gray-400" />
+            <span>{{ noResultsMessage() }}</span>
+        </div>
+        }
+    </div>
+    }
+
+    <!-- Mensaje de error -->
+    @if (errorMessage && hasError()) {
+    <p class="error-message">
+        <app-icon name="exclamation-circle" size="sm" />
+        <span>{{ errorMessage }}</span>
+    </p>
+    }
+</div>

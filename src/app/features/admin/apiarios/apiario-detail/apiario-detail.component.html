@@ -1,19 +1,26 @@
 <!-- ============================================================================
-     🐝 APIARIO DETAIL - TEMPLATE
+     🏠 APIARIO DETAIL - TEMPLATE
      ============================================================================ -->
 
 <div class="form-container">
     <!-- Header -->
     <div class="form-header">
-        <div class="flex items-center space-x-3">
-            <div class="icon-wrapper">
-                <app-icon name="home" size="xl" color="text-honey-primary" />
-            </div>
-            <div>
-                <h1 class="page-title">{{ pageTitle() }}</h1>
-                <p class="page-subtitle">
-                    {{ mode() === 'create' ? 'Registra un nuevo apiario' : 'Modifica los datos del apiario' }}
-                </p>
+        <div class="header-content">
+            <!-- ✅ NUEVO: Botón de regresar -->
+            <button type="button" class="back-button" (click)="goBack()">
+                <app-icon name="arrow-left" size="md" />
+            </button>
+
+            <div class="flex items-center space-x-3">
+                <div class="icon-wrapper">
+                    <app-icon name="home" size="xl" color="text-honey-primary" />
+                </div>
+                <div>
+                    <h1 class="page-title">{{ pageTitle() }}</h1>
+                    <p class="page-subtitle">
+                        {{ mode() === 'create' ? 'Registra un nuevo apiario' : 'Modifica los datos del apiario' }}
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -37,25 +44,15 @@
             </h2>
 
             <div class="form-grid">
-                <!-- Apicultor -->
+                <!-- Apicultor con Autocomplete -->
                 <div class="form-group col-span-2">
-                    <label for="apicultorId" class="form-label">
-                        Apicultor <span class="required">*</span>
-                    </label>
-                    <select id="apicultorId" formControlName="apicultorId" class="form-input"
-                        [class.error]="hasError('apicultorId', 'required')">
-                        <option value="">Selecciona un apicultor</option>
-                        @for (apicultor of apicultoresActivos(); track apicultor.id) {
-                        <option [value]="apicultor.id">
-                            {{ apicultor.codigo }} - {{ apicultor.nombre }}
-                        </option>
-                        }
-                    </select>
-                    @if (hasError('apicultorId', 'required')) {
-                    <span class="error-message">{{ getErrorMessage('apicultorId') }}</span>
-                    }
+                    <app-autocomplete-select formControlName="apicultorId" [options]="apicultoresActivos()"
+                        optionValue="id" optionLabel="nombre" [optionTemplate]="formatApicultorLabel"
+                        placeholder="Buscar apicultor por código o nombre..." label="Apicultor" [required]="true"
+                        [disabled]="mode() === 'edit'"
+                        [errorMessage]="hasError('apicultorId', 'required') ? getErrorMessage('apicultorId') : ''" />
                     @if (mode() === 'edit') {
-                    <p class="help-text">El apicultor no se puede cambiar en modo edición</p>
+                    <p class="help-text mt-2">El apicultor no se puede cambiar en modo edición</p>
                     }
                 </div>
 
@@ -65,7 +62,8 @@
                         Nombre del Apiario <span class="required">*</span>
                     </label>
                     <input id="nombre" type="text" formControlName="nombre" class="form-input"
-                        placeholder="Ej: Apiario San Juan del Río" [class.error]="hasError('nombre', 'required')">
+                        placeholder="Ej: Apiario Principal"
+                        [class.error]="hasError('nombre', 'required') || hasError('nombre', 'minlength') || hasError('nombre', 'maxlength')">
                     @if (hasError('nombre', 'required') || hasError('nombre', 'minlength') || hasError('nombre',
                     'maxlength')) {
                     <span class="error-message">{{ getErrorMessage('nombre') }}</span>
@@ -77,25 +75,25 @@
                     <label for="colmenas" class="form-label">
                         Número de Colmenas <span class="required">*</span>
                     </label>
-                    <input id="colmenas" type="number" formControlName="colmenas" class="form-input" placeholder="150"
-                        min="1" max="9999" [class.error]="hasError('colmenas', 'required')">
+                    <input id="colmenas" type="number" formControlName="colmenas" class="form-input" min="1" max="9999"
+                        placeholder="Ej: 50"
+                        [class.error]="hasError('colmenas', 'required') || hasError('colmenas', 'min') || hasError('colmenas', 'max')">
                     @if (hasError('colmenas', 'required') || hasError('colmenas', 'min') || hasError('colmenas',
                     'max')) {
                     <span class="error-message">{{ getErrorMessage('colmenas') }}</span>
                     }
-                    <p class="help-text">Entre 1 y 9,999 colmenas</p>
+                    <p class="help-text">Valor entre 1 y 9999</p>
                 </div>
             </div>
         </div>
 
-        <!-- Sección 2: Geolocalización -->
+        <!-- Sección 2: Ubicación GPS -->
         <div class="form-section">
             <h2 class="section-title">
                 <app-icon name="map-pin" size="md" color="text-honey-primary" />
                 <span>Ubicación GPS</span>
             </h2>
 
-            <!-- Botón Usar mi ubicación -->
             <div class="geolocation-button-wrapper">
                 <button type="button" class="btn-geolocation" (click)="getCurrentLocation()"
                     [disabled]="isGettingLocation()">
@@ -103,7 +101,7 @@
                     <div class="spinner-small"></div>
                     <span>Obteniendo ubicación...</span>
                     } @else {
-                    <app-icon name="map-pin" size="sm" />
+                    <app-icon name="map" size="sm" />
                     <span>Usar mi ubicación actual</span>
                     }
                 </button>
@@ -114,11 +112,6 @@
                     <span>{{ geolocationError() }}</span>
                 </div>
                 }
-
-                <p class="help-text">
-                    Puedes escribir las coordenadas manualmente o usar el botón para detectar tu ubicación
-                    automáticamente
-                </p>
             </div>
 
             <div class="form-grid">
@@ -127,10 +120,11 @@
                     <label for="latitud" class="form-label">
                         Latitud <span class="required">*</span>
                     </label>
-                    <input id="latitud" type="number" formControlName="latitud" class="form-input"
-                        placeholder="17.043456" step="0.000001" min="-90" max="90"
-                        [class.error]="hasError('latitud', 'required')">
-                    @if (hasError('latitud', 'required') || hasError('latitud', 'min') || hasError('latitud', 'max')) {
+                    <input id="latitud" type="number" formControlName="latitud" class="form-input" step="0.000001"
+                        placeholder="Ej: 17.0654"
+                        [class.error]="hasError('latitud', 'required') || hasError('latitud', 'min') || hasError('latitud', 'max')">
+                    @if (hasError('latitud', 'required') || hasError('latitud', 'min') || hasError('latitud', 'max'))
+                    {
                     <span class="error-message">{{ getErrorMessage('latitud') }}</span>
                     }
                     <p class="help-text">Valor entre -90 y 90</p>
@@ -141,9 +135,9 @@
                     <label for="longitud" class="form-label">
                         Longitud <span class="required">*</span>
                     </label>
-                    <input id="longitud" type="number" formControlName="longitud" class="form-input"
-                        placeholder="-96.721234" step="0.000001" min="-180" max="180"
-                        [class.error]="hasError('longitud', 'required')">
+                    <input id="longitud" type="number" formControlName="longitud" class="form-input" step="0.000001"
+                        placeholder="Ej: -96.7236"
+                        [class.error]="hasError('longitud', 'required') || hasError('longitud', 'min') || hasError('longitud', 'max')">
                     @if (hasError('longitud', 'required') || hasError('longitud', 'min') || hasError('longitud',
                     'max')) {
                     <span class="error-message">{{ getErrorMessage('longitud') }}</span>
@@ -165,7 +159,7 @@
                 <a href="https://www.google.com/maps?q={{ apiarioForm.get('latitud')?.value }},{{ apiarioForm.get('longitud')?.value }}"
                     target="_blank" class="map-preview-link">
                     Ver en Google Maps
-                    <app-icon name="arrows-up-down" size="sm" />
+                    <app-icon name="arrow-up-tray" size="sm" />
                 </a>
             </div>
             }

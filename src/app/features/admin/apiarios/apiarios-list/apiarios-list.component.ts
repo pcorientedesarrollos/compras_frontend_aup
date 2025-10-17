@@ -114,14 +114,14 @@ export class ApiariosListComponent implements OnInit {
             width: '200px'
         },
         {
-            key: 'apicultor.codigo',
+            key: 'apicultorCodigo',
             label: 'Código',
             type: 'text',
             sortable: true,
             width: '120px'
         },
         {
-            key: 'apicultor.nombre',
+            key: 'apicultorNombre',
             label: 'Apicultor',
             type: 'text',
             sortable: true,
