@@ -91,11 +91,29 @@ export const routes: Routes = [
                 path: 'apicultores/:id/edit',
                 loadComponent: () => import('./features/admin/apicultores/apicultor-detail/apicultor-detail.component')
                     .then(m => m.ApicultorDetailComponent)
+            },
+            {
+                path: 'apiarios',
+                loadComponent: () => import('./features/admin/apiarios/apiarios-list/apiarios-list.component')
+                    .then(m => m.ApiariosListComponent)
+            },
+
+            // Apiarios - Crear
+            {
+                path: 'apiarios/nuevo',
+                loadComponent: () => import('./features/admin/apiarios/apiario-detail/apiario-detail.component')
+                    .then(m => m.ApiarioDetailComponent)
+            },
+
+            // Apiarios - Editar
+            {
+                path: 'apiarios/:id/edit',
+                loadComponent: () => import('./features/admin/apiarios/apiario-detail/apiario-detail.component')
+                    .then(m => m.ApiarioDetailComponent)
             }
 
             // TODO: Agregar más rutas de admin aquí
             // { path: 'usuarios', loadComponent: ... },
-            // { path: 'apiarios', loadComponent: ... },
             // { path: 'reportes', loadComponent: ... },
         ]
     },

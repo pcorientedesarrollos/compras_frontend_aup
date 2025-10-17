@@ -1,0 +1,166 @@
+/* ============================================================================
+   🐝 APICULTORES LIST STYLES
+   ============================================================================ */
+
+/* Container Principal */
+.apicultores-container {
+    @apply max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6;
+}
+
+/* ============================================================================
+   HEADER SECTION
+   ============================================================================ */
+
+.header-section {
+    @apply bg-white rounded-lg shadow-md p-6;
+}
+
+.header-content {
+    @apply flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6;
+}
+
+.icon-wrapper {
+    @apply w-14 h-14 bg-gradient-to-br from-honey-primary/20 to-amber-100 rounded-xl flex items-center justify-center;
+}
+
+.page-title {
+    @apply text-2xl font-bold text-gray-900;
+}
+
+.page-subtitle {
+    @apply text-sm text-gray-600 mt-1;
+}
+
+/* Header Actions */
+.header-actions {
+    @apply flex flex-wrap items-center gap-4;
+}
+
+/* Stats Cards */
+.stat-card {
+    @apply flex items-center space-x-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg px-4 py-3 border border-gray-200;
+}
+
+.stat-icon {
+    @apply w-10 h-10 rounded-lg flex items-center justify-center;
+}
+
+.stat-content {
+    @apply flex flex-col;
+}
+
+.stat-label {
+    @apply text-xs text-gray-600 uppercase tracking-wide;
+}
+
+.stat-value {
+    @apply text-xl font-bold text-gray-900 mt-0.5;
+}
+
+/* Botón Crear */
+.btn-create {
+    @apply flex items-center space-x-2 px-6 py-3 bg-honey-primary text-white rounded-lg hover:bg-honey-dark transition-all shadow-md hover:shadow-lg font-medium;
+}
+
+/* ============================================================================
+   FILTERS SECTION
+   ============================================================================ */
+
+.filters-section {
+    @apply bg-white rounded-lg shadow-md;
+}
+
+/* ============================================================================
+   TABLE SECTION
+   ============================================================================ */
+
+.table-section {
+    @apply bg-white rounded-lg shadow-md overflow-hidden;
+}
+
+/* ============================================================================
+   PAGINATION
+   ============================================================================ */
+
+.pagination-container {
+    @apply flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-gray-50 border-t border-gray-200;
+}
+
+.pagination-info {
+    @apply text-sm text-gray-700;
+}
+
+.pagination-controls {
+    @apply flex items-center space-x-2;
+}
+
+.pagination-button {
+    @apply flex items-center space-x-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+}
+
+.pagination-button:hover:not(:disabled) {
+    @apply bg-honey-primary/10 border-honey-primary text-honey-dark;
+}
+
+.page-numbers {
+    @apply flex items-center space-x-1;
+}
+
+.page-number {
+    @apply w-10 h-10 flex items-center justify-center text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-honey-primary/10 hover:border-honey-primary hover:text-honey-dark transition-colors cursor-pointer;
+}
+
+.page-number.active {
+    @apply bg-honey-primary text-white border-honey-primary font-bold;
+}
+
+.page-ellipsis {
+    @apply w-10 h-10 flex items-center justify-center text-gray-400;
+}
+
+/* Page Size Selector */
+.page-size-selector {
+    @apply flex items-center space-x-2;
+}
+
+.page-size-selector label {
+    @apply text-sm text-gray-700 font-medium;
+}
+
+.page-size-select {
+    @apply px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-honey-primary bg-white;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .header-content {
+        @apply flex-col items-start;
+    }
+
+    .header-actions {
+        @apply w-full flex-col;
+    }
+
+    .stat-card {
+        @apply w-full;
+    }
+
+    .btn-create {
+        @apply w-full justify-center;
+    }
+
+    .pagination-container {
+        @apply flex-col gap-3;
+    }
+
+    .pagination-info {
+        @apply text-xs;
+    }
+
+    .page-size-selector {
+        @apply w-full justify-between;
+    }
+}

@@ -1,0 +1,86 @@
+<div class="apicultores-container">
+    <!-- Header -->
+    <div class="header-section">
+        <div class="header-content">
+            <div class="flex items-center space-x-3">
+                <div class="icon-wrapper">
+                    <app-icon name="home" size="xl" color="text-honey-primary" />
+                </div>
+                <div>
+                    <h1 class="page-title">Apiarios</h1>
+                    <p class="page-subtitle">Gestión de ubicaciones de producción</p>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <!-- Estadísticas -->
+                <div class="stat-card">
+                    <div class="stat-icon bg-blue-100">
+                        <app-icon name="chart-bar" size="md" color="text-blue-600" />
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Total Apiarios</p>
+                        <p class="stat-value">{{ totalItems() }}</p>
+                    </div>
+                </div>
+
+                <!-- Botón crear -->
+                <button class="btn-create" (click)="createApiario()">
+                    <app-icon name="plus" size="sm" color="text-white" />
+                    <span>Nuevo Apiario</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-section">
+        <app-table-filters [filters]="filterConfig()" [filterState]="filterState()"
+            [resultCount]="paginatedApiarios().length" [totalCount]="totalItems()" [showResultCount]="true"
+            [showActivePills]="true" (filtersChange)="onFiltersChange($event)" (filterRemove)="onFilterRemove($event)"
+            (clearAll)="clearAllFilters()">
+        </app-table-filters>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-section">
+        <app-honey-table [columns]="columns()" [data]="paginatedApiarios()" [config]="tableConfig()"
+            [rowActions]="rowActions()" (actionClick)="onActionClick($event)" (sort)="onSort($event)">
+        </app-honey-table>
+
+        <!-- Paginación -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Mostrando {{ (currentPage() - 1) * pageSize() + 1 }} a
+                {{ Math.min(currentPage() * pageSize(), totalItems()) }} de {{ totalItems() }} registros
+            </div>
+
+            <div class="pagination-controls">
+                <button class="pagination-button" (click)="onPageChange(currentPage() - 1)"
+                    [disabled]="currentPage() === 1">
+                    <app-icon name="chevron-left" size="sm" />
+                    <span>Anterior</span>
+                </button>
+
+                <div class="page-numbers">
+                    @for (page of [].constructor(totalPages()); track page; let i = $index) {
+                    @if (i + 1 === 1 || i + 1 === totalPages() || (i + 1 >= currentPage() - 1 && i + 1 <= currentPage()
+                        + 1)) { <button class="page-number" [class.active]="i + 1 === currentPage()"
+                        (click)="onPageChange(i + 1)">
+                        {{ i + 1 }}
+                        </button>
+                        } @else if ((i + 1 === currentPage() - 2 || i + 1 === currentPage() + 2) && totalPages() > 5) {
+                        <span class="page-ellipsis">...</span>
+                        }
+                        }
+                </div>
+
+                <button class="pagination-button" (click)="onPageChange(currentPage() + 1)"
+                    [disabled]="currentPage() === totalPages()">
+                    <span>Siguiente</span>
+                    <app-icon name="chevron-right" size="sm" />
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
