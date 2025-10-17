@@ -12,11 +12,12 @@
  * - Botón "Limpiar todo"
  * - Responsive
  * - Signals reactivos
+ * - ✅ BÚSQUEDA INSTANTÁNEA CON DEBOUNCE (300ms)
  * 
  * USO:
  * <app-table-filters
  *   [filters]="filterConfig()"
- *   [activeFilters]="activeFilters()"
+ *   [filterState]="filterState()"
  *   [resultCount]="totalItems()"
  *   [totalCount]="totalItems()"
  *   (filtersChange)="onFiltersChange($event)"
@@ -24,14 +25,22 @@
  *   (clearAll)="clearAllFilters()">
  * </app-table-filters>
  * 
+ * 🔧 CAMBIOS APLICADOS:
+ * - ✅ Búsqueda en tiempo real con debounce de 300ms
+ * - ✅ Filtros select aplican inmediatamente
+ * - ✅ Botón "Limpiar" funcional
+ * 
  * ============================================================================
  */
 
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, input, output, signal, OnInit, OnDestroy, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+
 import { IconComponent } from '../../ui/icon/icon.component';
-import { BadgeComponent } from '../../ui/badge/badge.component';
 import { ButtonComponent } from '../../ui/button/button.component';
 import {
     FilterConfig,
@@ -48,13 +57,13 @@ import {
         CommonModule,
         FormsModule,
         IconComponent,
-        BadgeComponent,
         ButtonComponent
     ],
     templateUrl: './table-filters.component.html',
     styleUrl: './table-filters.component.css'
 })
-export class TableFiltersComponent {
+export class TableFiltersComponent implements OnInit, OnDestroy {
+    private destroyRef = inject(DestroyRef);
 
     // ============================================================================
     // INPUTS
@@ -101,6 +110,35 @@ export class TableFiltersComponent {
     /** Estado interno de filtros */
     private internalFilters = signal<FilterState>({});
 
+    /** ✅ Subject para búsqueda con debounce */
+    private searchSubject = new Subject<{ key: string; value: any }>();
+
+    // ============================================================================
+    // LIFECYCLE
+    // ============================================================================
+
+    ngOnInit(): void {
+        // ✅ Configurar búsqueda instantánea con debounce
+        this.searchSubject.pipe(
+            debounceTime(300), // Esperar 300ms después del último cambio
+            distinctUntilChanged((prev, curr) =>
+                prev.key === curr.key && prev.value === curr.value
+            ),
+            takeUntilDestroyed(this.destroyRef)
+        ).subscribe(({ key, value }) => {
+            const newState = {
+                ...this.currentFilters(),
+                [key]: value
+            };
+            this.internalFilters.set(newState);
+            this.emitFiltersChange(newState);
+        });
+    }
+
+    ngOnDestroy(): void {
+        this.searchSubject.complete();
+    }
+
     // ============================================================================
     // COMPUTED
     // ============================================================================
@@ -108,7 +146,8 @@ export class TableFiltersComponent {
     /** Estado actual de filtros (usa input si está disponible, sino interno) */
     currentFilters = computed(() => {
         const inputState = this.filterState();
-        return Object.keys(inputState).length > 0 ? inputState : this.internalFilters();
+        return Object.keys(inputState).length > 0 ?
+            inputState : this.internalFilters();
     });
 
     /** Filtros activos (con valores no vacíos) */
@@ -161,16 +200,29 @@ export class TableFiltersComponent {
     // METHODS - FILTER CHANGES
     // ============================================================================
 
+    /**
+     * ✅ Manejar cambio en inputs de texto/número (CON DEBOUNCE)
+     */
     onFilterChange(key: string, value: any): void {
-        const newState = {
-            ...this.currentFilters(),
-            [key]: value
-        };
+        const config = this.filters().find(f => f.key === key);
 
-        this.internalFilters.set(newState);
-        this.emitFiltersChange(newState);
+        // ✅ Si es filtro de texto/número, aplicar debounce
+        if (config?.type === 'text' || config?.type === 'number') {
+            this.searchSubject.next({ key, value });
+        } else {
+            // Para selects, dates, boolean → aplicar inmediatamente
+            const newState = {
+                ...this.currentFilters(),
+                [key]: value
+            };
+            this.internalFilters.set(newState);
+            this.emitFiltersChange(newState);
+        }
     }
 
+    /**
+     * ✅ Remover un filtro específico
+     */
     onFilterRemove(key: string): void {
         const config = this.filters().find(f => f.key === key);
         const defaultValue = config?.defaultValue ?? this.getDefaultValueForType(config?.type);
@@ -185,6 +237,9 @@ export class TableFiltersComponent {
         this.emitFiltersChange(newState);
     }
 
+    /**
+     * ✅ Limpiar TODOS los filtros (FUNCIONAL)
+     */
     onClearAll(): void {
         const clearedState: FilterState = {};
 

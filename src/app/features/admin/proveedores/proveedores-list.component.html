@@ -28,87 +28,67 @@
 
     <!-- Filtros -->
     <div class="filters-section">
-        <app-table-filters [filters]="filterConfig()" [filterState]="filterState()" [resultCount]="proveedores().length"
-            [totalCount]="totalItems()" [showResultCount]="true" [showActivePills]="true"
-            (filtersChange)="onFiltersChange($event)" (filterRemove)="onFilterRemove($event)"
+        <app-table-filters [filters]="filterConfig()" [filterState]="filterState()"
+            [resultCount]="paginatedProveedores().length" [totalCount]="totalItems()" [showResultCount]="true"
+            [showActivePills]="true" (filtersChange)="onFiltersChange($event)" (filterRemove)="onFilterRemove($event)"
             (clearAll)="clearAllFilters()">
         </app-table-filters>
     </div>
 
     <!-- Tabla -->
     <div class="table-section">
-        <app-honey-table [columns]="columns()" [data]="proveedores()" [config]="tableConfig()"
-            [rowActions]="rowActions()" rowKey="idProveedor" (actionClick)="onActionClick($event)">
+        <app-honey-table [columns]="columns()" [data]="paginatedProveedores()" [config]="tableConfig()"
+            [rowActions]="rowActions()" (actionClick)="onActionClick($event)">
         </app-honey-table>
 
         <!-- Paginación -->
-        @if (totalPages() > 1) {
         <div class="pagination-container">
             <div class="pagination-info">
-                <p class="text-sm text-gray-600">
-                    Mostrando
-                    <span class="font-semibold">{{ (currentPage() - 1) * pageSize() + 1 }}</span>
-                    -
-                    <span class="font-semibold">{{ Math.min(currentPage() * pageSize(), totalItems()) }}</span>
-                    de
-                    <span class="font-semibold">{{ totalItems() }}</span>
-                    proveedores
-                </p>
+                Mostrando {{ (currentPage() - 1) * pageSize() + 1 }} a
+                {{ Math.min(currentPage() * pageSize(), totalItems()) }} de {{ totalItems() }} registros
             </div>
 
             <div class="pagination-controls">
-                <!-- Botón Anterior -->
-                <button class="pagination-button" [disabled]="currentPage() === 1"
-                    (click)="onPageChange(currentPage() - 1)">
+                <button class="pagination-button" (click)="onPageChange(currentPage() - 1)"
+                    [disabled]="currentPage() === 1">
                     <app-icon name="chevron-left" size="sm" />
-                    Anterior
+                    <span>Anterior</span>
                 </button>
 
-                <!-- Números de página -->
                 <div class="page-numbers">
-                    @for (page of [1, 2, 3, 4, 5]; track page) {
-                    @if (page <= totalPages()) { <button class="page-number" [class.active]="currentPage() === page"
-                        (click)="onPageChange(page)">
-                        {{ page }}
+                    @for (page of [].constructor(totalPages()); track page; let i = $index) {
+                    @if (i + 1 === 1 || i + 1 === totalPages() || (i + 1 >= currentPage() - 1 && i + 1 <= currentPage()
+                        + 1)) { <button class="page-number" [class.active]="currentPage() === i + 1"
+                        (click)="onPageChange(i + 1)">
+                        {{ i + 1 }}
                         </button>
-                        }
-                        }
-
-                        @if (totalPages() > 5) {
+                        } @else if (i + 1 === currentPage() - 2 || i + 1 === currentPage() + 2) {
                         <span class="page-ellipsis">...</span>
-                        <button class="page-number" [class.active]="currentPage() === totalPages()"
-                            (click)="onPageChange(totalPages())">
-                            {{ totalPages() }}
-                        </button>
+                        }
                         }
                 </div>
 
-                <!-- Botón Siguiente -->
-                <button class="pagination-button" [disabled]="currentPage() === totalPages()"
-                    (click)="onPageChange(currentPage() + 1)">
-                    Siguiente
+                <button class="pagination-button" (click)="onPageChange(currentPage() + 1)"
+                    [disabled]="currentPage() === totalPages()">
+                    <span>Siguiente</span>
                     <app-icon name="chevron-right" size="sm" />
                 </button>
             </div>
 
-            <!-- Selector de tamaño de página -->
             <div class="page-size-selector">
-                <label class="text-sm text-gray-600">Mostrar:</label>
-                <select class="page-size-select" [value]="pageSize()"
+                <label for="pageSize">Registros por página:</label>
+                <select id="pageSize" class="page-size-select" [value]="pageSize()"
                     (change)="onPageSizeChange(+$any($event.target).value)">
-                    <option value="10">10</option>
-                    <option value="20">20</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
+                    <option [value]="10">10</option>
+                    <option [value]="25">25</option>
+                    <option [value]="50">50</option>
+                    <option [value]="100">100</option>
                 </select>
             </div>
         </div>
-        }
     </div>
 
-    <!-- Modal de Detalle -->
-    @if (selectedProveedor()) {
+    <!-- Modal de detalle -->
     <app-proveedor-detail-modal [proveedor]="selectedProveedor()!" [isOpen]="isModalOpen()" (close)="closeModal()">
     </app-proveedor-detail-modal>
-    }
 </div>

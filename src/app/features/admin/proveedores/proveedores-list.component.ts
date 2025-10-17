@@ -1,16 +1,14 @@
 /**
  * ============================================================================
- * 🏢 PROVEEDORES LIST COMPONENT - SISTEMA OAXACA MIEL
+ * 🐝 PROVEEDORES LIST COMPONENT - SISTEMA OAXACA MIEL (v2.0)
  * ============================================================================
  * 
- * Listado de proveedores (Acopiadores/Mieleras) con:
- * - Filtros avanzados (nombre, tipo, estado, tipo de miel, activo/inactivo)
- * - Tabla interactiva (honey-table)
- * - Paginación server-side
- * - Acciones: Ver detalle, Ver apicultores
- * 
- * RUTA: /admin/proveedores
- * GUARD: adminGuard (solo ADMINISTRADOR)
+ * ✅ MEJORAS APLICADAS:
+ * 1. Carga TODOS los proveedores (sin paginación backend)
+ * 2. Filtrado LOCAL (búsqueda en todos los campos)
+ * 3. Paginación LOCAL (frontend)
+ * 4. Búsqueda instantánea con debounce
+ * 5. deleteProve para activo/inactivo
  * 
  * ============================================================================
  */
@@ -32,14 +30,12 @@ import { ActionMenuConfig } from '../../../shared/components/data/honey-table/ty
 import {
     ProveedorAPI,
     TipoDeMiel,
-    ProveedorFilterParams,
-    obtenerTextoEstado,
-    obtenerVarianteBadgeEstado
+    ProveedorFilterParams
 } from '../../../core/models/index';
 
 // Servicios
 import { ProveedorService } from '../../../core/services/proveedor.service';
-import { ProveedorDetailModalComponent } from './proveedor-detail-modal.component';
+import { ProveedorDetailModalComponent } from '../proveedores/proveedor-detail-modal.component';
 
 @Component({
     selector: 'app-proveedores-list',
@@ -60,18 +56,22 @@ export class ProveedoresListComponent implements OnInit {
     private destroyRef = inject(DestroyRef);
 
     // ============================================================================
-    // PUBLIC PROPERTIES (Para usar en template)
+    // PUBLIC PROPERTIES
     // ============================================================================
-
-    /** Exponer Math para usar en template */
     Math = Math;
 
     // ============================================================================
     // STATE - SIGNALS
     // ============================================================================
 
-    /** Lista de proveedores */
-    proveedores = signal<ProveedorAPI[]>([]);
+    /** ✅ TODOS los proveedores (sin filtrar) */
+    allProveedores = signal<ProveedorAPI[]>([]);
+
+    /** ✅ Proveedores filtrados (después de aplicar filtros) */
+    filteredProveedores = signal<ProveedorAPI[]>([]);
+
+    /** ✅ Proveedores paginados (lo que se muestra en tabla) */
+    paginatedProveedores = signal<ProveedorAPI[]>([]);
 
     /** Estado de carga */
     isLoading = signal<boolean>(false);
@@ -82,22 +82,26 @@ export class ProveedoresListComponent implements OnInit {
     /** Filtros activos */
     filterState = signal<FilterState>({});
 
-    /** Paginación */
+    /** ✅ Paginación LOCAL */
     currentPage = signal<number>(1);
     pageSize = signal<number>(10);
-    totalItems = signal<number>(0);
-    totalPages = signal<number>(0);
 
     /** Modal de detalle */
     isModalOpen = signal<boolean>(false);
     selectedProveedor = signal<ProveedorAPI | null>(null);
 
     // ============================================================================
-    // COMPUTED - CONFIGURACIONES
+    // COMPUTED
     // ============================================================================
 
+    /** ✅ Total items filtrados */
+    totalItems = computed(() => this.filteredProveedores().length);
+
+    /** ✅ Total páginas */
+    totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()));
+
     /**
-     * Configuración de columnas de la tabla
+     * ✅ Columnas de la tabla (usa deleteProve)
      */
     columns = computed<TableColumn[]>(() => ([
         {
@@ -120,11 +124,11 @@ export class ProveedoresListComponent implements OnInit {
             label: 'Tipo',
             type: 'badge',
             sortable: true,
-            width: '120px',
+            width: '130px',
             align: 'center',
             badgeConfig: {
-                'ACOPIADOR': { label: 'Acopiador', variant: 'info', icon: 'building-office' },
-                'MIELERA': { label: 'Mielera', variant: 'success' }
+                'Acopiador': { label: 'Acopiador', variant: 'info', icon: 'building-office' },
+                'Apicultor': { label: 'Apicultor', variant: 'success', icon: 'user' }
             }
         },
         {
@@ -158,18 +162,19 @@ export class ProveedoresListComponent implements OnInit {
             sortable: true,
             width: '130px',
             align: 'right',
-            formatter: (value: number | null) => value ? value.toLocaleString('es-MX', { minimumFractionDigits: 2 }) : '0.00'
+            formatter: (value: number | null) => value ?
+                value.toLocaleString('es-MX', { minimumFractionDigits: 2 }) : '0.00'
         },
         {
-            key: 'activoInactivo',
+            key: 'deleteProve',
             label: 'Estado',
             type: 'badge',
             sortable: true,
             width: '100px',
             align: 'center',
             badgeConfig: {
-                1: { label: 'Activo', variant: 'success' },
-                0: { label: 'Inactivo', variant: 'danger' }
+                0: { label: 'Activo', variant: 'success' },
+                1: { label: 'Inactivo', variant: 'danger' }
             }
         }
     ] as TableColumn[]));
@@ -215,14 +220,14 @@ export class ProveedoresListComponent implements OnInit {
     }));
 
     /**
-     * Configuración de filtros
+     * ✅ Configuración de filtros
      */
     filterConfig = computed<FilterConfig[]>(() => [
         {
             key: 'nombre',
-            label: 'Nombre',
+            label: 'Búsqueda',
             type: 'text',
-            placeholder: 'Buscar por nombre...'
+            placeholder: 'Buscar en todos los campos...'
         },
         {
             key: 'tipo',
@@ -231,8 +236,8 @@ export class ProveedoresListComponent implements OnInit {
             placeholder: 'Todos',
             options: [
                 { value: '', label: 'Todos' },
-                { value: 'ACOPIADOR', label: 'Acopiador' },
-                { value: 'MIELERA', label: 'Mielera' }
+                { value: 'Acopiador', label: 'Acopiador' },
+                { value: 'Apicultor', label: 'Apicultor' }
             ]
         },
         {
@@ -249,14 +254,14 @@ export class ProveedoresListComponent implements OnInit {
             ]
         },
         {
-            key: 'activoInactivo',
+            key: 'activo',
             label: 'Estado',
             type: 'select',
             placeholder: 'Todos',
             options: [
                 { value: '', label: 'Todos' },
-                { value: '1', label: 'Activos' },
-                { value: '0', label: 'Inactivos' }
+                { value: '0', label: 'Activos' },     // deleteProve=0
+                { value: '1', label: 'Inactivos' }    // deleteProve=1
             ]
         }
     ]);
@@ -267,7 +272,7 @@ export class ProveedoresListComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadTiposMiel();
-        this.loadProveedores();
+        this.loadAllProveedores();
     }
 
     // ============================================================================
@@ -291,49 +296,83 @@ export class ProveedoresListComponent implements OnInit {
     }
 
     /**
-     * Cargar proveedores con filtros actuales
+     * ✅ CARGAR TODOS LOS PROVEEDORES (SIN PAGINACIÓN)
      */
-    loadProveedores(): void {
+    private loadAllProveedores(): void {
         this.isLoading.set(true);
 
-        const filters = this.buildFilterParams();
+        // ✅ Solicitar TODOS los registros
+        const params: ProveedorFilterParams = {
+            page: 1,
+            limit: 9999 // Traer todos
+        };
 
-        this.proveedorService.searchProveedores(filters)
+        this.proveedorService.searchProveedores(params)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (response) => {
-                    this.proveedores.set(response.data);
-                    this.totalItems.set(response.pagination.total);
-                    this.totalPages.set(response.pagination.totalPages);
-                    this.currentPage.set(response.pagination.page);
+                    // ✅ Filtrar solo proveedores con nombre
+                    const proveedoresValidos = response.data.filter(
+                        proveedor => proveedor.nombre && proveedor.nombre.trim() !== ''
+                    );
+
+                    this.allProveedores.set(proveedoresValidos);
+                    this.applyFiltersAndPagination();
                     this.isLoading.set(false);
                 },
                 error: (error) => {
                     console.error('Error al cargar proveedores:', error);
                     this.isLoading.set(false);
-                    this.proveedores.set([]);
+                    this.allProveedores.set([]);
                 }
             });
     }
 
     /**
-     * Construir parámetros de filtrado desde el estado actual
+     * ✅ APLICAR FILTROS Y PAGINACIÓN (LOCAL)
      */
-    private buildFilterParams(): ProveedorFilterParams {
+    private applyFiltersAndPagination(): void {
         const state = this.filterState();
-        const params: ProveedorFilterParams = {
-            page: this.currentPage(),
-            limit: this.pageSize()
-        };
+        let filtered = [...this.allProveedores()];
 
-        if (state['nombre']) params.nombre = state['nombre'] as string;
-        if (state['tipo']) params.tipo = state['tipo'] as string;
-        if (state['tipoDeMiel']) params.tipoDeMiel = Number(state['tipoDeMiel']);
-        if (state['activoInactivo'] !== undefined && state['activoInactivo'] !== '') {
-            params.activoInactivo = Number(state['activoInactivo']) as 0 | 1;
+        // ✅ FILTRO 1: Búsqueda global (nombre, tipo, sagarpa, etc.)
+        if (state['nombre'] && state['nombre'].trim() !== '') {
+            const searchTerm = state['nombre'].toLowerCase().trim();
+            filtered = filtered.filter(proveedor => {
+                return (
+                    proveedor.nombre?.toLowerCase().includes(searchTerm) ||
+                    proveedor.tipo?.toLowerCase().includes(searchTerm) ||
+                    proveedor.idSagarpa?.toLowerCase().includes(searchTerm) ||
+                    proveedor.tipoDeMielNombre?.toLowerCase().includes(searchTerm) ||
+                    proveedor.idProveedor?.toString().includes(searchTerm)
+                );
+            });
         }
 
-        return params;
+        // ✅ FILTRO 2: Tipo de proveedor
+        if (state['tipo'] && state['tipo'] !== '') {
+            filtered = filtered.filter(p => p.tipo === state['tipo']);
+        }
+
+        // ✅ FILTRO 3: Tipo de miel
+        if (state['tipoDeMiel'] && state['tipoDeMiel'] !== '') {
+            const tipoDeMielId = Number(state['tipoDeMiel']);
+            filtered = filtered.filter(p => p.tipoDeMiel === tipoDeMielId);
+        }
+
+        // ✅ FILTRO 4: Estado (deleteProve)
+        if (state['activo'] !== undefined && state['activo'] !== '') {
+            const deleteProveValue = Number(state['activo']);
+            filtered = filtered.filter(p => p.deleteProve === deleteProveValue);
+        }
+
+        // ✅ Guardar filtrados
+        this.filteredProveedores.set(filtered);
+
+        // ✅ Aplicar paginación LOCAL
+        const start = (this.currentPage() - 1) * this.pageSize();
+        const end = start + this.pageSize();
+        this.paginatedProveedores.set(filtered.slice(start, end));
     }
 
     // ============================================================================
@@ -341,32 +380,32 @@ export class ProveedoresListComponent implements OnInit {
     // ============================================================================
 
     /**
-     * Manejar cambio en filtros
+     * ✅ Manejar cambio en filtros (recibe FiltersChangeEvent)
      */
-    onFiltersChange(newState: FilterState): void {
-        this.filterState.set(newState);
-        this.currentPage.set(1); // Resetear a página 1
-        this.loadProveedores();
+    onFiltersChange(event: { filters: FilterState; activeFilters?: any[] }): void {
+        this.filterState.set(event.filters);
+        this.currentPage.set(1);
+        this.applyFiltersAndPagination();
     }
 
     /**
-     * Manejar remoción de un filtro específico
+     * ✅ Manejar remoción de un filtro específico
      */
     onFilterRemove(filterKey: string): void {
         const newState = { ...this.filterState() };
         delete newState[filterKey];
         this.filterState.set(newState);
         this.currentPage.set(1);
-        this.loadProveedores();
+        this.applyFiltersAndPagination();
     }
 
     /**
-     * Limpiar todos los filtros
+     * ✅ Limpiar todos los filtros
      */
     clearAllFilters(): void {
         this.filterState.set({});
         this.currentPage.set(1);
-        this.loadProveedores();
+        this.applyFiltersAndPagination();
     }
 
     // ============================================================================
@@ -393,32 +432,30 @@ export class ProveedoresListComponent implements OnInit {
     }
 
     /**
-     * Ver ubicación en mapa (TODO: Modal con Leaflet)
+     * Ver ubicación en mapa
      */
     private viewUbicacion(proveedor: ProveedorAPI): void {
         if (!proveedor.latitud || !proveedor.longitud) return;
         console.log('Ver ubicación:', proveedor.latitud, proveedor.longitud);
-        // TODO: Implementar modal con mapa Leaflet
         alert(`Ubicación GPS:\nLat: ${proveedor.latitud}\nLng: ${proveedor.longitud}`);
     }
 
     /**
-     * Manejar cambio de página
+     * ✅ Manejar cambio de página (LOCAL)
      */
     onPageChange(page: number): void {
         this.currentPage.set(page);
-        this.loadProveedores();
+        this.applyFiltersAndPagination();
     }
 
     /**
-     * Manejar cambio de tamaño de página
+     * ✅ Manejar cambio de tamaño de página (LOCAL)
      */
     onPageSizeChange(size: number): void {
         this.pageSize.set(size);
-        this.currentPage.set(1); // Resetear a página 1
-        this.loadProveedores();
+        this.currentPage.set(1);
+        this.applyFiltersAndPagination();
     }
-
 
     /**
      * Ver detalle del proveedor (Modal)
@@ -437,11 +474,10 @@ export class ProveedoresListComponent implements OnInit {
     }
 
     /**
-     * Ver apicultores del proveedor (TODO: Modal o página)
+     * Ver apicultores del proveedor
      */
     private viewApicultores(proveedor: ProveedorAPI): void {
         console.log('Ver apicultores de:', proveedor);
-        // TODO: Implementar modal o navegación
         alert(`Apicultores de ${proveedor.nombre}\nTotal: ${proveedor.cantidadApicultores}`);
     }
 }

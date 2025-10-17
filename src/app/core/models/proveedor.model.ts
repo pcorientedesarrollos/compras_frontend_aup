@@ -44,6 +44,7 @@ export interface ProveedorAPI {
     latitud: number | null;             // Coordenada GPS
     longitud: number | null;            // Coordenada GPS
     cantidadApicultores: number;        // Contador calculado por backend
+    deleteProve: number;
 }
 
 /**
