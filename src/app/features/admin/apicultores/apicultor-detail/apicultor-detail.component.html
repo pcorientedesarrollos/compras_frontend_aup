@@ -1,0 +1,235 @@
+<div class="apicultor-detail-container">
+    <!-- Header -->
+    <div class="header-section">
+        <div class="header-content">
+            <button class="back-button" (click)="cancel()">
+                <app-icon name="arrow-left" size="md" />
+            </button>
+
+            <div class="flex items-center space-x-3">
+                <div class="icon-wrapper">
+                    <app-icon name="bee" size="xl" color="text-honey-primary" />
+                </div>
+                <div>
+                    <h1 class="page-title">{{ pageTitle() }}</h1>
+                    <p class="page-subtitle">
+                        @if (mode() === 'create') {
+                        Complete los datos del nuevo apicultor
+                        } @else {
+                        Edite la información del apicultor
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+    <div class="loading-section">
+        <div class="loading-spinner"></div>
+        <p>Cargando información del apicultor...</p>
+    </div>
+    }
+
+    <!-- Form -->
+    @if (!isLoading()) {
+    <form [formGroup]="apicultorForm" (ngSubmit)="onSubmit()" class="form-container">
+
+        <!-- Sección 1: Identificación -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <app-icon name="identification" size="md" color="text-honey-primary" />
+                <span>Identificación</span>
+            </h2>
+
+            <div class="form-grid">
+                <!-- Código -->
+                <div class="form-group">
+                    <label for="codigo" class="form-label">
+                        Código <span class="required">*</span>
+                    </label>
+                    <input id="codigo" type="text" formControlName="codigo" class="form-input"
+                        placeholder="Ej: APIC-2025-001"
+                        [class.error]="hasError('codigo', 'required') || hasError('codigo', 'minlength')">
+                    @if (hasError('codigo', 'required') || hasError('codigo', 'minlength')) {
+                    <span class="error-message">{{ getErrorMessage('codigo') }}</span>
+                    }
+                    @if (mode() === 'edit') {
+                    <span class="help-text">El código no se puede modificar</span>
+                    }
+                </div>
+
+                <!-- Nombre -->
+                <div class="form-group col-span-2">
+                    <label for="nombre" class="form-label">
+                        Nombre Completo <span class="required">*</span>
+                    </label>
+                    <input id="nombre" type="text" formControlName="nombre" class="form-input"
+                        placeholder="Nombre completo del apicultor"
+                        [class.error]="hasError('nombre', 'required') || hasError('nombre', 'minlength')">
+                    @if (hasError('nombre', 'required') || hasError('nombre', 'minlength')) {
+                    <span class="error-message">{{ getErrorMessage('nombre') }}</span>
+                    }
+                </div>
+
+                <!-- CURP -->
+                <div class="form-group">
+                    <label for="curp" class="form-label">
+                        CURP <span class="required">*</span>
+                    </label>
+                    <input id="curp" type="text" formControlName="curp" class="form-input" placeholder="18 caracteres"
+                        maxlength="18"
+                        [class.error]="hasError('curp', 'required') || hasError('curp', 'minlength') || hasError('curp', 'maxlength')">
+                    @if (hasError('curp', 'required') || hasError('curp', 'minlength') || hasError('curp',
+                    'maxlength')) {
+                    <span class="error-message">{{ getErrorMessage('curp') }}</span>
+                    }
+                    @if (mode() === 'edit') {
+                    <span class="help-text">El CURP no se puede modificar</span>
+                    }
+                </div>
+
+                <!-- RFC -->
+                <div class="form-group">
+                    <label for="rfc" class="form-label">
+                        RFC (Opcional)
+                    </label>
+                    <input id="rfc" type="text" formControlName="rfc" class="form-input" placeholder="RFC (opcional)">
+                    <span class="help-text">Campo opcional, sin validación estricta</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección 2: Ubicación -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <app-icon name="map-pin" size="md" color="text-honey-primary" />
+                <span>Ubicación</span>
+            </h2>
+
+            <div class="form-grid">
+                <!-- Estado -->
+                <div class="form-group">
+                    <label for="estadoCodigo" class="form-label">Estado</label>
+                    <input id="estadoCodigo" type="text" formControlName="estadoCodigo" class="form-input"
+                        placeholder="Ej: 20 (Oaxaca)">
+                    <span class="help-text">Código del estado</span>
+                </div>
+
+                <!-- Municipio -->
+                <div class="form-group">
+                    <label for="municipioCodigo" class="form-label">Municipio</label>
+                    <input id="municipioCodigo" type="text" formControlName="municipioCodigo" class="form-input"
+                        placeholder="Código del municipio">
+                    <span class="help-text">Código del municipio</span>
+                </div>
+
+                <!-- Dirección -->
+                <div class="form-group col-span-2">
+                    <label for="direccion" class="form-label">Dirección</label>
+                    <textarea id="direccion" formControlName="direccion" class="form-input" rows="2"
+                        placeholder="Dirección completa del apicultor"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección 3: Certificaciones -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <app-icon name="shield-check" size="md" color="text-honey-primary" />
+                <span>Certificaciones</span>
+            </h2>
+
+            <div class="form-grid">
+                <!-- SENASICA -->
+                <div class="form-group">
+                    <label for="senasica" class="form-label">SENASICA</label>
+                    <input id="senasica" type="text" formControlName="senasica" class="form-input"
+                        placeholder="Número de certificación SENASICA">
+                </div>
+
+                <!-- IPP/SINIGA -->
+                <div class="form-group">
+                    <label for="ippSiniga" class="form-label">IPP/SINIGA</label>
+                    <input id="ippSiniga" type="text" formControlName="ippSiniga" class="form-input"
+                        placeholder="Número IPP/SINIGA">
+                </div>
+
+                <!-- Estatus -->
+                <div class="form-group">
+                    <label for="estatus" class="form-label">
+                        Estatus <span class="required">*</span>
+                    </label>
+                    <select id="estatus" formControlName="estatus" class="form-input">
+                        <option value="ACTIVO">Activo</option>
+                        <option value="INACTIVO">Inactivo</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección 4: Proveedores -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <app-icon name="building-office" size="md" color="text-honey-primary" />
+                <span>Proveedores Vinculados</span>
+            </h2>
+
+            <div class="proveedores-section">
+                <div class="proveedores-actions">
+                    <button type="button" class="btn-select-all" (click)="selectAllProveedores()">
+                        <app-icon name="check" size="sm" />
+                        <span>Seleccionar todos</span>
+                    </button>
+                    <button type="button" class="btn-clear-all" (click)="clearAllProveedores()">
+                        <app-icon name="x-mark" size="sm" />
+                        <span>Limpiar selección</span>
+                    </button>
+                    <span class="selected-count">
+                        {{ selectedProveedorIds().length }} seleccionado(s)
+                    </span>
+                </div>
+
+                <div class="proveedores-grid">
+                    @for (proveedor of proveedoresActivos(); track proveedor.idProveedor) {
+                    <label class="proveedor-item" [class.selected]="isProveedorSelected(proveedor.idProveedor)">
+                        <input type="checkbox" [checked]="isProveedorSelected(proveedor.idProveedor)"
+                            (change)="toggleProveedor(proveedor.idProveedor)" class="proveedor-checkbox">
+                        <div class="proveedor-info">
+                            <span class="proveedor-name">{{ proveedor.nombre }}</span>
+                            <span class="proveedor-type">{{ proveedor.tipo || 'Sin tipo' }}</span>
+                        </div>
+                    </label>
+                    } @empty {
+                    <p class="empty-message">No hay proveedores disponibles</p>
+                    }
+                </div>
+
+                <p class="help-text">
+                    Selecciona los proveedores con los que este apicultor trabajará.
+                    Puedes seleccionar múltiples proveedores.
+                </p>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="form-actions">
+            <button type="button" class="btn-cancel" (click)="cancel()" [disabled]="isSaving()">
+                <app-icon name="x-mark" size="sm" />
+                <span>Cancelar</span>
+            </button>
+
+            <button type="submit" class="btn-submit" [disabled]="!isFormValid() || isSaving()">
+                @if (isSaving()) {
+                <div class="spinner-small"></div>
+                <span>Guardando...</span>
+                } @else {
+                <app-icon name="check" size="sm" />
+                <span>{{ submitButtonText() }}</span>
+                }
+            </button>
+        </div>
+    </form>
+    }
+</div>

@@ -119,18 +119,18 @@ export class ProveedoresListComponent implements OnInit {
             sortable: true,
             width: '280px'
         },
-        {
-            key: 'tipo',
-            label: 'Tipo',
-            type: 'badge',
-            sortable: true,
-            width: '130px',
-            align: 'center',
-            badgeConfig: {
-                'Acopiador': { label: 'Acopiador', variant: 'info', icon: 'building-office' },
-                'Apicultor': { label: 'Apicultor', variant: 'success', icon: 'user' }
-            }
-        },
+        // {
+        //     key: 'tipo',
+        //     label: 'Tipo',
+        //     type: 'badge',
+        //     sortable: true,
+        //     width: '130px',
+        //     align: 'center',
+        //     badgeConfig: {
+        //         'Acopiador': { label: 'Acopiador', variant: 'info', icon: 'building-office' },
+        //         'Apicultor': { label: 'Apicultor', variant: 'success', icon: 'user' }
+        //     }
+        // },
         {
             key: 'tipoDeMielNombre',
             label: 'Tipo de Miel',
@@ -229,17 +229,17 @@ export class ProveedoresListComponent implements OnInit {
             type: 'text',
             placeholder: 'Buscar en todos los campos...'
         },
-        {
-            key: 'tipo',
-            label: 'Tipo de Proveedor',
-            type: 'select',
-            placeholder: 'Todos',
-            options: [
-                { value: '', label: 'Todos' },
-                { value: 'Acopiador', label: 'Acopiador' },
-                { value: 'Apicultor', label: 'Apicultor' }
-            ]
-        },
+        // {
+        //     key: 'tipo',
+        //     label: 'Tipo de Proveedor',
+        //     type: 'select',
+        //     placeholder: 'Todos',
+        //     options: [
+        //         { value: '', label: 'Todos' },
+        //         { value: 'Acopiador', label: 'Acopiador' },
+        //         { value: 'Apicultor', label: 'Apicultor' }
+        //     ]
+        // },
         {
             key: 'tipoDeMiel',
             label: 'Tipo de Miel',

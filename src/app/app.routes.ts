@@ -70,10 +70,31 @@ export const routes: Routes = [
                 path: 'proveedores',
                 loadComponent: () => import('./features/admin/proveedores/proveedores-list.component')
                     .then(m => m.ProveedoresListComponent)
+            },
+
+            // Apicultores - Lista
+            {
+                path: 'apicultores',
+                loadComponent: () => import('./features/admin/apicultores/apicultores-list/apicultores-list.component')
+                    .then(m => m.ApicultoresListComponent)
+            },
+
+            // Apicultores - Crear
+            {
+                path: 'apicultores/nuevo',
+                loadComponent: () => import('./features/admin/apicultores/apicultor-detail/apicultor-detail.component')
+                    .then(m => m.ApicultorDetailComponent)
+            },
+
+            // Apicultores - Editar
+            {
+                path: 'apicultores/:id/edit',
+                loadComponent: () => import('./features/admin/apicultores/apicultor-detail/apicultor-detail.component')
+                    .then(m => m.ApicultorDetailComponent)
             }
+
             // TODO: Agregar más rutas de admin aquí
             // { path: 'usuarios', loadComponent: ... },
-            // { path: 'apicultores', loadComponent: ... },
             // { path: 'apiarios', loadComponent: ... },
             // { path: 'reportes', loadComponent: ... },
         ]
