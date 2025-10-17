@@ -67,7 +67,8 @@ export class DashboardSidebarComponent {
                 { icon: 'building-office', label: 'Proveedores', route: '/admin/proveedores' },
                 { icon: 'map-pin', label: 'Apiarios', route: '/admin/apiarios' },
                 { icon: 'document-text', label: 'Reportes', route: '/admin/reportes' },
-                { icon: 'cog-6-tooth', label: 'Configuración', route: '/admin/configuracion' }
+                { icon: 'cog-6-tooth', label: 'Configuración', route: '/admin/configuracion' },
+                { icon: 'arrow-down', label: '🧪 Test Table', route: '/dashboard/test-table', badge: 'DEV', badgeClass: 'bg-purple-100 text-purple-800' }
             ];
         }
 

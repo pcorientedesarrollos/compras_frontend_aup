@@ -47,6 +47,14 @@ export const routes: Routes = [
                 canActivate: [apicultorGuard]
             },
 
+            // 🧪 COMPONENTE DE PRUEBAS - Honey Table
+            {
+                path: 'test-table',
+                loadComponent: () => import('../app/features/dashboard/test-table/test-table.component')
+                    .then(m => m.TestTableComponent),
+                canActivate: [adminGuard]
+            },
+
             // Redirección por defecto a login si no hay sub-ruta
             {
                 path: '',

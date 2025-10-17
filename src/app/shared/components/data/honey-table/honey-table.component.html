@@ -91,7 +91,7 @@
                         @if (column.type === 'editable') {
                         @if (!isEditing(row, column)) {
                         <!-- View Mode -->
-                        <div class="editable-cell-view" (click)="startEdit(row, column); $event.stopPropagation()">
+                        <div class="flex items-center group cursor-pointer" (click)="startEdit(row, column); $event.stopPropagation()">
                             <span>{{ getCellValue(row, column) }}</span>
                             <app-icon name="pencil" size="xs"
                                 class="edit-icon ml-2 opacity-0 group-hover:opacity-100" />
