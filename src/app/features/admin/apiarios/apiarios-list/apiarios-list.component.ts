@@ -15,7 +15,7 @@
 import { Component, computed, signal, inject, DestroyRef, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 // Componentes reutilizables
 import { HoneyTableComponent } from '../../../../shared/components/data/honey-table/honey-table.component';
@@ -47,6 +47,8 @@ export class ApiariosListComponent implements OnInit {
     private apiarioService = inject(ApiarioService);
     private router = inject(Router);
     private destroyRef = inject(DestroyRef);
+    private route = inject(ActivatedRoute);
+
 
     // ============================================================================
     // SIGNALS
@@ -277,14 +279,13 @@ export class ApiariosListComponent implements OnInit {
         let filtered = [...this.allApiarios()];
         const state = this.filterState();
 
-        // ✅ FILTRO 1: Búsqueda general
         if (state['nombre'] && state['nombre'].trim() !== '') {
             const searchTerm = state['nombre'].toLowerCase().trim();
             filtered = filtered.filter(apiario => {
                 return (
                     apiario.nombre?.toLowerCase().includes(searchTerm) ||
-                    apiario.apicultor.nombre?.toLowerCase().includes(searchTerm) ||
-                    apiario.apicultor.codigo?.toLowerCase().includes(searchTerm)
+                    apiario.apicultorNombre?.toLowerCase().includes(searchTerm) ||
+                    apiario.apicultorCodigo?.toLowerCase().includes(searchTerm)
                 );
             });
         }
@@ -423,14 +424,10 @@ export class ApiariosListComponent implements OnInit {
         alert(`Detalle de ${apiario.nombre}\n\nApicultor: ${apiario.apicultor.nombre}\nColmenas: ${apiario.colmenas}\nUbicación: ${apiario.latitud.toFixed(6)}, ${apiario.longitud.toFixed(6)}`);
     }
 
-    /**
-     * Editar apiario
-     */
     private editApiario(apiario: ApiarioAPI): void {
         console.log('Editar:', apiario);
-        this.router.navigate(['/admin/apiarios', apiario.id, 'edit']);
+        this.router.navigate([apiario.id, 'edit'], { relativeTo: this.route });
     }
-
     /**
      * Ver en mapa (abre Google Maps en nueva pestaña)
      */
@@ -474,6 +471,6 @@ export class ApiariosListComponent implements OnInit {
      * Navegar a crear nuevo apiario
      */
     createApiario(): void {
-        this.router.navigate(['/admin/apiarios/nuevo']);
+        this.router.navigate(['nuevo'], { relativeTo: this.route });
     }
 }

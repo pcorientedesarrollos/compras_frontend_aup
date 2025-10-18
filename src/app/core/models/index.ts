@@ -5,3 +5,4 @@ export * from './proveedor.model';
 export * from './apicultor.model';
 export * from './apiario.model';
 export * from './historial.model';
+export * from './entrada-miel.model';

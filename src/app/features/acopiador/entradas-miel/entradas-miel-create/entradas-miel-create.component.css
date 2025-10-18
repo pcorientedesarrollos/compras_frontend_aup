@@ -1,0 +1,30 @@
+/**
+ * ============================================================================
+ * 📦 ENTRADAS MIEL CREATE - STYLES
+ * ============================================================================
+ */
+
+/* Tailwind hace la mayoría del trabajo, estilos adicionales aquí si necesario */
+
+/* Animación suave para detalles */
+[formArrayName="detalles"]>div {
+    animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Estilo para details */
+details[open] summary app-icon {
+    transform: rotate(180deg);
+    transition: transform 0.2s ease;
+}

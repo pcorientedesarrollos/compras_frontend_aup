@@ -42,6 +42,8 @@ export interface ApiarioAPI {
     latitud: number;
     longitud: number;
     fechaAlta: string;
+    apicultorNombre: string;
+    apicultorCodigo: string;
     apicultor: {
         codigo: string;             // Código único del apicultor (APIC-2024-001)
         nombre: string;             // Nombre completo del apicultor

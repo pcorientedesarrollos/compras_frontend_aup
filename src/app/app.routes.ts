@@ -117,6 +117,67 @@ export const routes: Routes = [
             // { path: 'reportes', loadComponent: ... },
         ]
     },
+    // ============================================================================
+    // RUTAS DE ACOPIADOR
+    // ============================================================================
+    {
+        path: 'acopiador',
+        loadComponent: () => import('./shared/components/dashboard-layout/dashboard-layout.component')
+            .then(m => m.DashboardLayoutComponent),
+        canActivate: [authGuard, acopiadorGuard],
+        children: [
+            // Mis Apicultores
+            {
+                path: 'mis-apicultores',
+                loadComponent: () => import('./features/acopiador/mis-apicultores/mis-apicultores.component')
+                    .then(m => m.MisApicultoresComponent)
+            },
+            {
+                path: 'apiarios',
+                loadComponent: () => import('./features/admin/apiarios/apiarios-list/apiarios-list.component')
+                    .then(m => m.ApiariosListComponent)
+            },
+
+            // Apiarios - Crear
+            {
+                path: 'apiarios/nuevo',
+                loadComponent: () => import('./features/admin/apiarios/apiario-detail/apiario-detail.component')
+                    .then(m => m.ApiarioDetailComponent)
+            },
+
+            // Apiarios - Editar
+            {
+                path: 'apiarios/:id/edit',
+                loadComponent: () => import('./features/admin/apiarios/apiario-detail/apiario-detail.component')
+                    .then(m => m.ApiarioDetailComponent)
+            },
+            // Entradas de Miel - Listado
+            {
+                path: 'entradas-miel',
+                loadComponent: () => import('./features/acopiador/entradas-miel/entradas-miel-list/entradas-miel-list.component')
+                    .then(m => m.EntradasMielListComponent)
+            },
+
+            // Entradas de Miel - Nueva
+            {
+                path: 'entradas-miel/nueva',
+                loadComponent: () => import('./features/acopiador/entradas-miel/entradas-miel-create/entradas-miel-create.component')
+                    .then(m => m.EntradasMielCreateComponent)
+            },
+
+            // Redirección por defecto
+            {
+                path: '',
+                redirectTo: 'mis-apicultores',
+                pathMatch: 'full'
+            }
+
+            // TODO: Agregar más rutas aquí
+            // { path: 'vincular', ... },
+            // { path: 'apiarios', ... },
+            // { path: 'compras', ... },
+        ]
+    },
 
     // 404 - Ruta no encontrada
     {

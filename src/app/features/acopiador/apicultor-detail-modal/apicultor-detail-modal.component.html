@@ -1,0 +1,228 @@
+<!-- ============================================================================
+     🐝 APICULTOR DETAIL MODAL - TEMPLATE HTML
+     ============================================================================ -->
+
+@if (isOpen()) {
+<div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+
+        <!-- ============================================================================
+             HEADER
+             ============================================================================ -->
+        <div class="modal-header">
+            <div class="header-content">
+                <div class="icon-wrapper">
+                    <app-icon name="user-circle" size="xl" color="text-honey-primary" />
+                </div>
+                <div>
+                    <h2 class="modal-title">{{ apicultor().apicultorNombre }}</h2>
+                    <p class="modal-subtitle">
+                        {{ apicultor().apicultorCodigo }}
+                        <span class="separator">•</span>
+                        {{ apicultor().apicultorCurp }}
+                    </p>
+                </div>
+            </div>
+
+            <button class="close-button" (click)="closeModal()" type="button">
+                <app-icon name="x-mark" size="lg" />
+            </button>
+        </div>
+
+        <!-- ============================================================================
+             TABS NAVIGATION
+             ============================================================================ -->
+        <div class="tabs-nav">
+            @for (tab of tabs(); track tab.id) {
+            <button class="tab-button" [class.active]="activeTab() === tab.id" (click)="changeTab(tab.id)"
+                type="button">
+                <app-icon [name]="tab.icon" size="sm" />
+                <span>{{ tab.label }}</span>
+            </button>
+            }
+        </div>
+
+        <!-- ============================================================================
+             MODAL BODY
+             ============================================================================ -->
+        <div class="modal-body">
+
+            <!-- TAB 1: GENERAL -->
+            @if (activeTab() === 'general') {
+            <div class="tab-content">
+                <!-- Información Personal -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <app-icon name="user" size="sm" color="text-honey-primary" />
+                        <span>Información Personal</span>
+                    </h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Nombre Completo</label>
+                            <span>{{ apicultor().apicultorNombre }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Código</label>
+                            <span class="font-mono">{{ apicultor().apicultorCodigo }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>CURP</label>
+                            <span class="font-mono">{{ apicultor().apicultorCurp }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ubicación -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <app-icon name="map-pin" size="sm" color="text-honey-primary" />
+                        <span>Ubicación</span>
+                    </h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Estado</label>
+                            <span>{{ apicultor().estadoCodigo || 'No especificado' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Municipio</label>
+                            <span>{{ apicultor().municipioCodigo || 'No especificado' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de Producción -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <app-icon name="chart-bar" size="sm" color="text-honey-primary" />
+                        <span>Información de Producción</span>
+                    </h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Cantidad de Apiarios</label>
+                            <span class="text-2xl font-bold text-honey-primary">
+                                {{ apicultor().cantidadApiarios }}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <label>Fecha de Registro</label>
+                            <span>{{ apicultor().fechaRegistro | date:'dd/MM/yyyy' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estados -->
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <app-icon name="check-circle" size="sm" color="text-honey-primary" />
+                        <span>Estados</span>
+                    </h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Estado del Apicultor</label>
+                            <app-badge [variant]="apicultor().estatus === 'ACTIVO' ? 'success' : 'danger'" size="md">
+                                {{ apicultor().estatus }}
+                            </app-badge>
+                        </div>
+                        <div class="info-item">
+                            <label>Estado del Vínculo</label>
+                            <app-badge [variant]="apicultor().estatusVinculo === 'ACTIVO' ? 'success' : 'danger'"
+                                size="md">
+                                {{ apicultor().estatusVinculo }}
+                            </app-badge>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nota informativa -->
+                <div class="info-note">
+                    <app-icon name="information-circle" size="md" color="text-blue-600" />
+                    <div>
+                        <p class="text-sm font-medium text-blue-900 mb-1">Información de Solo Lectura</p>
+                        <p class="text-sm text-blue-700">
+                            Esta información es de solo lectura. Si necesitas realizar cambios o
+                            gestionar la vinculación, contacta al administrador del sistema.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            }
+
+            <!-- TAB 2: APIARIOS -->
+            @if (activeTab() === 'apiarios') {
+            <div class="tab-content">
+                <div class="apiarios-header">
+                    <p class="text-sm text-gray-600">
+                        Este apicultor tiene
+                        <span class="font-bold text-gray-900">{{ apicultor().cantidadApiarios }}</span>
+                        apiario(s) registrado(s)
+                    </p>
+                </div>
+
+                <app-honey-table [columns]="apiariosColumns()" [data]="apiarios()" [config]="apiariosTableConfig()"
+                    rowKey="id">
+                </app-honey-table>
+
+                @if (apiarios().length > 0) {
+                <div class="info-note mt-4">
+                    <app-icon name="map-pin" size="md" color="text-green-600" />
+                    <p class="text-sm text-gray-700">
+                        Todos los apiarios cuentan con geolocalización GPS para garantizar la
+                        trazabilidad del origen de la miel.
+                    </p>
+                </div>
+                }
+            </div>
+            }
+
+            <!-- TAB 3: PROVEEDORES -->
+            @if (activeTab() === 'proveedores') {
+            <div class="tab-content">
+                <div class="proveedores-header">
+                    <p class="text-sm text-gray-600">
+                        Este apicultor está vinculado con
+                        <span class="font-bold text-gray-900">{{ proveedores().length + 1 }}</span>
+                        proveedor(es) en total
+                    </p>
+                </div>
+
+                @if (proveedores().length > 0) {
+                <app-honey-table [columns]="proveedoresColumns()" [data]="proveedores()"
+                    [config]="proveedoresTableConfig()" rowKey="proveedor.id">
+                </app-honey-table>
+                } @else {
+                <div class="empty-proveedores">
+                    <app-icon name="building-office" size="xl" color="text-gray-400" />
+                    <p class="text-lg font-semibold text-gray-700 mt-3">
+                        Solo vinculado contigo
+                    </p>
+                    <p class="text-sm text-gray-600 mt-1">
+                        Este apicultor únicamente está vinculado con tu proveedor
+                    </p>
+                </div>
+                }
+
+                <div class="info-note mt-4">
+                    <app-icon name="information-circle" size="md" color="text-blue-600" />
+                    <p class="text-sm text-gray-700">
+                        Un apicultor puede estar vinculado con múltiples proveedores simultáneamente,
+                        permitiendo diversificar sus canales de venta.
+                    </p>
+                </div>
+            </div>
+            }
+
+        </div>
+
+        <!-- ============================================================================
+             FOOTER
+             ============================================================================ -->
+        <div class="modal-footer">
+            <button class="footer-button secondary" (click)="closeModal()" type="button">
+                <app-icon name="x-mark" size="sm" />
+                <span>Cerrar</span>
+            </button>
+        </div>
+
+    </div>
+</div>
+}

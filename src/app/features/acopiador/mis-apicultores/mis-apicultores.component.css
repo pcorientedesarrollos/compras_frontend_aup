@@ -1,0 +1,293 @@
+/* ============================================================================
+   🐝 MIS APICULTORES - ACOPIADOR - STYLES
+   ============================================================================ */
+
+/* Container Principal */
+.apicultores-container {
+    @apply max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6;
+}
+
+/* ============================================================================
+   HEADER SECTION
+   ============================================================================ */
+
+.header-section {
+    @apply bg-white rounded-lg shadow-md p-6;
+}
+
+.header-content {
+    @apply flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6;
+}
+
+.icon-wrapper {
+    @apply w-14 h-14 bg-gradient-to-br from-honey-primary/20 to-amber-100 rounded-xl flex items-center justify-center;
+}
+
+.page-title {
+    @apply text-2xl font-bold text-gray-900;
+}
+
+.page-subtitle {
+    @apply text-sm text-gray-600 mt-1;
+}
+
+/* Header Actions */
+.header-actions {
+    @apply flex flex-wrap items-center gap-4;
+}
+
+/* Stats Cards */
+.stat-card {
+    @apply flex items-center space-x-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg px-4 py-3 border border-gray-200;
+}
+
+.stat-icon {
+    @apply w-10 h-10 rounded-lg flex items-center justify-center;
+}
+
+.stat-content {
+    @apply flex flex-col;
+}
+
+.stat-label {
+    @apply text-xs text-gray-600 uppercase tracking-wide;
+}
+
+.stat-value {
+    @apply text-xl font-bold text-gray-900 mt-0.5;
+}
+
+/* Botón Recargar */
+.btn-refresh {
+    @apply flex items-center space-x-2 px-4 py-2 bg-white border-2 border-honey-primary text-honey-primary rounded-lg hover:bg-honey-primary hover:text-white transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* ============================================================================
+   FILTERS SECTION
+   ============================================================================ */
+
+.filters-section {
+    @apply bg-white rounded-lg shadow-md p-4;
+}
+
+/* ============================================================================
+   TABLE SECTION
+   ============================================================================ */
+
+.table-section {
+    @apply bg-white rounded-lg shadow-md overflow-hidden;
+}
+
+/* ============================================================================
+   PAGINACIÓN
+   ============================================================================ */
+
+.pagination-container {
+    @apply flex flex-col md:flex-row items-center justify-between gap-4 px-6 py-4 bg-gray-50 border-t border-gray-200;
+}
+
+.pagination-info {
+    @apply flex items-center;
+}
+
+.pagination-controls {
+    @apply flex items-center space-x-2;
+}
+
+.pagination-button {
+    @apply flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+}
+
+.pagination-button:hover:not(:disabled) {
+    @apply bg-honey-primary/10 border-honey-primary text-honey-dark;
+}
+
+.pagination-numbers {
+    @apply flex items-center space-x-1;
+}
+
+.pagination-number {
+    @apply w-10 h-10 flex items-center justify-center text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors;
+}
+
+.pagination-number.active {
+    @apply bg-honey-primary text-white border-honey-primary hover:bg-honey-dark;
+}
+
+.page-size-selector {
+    @apply flex items-center space-x-2;
+}
+
+.page-size-select {
+    @apply px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-transparent;
+}
+
+/* ============================================================================
+   EMPTY STATE
+   ============================================================================ */
+
+.empty-state {
+    @apply bg-white rounded-lg shadow-md p-12 text-center;
+}
+
+.empty-icon {
+    @apply w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center;
+}
+
+.empty-title {
+    @apply text-xl font-bold text-gray-900 mb-2;
+}
+
+.empty-description {
+    @apply text-gray-600 max-w-md mx-auto;
+}
+
+/* ============================================================================
+   MODAL
+   ============================================================================ */
+
+.modal-overlay {
+    @apply fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-container {
+    @apply bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    @apply flex items-center justify-between p-6 bg-gradient-to-r from-honey-primary/10 to-amber-100/50 border-b border-amber-200;
+}
+
+.modal-close-button {
+    @apply w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-200 transition-colors text-gray-600 hover:text-gray-900;
+}
+
+.modal-body {
+    @apply flex-1 overflow-y-auto p-6;
+}
+
+.modal-footer {
+    @apply flex items-center justify-end space-x-3 p-6 bg-gray-50 border-t border-gray-200;
+}
+
+/* ============================================================================
+   INFO SECTIONS (MODAL)
+   ============================================================================ */
+
+.info-section {
+    @apply bg-gray-50 rounded-lg p-6 space-y-4;
+}
+
+.section-title {
+    @apply text-sm font-bold text-gray-700 uppercase tracking-wide mb-4 pb-2 border-b border-gray-200;
+}
+
+.info-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+}
+
+.info-item {
+    @apply flex flex-col space-y-1;
+}
+
+.info-item label {
+    @apply text-xs text-gray-500 uppercase tracking-wide font-medium;
+}
+
+.info-item span {
+    @apply text-sm text-gray-900;
+}
+
+.info-note {
+    @apply flex items-start space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200;
+}
+
+/* ============================================================================
+   BOTONES
+   ============================================================================ */
+
+.btn-secondary {
+    @apply flex items-center space-x-2 px-6 py-2.5 rounded-lg font-medium transition-all bg-white text-gray-700 border border-gray-300 hover:bg-gray-50;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .header-content {
+        @apply flex-col items-start;
+    }
+
+    .header-actions {
+        @apply w-full flex-col;
+    }
+
+    .stat-card {
+        @apply w-full;
+    }
+
+    .pagination-container {
+        @apply flex-col;
+    }
+
+    .pagination-controls {
+        @apply w-full justify-center;
+    }
+
+    .pagination-numbers {
+        @apply hidden;
+    }
+
+    .modal-container {
+        @apply max-h-[95vh] mx-2;
+    }
+
+    .info-grid {
+        @apply grid-cols-1;
+    }
+}
+
+/* ============================================================================
+   SCROLLBAR CUSTOM
+   ============================================================================ */
+
+.modal-body::-webkit-scrollbar {
+    @apply w-2;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    @apply bg-gray-100;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    @apply bg-gray-400 rounded-full;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500;
+}

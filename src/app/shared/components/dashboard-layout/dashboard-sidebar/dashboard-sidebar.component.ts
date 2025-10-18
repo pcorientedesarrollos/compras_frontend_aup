@@ -62,10 +62,10 @@ export class DashboardSidebarComponent {
         if (role === 'ADMINISTRADOR') {
             return [
                 { icon: 'chart-bar', label: 'Dashboard', route: '/dashboard/admin' },
-                { icon: 'users', label: 'Usuarios', route: '/admin/usuarios' },
-                { icon: 'bee', label: 'Apicultores', route: '/admin/apicultores' },
                 { icon: 'building-office', label: 'Proveedores', route: '/admin/proveedores' },
+                { icon: 'bee', label: 'Apicultores', route: '/admin/apicultores' },
                 { icon: 'map-pin', label: 'Apiarios', route: '/admin/apiarios' },
+                { icon: 'users', label: 'Usuarios', route: '/admin/usuarios' },
                 { icon: 'document-text', label: 'Reportes', route: '/admin/reportes' },
                 { icon: 'cog-6-tooth', label: 'Configuración', route: '/admin/configuracion' },
                 { icon: 'arrow-down', label: '🧪 Test Table', route: '/dashboard/test-table', badge: 'DEV', badgeClass: 'bg-purple-100 text-purple-800' }
@@ -75,10 +75,11 @@ export class DashboardSidebarComponent {
         if (role === 'ACOPIADOR') {
             return [
                 { icon: 'chart-bar', label: 'Dashboard', route: '/dashboard/acopiador' },
-                { icon: 'bee', label: 'Mis Apicultores', route: '/acopiador/apicultores' },
-                { icon: 'link', label: 'Vincular Apicultor', route: '/acopiador/vincular' },
+                { icon: 'bee', label: 'Mis Apicultores', route: '/acopiador/mis-apicultores' },
+                // { icon: 'link', label: 'Vincular Apicultor', route: '/acopiador/vincular' },
                 { icon: 'map-pin', label: 'Ver Apiarios', route: '/acopiador/apiarios' },
-                { icon: 'shopping-bag', label: 'Compras de Miel', route: '/acopiador/compras' }
+                { icon: 'shopping-bag', label: 'Entradas de Miel', route: '/acopiador/entradas-miel' },
+                // { icon: 'shopping-bag', label: 'Compras de Miel', route: '/acopiador/compras' }
             ];
         }
 
