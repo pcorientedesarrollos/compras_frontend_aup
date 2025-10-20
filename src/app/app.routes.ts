@@ -164,6 +164,20 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/acopiador/entradas-miel/entradas-miel-create/entradas-miel-create.component')
                     .then(m => m.EntradasMielCreateComponent)
             },
+            // Salidas miel
+            {
+                path: 'salidas-miel',
+                loadComponent: () => import('./features/acopiador/salidas-miel/salidas-miel-list.component')
+                    .then(m => m.SalidasMielListComponent)
+            },
+
+            // Salidas de Miel - Nueva
+            {
+                path: 'salidas-miel/nueva',
+                loadComponent: () => import('./features/acopiador/salidas-miel/salidas-miel-create.component')
+                    .then(m => m.SalidasMielCreateComponent)
+            },
+
 
             // Redirección por defecto
             {

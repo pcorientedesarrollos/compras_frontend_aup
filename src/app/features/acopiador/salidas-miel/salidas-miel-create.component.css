@@ -1,0 +1,119 @@
+/**
+ * ============================================================================
+ * 📦 CREAR SALIDA DE MIEL - ESTILOS
+ * ============================================================================
+ */
+
+/* Detalles con borde más visible */
+.detalle-item {
+    @apply border border-gray-200 rounded-lg p-4 bg-gray-50;
+    transition: all 0.2s ease;
+}
+
+.detalle-item:hover {
+    @apply border-honey-200 bg-honey-25;
+}
+
+/* Inputs con error de stock */
+/* input.border-red-500 {
+    @apply border-red-500 focus:ring-red-500 focus:border-red-500;
+} */
+
+/* Botón de agregar detalle */
+.btn-agregar-detalle {
+    @apply bg-honey-primary hover:bg-honey-dark text-white px-4 py-2 rounded-lg transition-colors;
+    box-shadow: 0 1px 3px rgba(245, 158, 11, 0.1);
+}
+
+.btn-agregar-detalle:hover {
+    box-shadow: 0 4px 6px rgba(245, 158, 11, 0.2);
+}
+
+/* Animación de loading */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Cards de resumen */
+.summary-card {
+    @apply bg-white rounded-lg p-4 border border-honey-200;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.summary-card:hover {
+    @apply shadow-md;
+    transform: translateY(-2px);
+}
+
+/* Resumen por tipo de miel */
+.tipo-miel-row {
+    @apply flex items-center justify-between text-sm py-2 border-b border-gray-100;
+}
+
+.tipo-miel-row:last-child {
+    @apply border-b-0;
+}
+
+/* Estados de validación */
+.validating-indicator {
+    @apply inline-flex items-center gap-2 text-xs text-blue-600;
+}
+
+.stock-error {
+    @apply text-red-500 text-xs mt-1 font-medium flex items-center gap-1;
+}
+
+.stock-success {
+    @apply text-green-600 text-xs mt-1 flex items-center gap-1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .detalle-item {
+        @apply p-3;
+    }
+
+    .summary-card {
+        @apply p-3;
+    }
+}
+
+/* Mejoras visuales para inputs pequeños */
+input[type="number"],
+input[type="text"],
+input[type="date"],
+select,
+textarea {
+    font-size: 0.875rem;
+}
+
+/* Fondo de honey personalizado */
+.bg-honey-25 {
+    background-color: #fffbeb;
+}
+
+.bg-honey-50 {
+    background-color: #fef3c7;
+}
+
+.border-honey-200 {
+    border-color: #fde68a;
+}
+
+.text-honey-800 {
+    color: #92400e;
+}
+
+.text-honey-900 {
+    color: #78350f;
+}

@@ -79,6 +79,7 @@ export class DashboardSidebarComponent {
                 // { icon: 'link', label: 'Vincular Apicultor', route: '/acopiador/vincular' },
                 { icon: 'map-pin', label: 'Ver Apiarios', route: '/acopiador/apiarios' },
                 { icon: 'shopping-bag', label: 'Entradas de Miel', route: '/acopiador/entradas-miel' },
+                { icon: 'folder', label: 'Salidas de Miel', route: '/acopiador/salidas-miel' },
                 // { icon: 'shopping-bag', label: 'Compras de Miel', route: '/acopiador/compras' }
             ];
         }

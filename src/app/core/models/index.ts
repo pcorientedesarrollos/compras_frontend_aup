@@ -6,3 +6,6 @@ export * from './apicultor.model';
 export * from './apiario.model';
 export * from './historial.model';
 export * from './entrada-miel.model';
+export * from './inventario.model';
+export * from './salida-miel.model';
+export * from './chofer.model';

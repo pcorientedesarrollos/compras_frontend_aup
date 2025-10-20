@@ -1,0 +1,318 @@
+<!-- ============================================================================
+     📦 SALIDAS MIEL LIST - VISTA COMPACTA TIPO TABLA
+     ============================================================================ -->
+
+<div class="p-6 space-y-6">
+    <!-- ============================================================================
+       HEADER CON TÍTULO Y BOTÓN CREAR
+       ============================================================================ -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <app-icon name="shopping-bag" size="lg" class="text-honey-primary" />
+                Salidas de Miel
+            </h1>
+            <p class="text-sm text-gray-600 mt-1">
+                Gestión de salidas de inventario
+            </p>
+        </div>
+
+        <button (click)="crearNuevaSalida()"
+            class="bg-honey-primary hover:bg-honey-dark text-white px-4 py-2.5 rounded-lg flex items-center gap-2 transition-colors">
+            <app-icon name="plus" size="sm" />
+            <span class="font-medium">Nueva Salida</span>
+        </button>
+    </div>
+
+    <!-- ============================================================================
+       RESUMEN DE KILOS POR ESTADO
+       ============================================================================ -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Borrador -->
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-yellow-800 uppercase">Borrador</p>
+                    <p class="text-2xl font-bold text-yellow-900 mt-1">
+                        {{ formatKilos(resumenKilosPorEstado()[EstadoSalida.BORRADOR]) }}
+                    </p>
+                </div>
+                <app-icon name="document-text" size="xl" class="text-yellow-400" />
+            </div>
+        </div>
+
+        <!-- En Tránsito -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-blue-800 uppercase">En Tránsito</p>
+                    <p class="text-2xl font-bold text-blue-900 mt-1">
+                        {{ formatKilos(resumenKilosPorEstado()[EstadoSalida.EN_TRANSITO]) }}
+                    </p>
+                </div>
+                <app-icon name="arrow-up-tray" size="xl" class="text-blue-400" />
+            </div>
+        </div>
+
+        <!-- Entregada -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-green-800 uppercase">Entregada</p>
+                    <p class="text-2xl font-bold text-green-900 mt-1">
+                        {{ formatKilos(resumenKilosPorEstado()[EstadoSalida.ENTREGADA]) }}
+                    </p>
+                </div>
+                <app-icon name="check-circle" size="xl" class="text-green-400" />
+            </div>
+        </div>
+
+        <!-- Total Visible -->
+        <div class="bg-honey-50 border border-honey-200 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-honey-800 uppercase">Total Visible</p>
+                    <p class="text-2xl font-bold text-honey-900 mt-1">
+                        {{ formatKilos(totalKilosVisibles()) }}
+                    </p>
+                </div>
+                <app-icon name="scale" size="xl" class="text-honey-400" />
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================================
+       FILTROS
+       ============================================================================ -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Estado -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                <select [(ngModel)]="filterEstado"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-honey-primary focus:border-honey-primary">
+                    <option value="">Todos</option>
+                    <option [value]="EstadoSalida.BORRADOR">Borrador</option>
+                    <option [value]="EstadoSalida.EN_TRANSITO">En Tránsito</option>
+                    <option [value]="EstadoSalida.ENTREGADA">Entregada</option>
+                    <option [value]="EstadoSalida.CANCELADA">Cancelada</option>
+                </select>
+            </div>
+
+            <!-- Fecha Inicio -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Inicio</label>
+                <input type="date" [(ngModel)]="filterFechaInicio"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-honey-primary focus:border-honey-primary" />
+            </div>
+
+            <!-- Fecha Fin -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Fin</label>
+                <input type="date" [(ngModel)]="filterFechaFin"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-honey-primary focus:border-honey-primary" />
+            </div>
+
+            <!-- Botones -->
+            <div class="flex items-end gap-2">
+                <button (click)="applyFilters()"
+                    class="flex-1 bg-honey-primary hover:bg-honey-dark text-white px-4 py-2 rounded-lg transition-colors">
+                    Filtrar
+                </button>
+                <button (click)="clearFilters()"
+                    class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================================
+       TABLA COMPACTA DE SALIDAS
+       ============================================================================ -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        @if (loading()) {
+        <!-- Loading State -->
+        <div class="flex items-center justify-center py-12">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-honey-primary"></div>
+            <span class="ml-3 text-gray-600">Cargando salidas...</span>
+        </div>
+        } @else if (salidas().length === 0) {
+        <!-- Empty State -->
+        <div class="text-center py-12">
+            <app-icon name="shopping-bag" size="2xl" class="text-gray-400 mx-auto mb-4" />
+            <p class="text-gray-600 font-medium">No hay salidas registradas</p>
+            <p class="text-sm text-gray-500 mt-1">Crea tu primera salida de miel</p>
+            <button (click)="crearNuevaSalida()"
+                class="mt-4 bg-honey-primary hover:bg-honey-dark text-white px-4 py-2 rounded-lg inline-flex items-center gap-2">
+                <app-icon name="plus" size="sm" />
+                Nueva Salida
+            </button>
+        </div>
+        } @else {
+        <!-- Tabla -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Folio
+                        </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Fecha
+                        </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Chofer
+                        </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Detalles
+                        </th>
+                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Kilos
+                        </th>
+                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Total
+                        </th>
+                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Estado
+                        </th>
+                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Acciones
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @for (salida of salidas(); track salida.id) {
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <!-- Folio -->
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <button (click)="verDetalle(salida.id)"
+                                class="text-sm font-medium text-honey-primary hover:text-honey-dark">
+                                {{ salida.folio }}
+                            </button>
+                        </td>
+
+                        <!-- Fecha -->
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                            {{ formatDate(salida.fecha) }}
+                        </td>
+
+                        <!-- Chofer -->
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <div class="flex items-center gap-2">
+                                <app-icon name="user" size="sm" class="text-gray-400" />
+                                <span class="text-sm text-gray-900">{{ salida.choferNombre }}</span>
+                            </div>
+                        </td>
+
+                        <!-- Detalles -->
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                            {{ salida.cantidadDetalles }} item(s)
+                        </td>
+
+                        <!-- Kilos -->
+                        <td class="px-4 py-3 whitespace-nowrap text-right">
+                            <span class="text-sm font-semibold text-gray-900">
+                                {{ formatKilos(salida.totalKilos) }}
+                            </span>
+                        </td>
+
+                        <!-- Total -->
+                        <td class="px-4 py-3 whitespace-nowrap text-right">
+                            <span class="text-sm font-semibold text-gray-900">
+                                {{ formatCurrency(salida.totalCompra) }}
+                            </span>
+                        </td>
+
+                        <!-- Estado -->
+                        <td class="px-4 py-3 whitespace-nowrap text-center">
+                            <span
+                                [class]="'inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ' + getEstadoBadgeClass(salida.estado)">
+                                {{ salida.estado }}
+                            </span>
+                        </td>
+
+                        <!-- Acciones -->
+                        <td class="px-4 py-3 whitespace-nowrap text-center">
+                            <div class="flex items-center justify-center gap-1">
+                                <!-- Ver detalle -->
+                                <button (click)="verDetalle(salida.id)"
+                                    class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                    title="Ver detalle">
+                                    <app-icon name="eye" size="sm" />
+                                </button>
+
+                                <!-- Editar (solo BORRADOR) -->
+                                @if (esEditable(salida.estado)) {
+                                <button (click)="editarSalida(salida.id)"
+                                    class="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded transition-colors"
+                                    title="Editar">
+                                    <app-icon name="pencil" size="sm" />
+                                </button>
+                                }
+
+                                <!-- Finalizar (solo BORRADOR) -->
+                                @if (esFinalizable(salida.estado)) {
+                                <button (click)="finalizarSalida(salida)"
+                                    class="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors"
+                                    title="Finalizar">
+                                    <app-icon name="check-circle" size="sm" />
+                                </button>
+                                }
+
+                                <!-- Cancelar (solo BORRADOR) -->
+                                @if (esCancelable(salida.estado)) {
+                                <button (click)="cancelarSalida(salida)"
+                                    class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                    title="Cancelar">
+                                    <app-icon name="trash" size="sm" />
+                                </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        <div class="bg-gray-50 px-4 py-3 border-t border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="text-sm text-gray-700">
+                    Mostrando
+                    <span class="font-medium">{{ (currentPage() - 1) * pageSize() + 1 }}</span>
+                    a
+                    <span class="font-medium">{{ Math.min(currentPage() * pageSize(), totalItems()) }}</span>
+                    de
+                    <span class="font-medium">{{ totalItems() }}</span>
+                    resultados
+                </div>
+
+                <div class="flex gap-2">
+                    <!-- Anterior -->
+                    <button (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1"
+                        class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        <app-icon name="chevron-left" size="sm" />
+                    </button>
+
+                    <!-- Páginas -->
+                    @for (page of getPageNumbers(); track page) {
+                    <button (click)="goToPage(page)" [class]="page === currentPage() 
+                  ? 'px-3 py-1 bg-honey-primary text-white rounded-lg font-medium'
+                  : 'px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors'">
+                        {{ page }}
+                    </button>
+                    }
+
+                    <!-- Siguiente -->
+                    <button (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()"
+                        class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        <app-icon name="chevron-right" size="sm" />
+                    </button>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+</div>
