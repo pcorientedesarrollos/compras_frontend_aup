@@ -32,6 +32,7 @@ import {
 
 // Servicios
 import { SalidaMielService } from '../../../core/services/salida-miel.service';
+import { InventarioService } from '../../../core/services/inventario.service';
 
 @Component({
     selector: 'app-salidas-miel-list',
@@ -46,6 +47,7 @@ import { SalidaMielService } from '../../../core/services/salida-miel.service';
 })
 export class SalidasMielListComponent implements OnInit {
     private salidaMielService = inject(SalidaMielService);
+    private inventarioService = inject(InventarioService);
     private router = inject(Router);
     private destroyRef = inject(DestroyRef);
 
@@ -73,6 +75,9 @@ export class SalidasMielListComponent implements OnInit {
 
     /** Salida seleccionada para modal */
     selectedSalidaId = signal<string | null>(null);
+
+    /** Kilos disponibles totales del inventario */
+    kilosDisponiblesTotales = signal<number>(0);
 
     /**
      * Math para template
@@ -118,6 +123,7 @@ export class SalidasMielListComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadSalidas();
+        this.loadInventarioTotales();
     }
 
     // ============================================================================
@@ -164,6 +170,23 @@ export class SalidasMielListComponent implements OnInit {
                 error: () => {
                     this.loading.set(false);
                     alert('Error al cargar salidas de miel');
+                }
+            });
+    }
+
+    /**
+     * Cargar totales de inventario disponible
+     */
+    loadInventarioTotales(): void {
+        this.inventarioService.getResumenInventario()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (response) => {
+                    this.kilosDisponiblesTotales.set(response.totales.kilosDisponibles);
+                },
+                error: () => {
+                    // Silenciar error, mantener en 0
+                    this.kilosDisponiblesTotales.set(0);
                 }
             });
     }
@@ -344,9 +367,12 @@ export class SalidasMielListComponent implements OnInit {
     }
 
     /**
-     * Formatear kilos
+     * Formatear kilos con validación
      */
-    formatKilos(kilos: number): string {
+    formatKilos(kilos: number | undefined): string {
+        if (kilos === undefined || kilos === null) {
+            return '0.00 kg';
+        }
         return `${kilos.toFixed(2)} kg`;
     }
 }

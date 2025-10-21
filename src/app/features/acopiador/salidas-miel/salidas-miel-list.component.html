@@ -67,13 +67,13 @@
             </div>
         </div>
 
-        <!-- Total Visible -->
+        <!-- Inventario Disponible -->
         <div class="bg-honey-50 border border-honey-200 rounded-lg p-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-medium text-honey-800 uppercase">Total Visible</p>
+                    <p class="text-xs font-medium text-honey-800 uppercase">Inventario Disponible</p>
                     <p class="text-2xl font-bold text-honey-900 mt-1">
-                        {{ formatKilos(totalKilosVisibles()) }}
+                        {{ formatKilos(kilosDisponiblesTotales()) }}
                     </p>
                 </div>
                 <app-icon name="scale" size="xl" class="text-honey-400" />
@@ -156,9 +156,6 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Folio
-                        </th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Fecha
                         </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -169,9 +166,6 @@
                         </th>
                         <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Kilos
-                        </th>
-                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Total
                         </th>
                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Estado
@@ -184,14 +178,6 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @for (salida of salidas(); track salida.id) {
                     <tr class="hover:bg-gray-50 transition-colors">
-                        <!-- Folio -->
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <button (click)="verDetalle(salida.id)"
-                                class="text-sm font-medium text-honey-primary hover:text-honey-dark">
-                                {{ salida.folio }}
-                            </button>
-                        </td>
-
                         <!-- Fecha -->
                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                             {{ formatDate(salida.fecha) }}
@@ -214,13 +200,6 @@
                         <td class="px-4 py-3 whitespace-nowrap text-right">
                             <span class="text-sm font-semibold text-gray-900">
                                 {{ formatKilos(salida.totalKilos) }}
-                            </span>
-                        </td>
-
-                        <!-- Total -->
-                        <td class="px-4 py-3 whitespace-nowrap text-right">
-                            <span class="text-sm font-semibold text-gray-900">
-                                {{ formatCurrency(salida.totalCompra) }}
                             </span>
                         </td>
 
