@@ -27,7 +27,7 @@
     <!-- ============================================================================
        RESUMEN DE KILOS POR ESTADO
        ============================================================================ -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Borrador -->
         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <div class="flex items-center justify-between">
@@ -66,20 +66,48 @@
                 <app-icon name="check-circle" size="xl" class="text-green-400" />
             </div>
         </div>
+    </div>
 
-        <!-- Inventario Disponible -->
-        <div class="bg-honey-50 border border-honey-200 rounded-lg p-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-xs font-medium text-honey-800 uppercase">Inventario Disponible</p>
-                    <p class="text-2xl font-bold text-honey-900 mt-1">
-                        {{ formatKilos(kilosDisponiblesTotales()) }}
-                    </p>
+    <!-- ============================================================================
+       INVENTARIO DISPONIBLE POR TIPO DE MIEL
+       ============================================================================ -->
+    @if (inventarioAgrupado().length > 0) {
+    <div class="space-y-3">
+        <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <app-icon name="scale" size="md" class="text-honey-primary" />
+            Inventario Disponible por Tipo de Miel
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            @for (tipo of inventarioAgrupado(); track tipo.tipoMielId) {
+            <div class="bg-gradient-to-br from-honey-50 to-orange-50 border border-honey-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between mb-2">
+                    <div class="flex-1">
+                        <p class="text-xs font-medium text-honey-800 uppercase mb-1">{{ tipo.tipoMielNombre }}</p>
+                        <p class="text-2xl font-bold text-honey-900">
+                            {{ formatKilos(tipo.kilos) }}
+                        </p>
+                    </div>
+                    <app-icon name="honey" size="xl" class="text-honey-400 opacity-60" />
                 </div>
-                <app-icon name="scale" size="xl" class="text-honey-400" />
+
+                <!-- Barra de progreso -->
+                <div class="mt-3">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs text-honey-700">{{ tipo.porcentaje }}%</span>
+                    </div>
+                    <div class="w-full bg-honey-100 rounded-full h-2">
+                        <div
+                            class="bg-gradient-to-r from-honey-primary to-honey-dark h-2 rounded-full transition-all"
+                            [style.width.%]="tipo.porcentaje">
+                        </div>
+                    </div>
+                </div>
             </div>
+            }
         </div>
     </div>
+    }
 
     <!-- ============================================================================
        FILTROS

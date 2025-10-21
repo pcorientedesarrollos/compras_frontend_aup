@@ -29,6 +29,7 @@ import {
     EstadoSalida,
     ResumenKilosPorTipo
 } from '../../../core/models/salida-miel.model';
+import { InventarioAgrupado } from '../../../core/models/chofer.model';
 
 // Servicios
 import { SalidaMielService } from '../../../core/services/salida-miel.service';
@@ -76,8 +77,8 @@ export class SalidasMielListComponent implements OnInit {
     /** Salida seleccionada para modal */
     selectedSalidaId = signal<string | null>(null);
 
-    /** Kilos disponibles totales del inventario */
-    kilosDisponiblesTotales = signal<number>(0);
+    /** Inventario agrupado por tipo de miel con porcentajes */
+    inventarioAgrupado = signal<InventarioAgrupado[]>([]);
 
     /**
      * Math para template
@@ -175,18 +176,46 @@ export class SalidasMielListComponent implements OnInit {
     }
 
     /**
-     * Cargar totales de inventario disponible
+     * Cargar inventario agrupado por tipo de miel
      */
     loadInventarioTotales(): void {
         this.inventarioService.getResumenInventario()
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (response) => {
-                    this.kilosDisponiblesTotales.set(response.totales.kilosDisponibles);
+                    const { resumen, totales } = response;
+
+                    // Agrupar por tipoMielId sumando kilos
+                    const porTipoMiel = resumen.reduce((acc: InventarioAgrupado[], item) => {
+                        const existe = acc.find(x => x.tipoMielId === item.tipoMielId);
+
+                        if (existe) {
+                            existe.kilos += item.kilosDisponibles;
+                        } else {
+                            acc.push({
+                                tipoMielId: item.tipoMielId,
+                                tipoMielNombre: item.tipoMielNombre,
+                                kilos: item.kilosDisponibles,
+                                porcentaje: 0
+                            });
+                        }
+
+                        return acc;
+                    }, []);
+
+                    // Calcular porcentajes
+                    const totalKilos = totales.kilosDisponibles;
+                    porTipoMiel.forEach(tipo => {
+                        tipo.porcentaje = totalKilos > 0
+                            ? parseFloat(((tipo.kilos / totalKilos) * 100).toFixed(2))
+                            : 0;
+                    });
+
+                    this.inventarioAgrupado.set(porTipoMiel);
                 },
                 error: () => {
-                    // Silenciar error, mantener en 0
-                    this.kilosDisponiblesTotales.set(0);
+                    // Silenciar error, mantener array vacío
+                    this.inventarioAgrupado.set([]);
                 }
             });
     }

@@ -91,3 +91,14 @@ export interface StockDisponibleDisplay {
     kilosDisponibles: number;
     suficiente: boolean; // true si hay stock suficiente para la cantidad solicitada
 }
+
+/**
+ * Inventario agrupado por tipo de miel (sumando clasificaciones)
+ * Para mostrar en dashboard/resumen
+ */
+export interface InventarioAgrupado {
+    tipoMielId: number;
+    tipoMielNombre: string;
+    kilos: number;
+    porcentaje: number;
+}

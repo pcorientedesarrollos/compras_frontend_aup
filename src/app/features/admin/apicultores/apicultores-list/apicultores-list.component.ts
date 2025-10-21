@@ -162,19 +162,11 @@ export class ApicultoresListComponent implements OnInit {
             formatter: (value: string | null) => value ? 'SI' : 'NO'
         },
         {
-            key: 'totalApiarios',
+            key: 'cantidadApiarios',
             label: 'Apiarios',
             type: 'number',
             sortable: true,
             width: '100px',
-            align: 'center'
-        },
-        {
-            key: 'totalProveedores',
-            label: 'Proveedores',
-            type: 'number',
-            sortable: true,
-            width: '120px',
             align: 'center'
         },
         {
@@ -509,7 +501,7 @@ export class ApicultoresListComponent implements OnInit {
      */
     private viewApiarios(apicultor: ApicultorAPI): void {
         console.log('Ver apiarios:', apicultor);
-        alert(`Apiarios de ${apicultor.nombre}\nTotal: ${apicultor.totalApiarios}`);
+        alert(`Apiarios de ${apicultor.nombre}\nTotal: ${apicultor.cantidadApiarios}`);
     }
 
     /**

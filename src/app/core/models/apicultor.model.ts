@@ -47,6 +47,7 @@ export interface ApicultorAPI {
     updatedAt: string;                   // ISO 8601
     totalApiarios: number;               // Contador (join)
     totalProveedores: number;            // Contador (join)
+    cantidadApiarios: number;          // Contador alternativo (join)
 }
 
 /**
