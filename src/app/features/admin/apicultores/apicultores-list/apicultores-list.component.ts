@@ -101,7 +101,7 @@ export class ApicultoresListComponent implements OnInit {
             width: '140px'
         },
         {
-            key: 'nombre',
+            key: 'nombreCompleto',
             label: 'Nombre Completo',
             type: 'text',
             sortable: true,
@@ -130,18 +130,10 @@ export class ApicultoresListComponent implements OnInit {
             formatter: (value: string | null) => value || 'N/A'
         },
         {
-            key: 'municipioCodigo',
-            label: 'Municipio',
-            type: 'text',
-            width: '110px',
-            align: 'center',
-            formatter: (value: string | null) => value || 'N/A'
-        },
-        {
-            key: 'senasica',
-            label: 'SENASICA',
+            key: 'idRasmiel',
+            label: 'ID-RASMIEL',
             type: 'badge',
-            width: '100px',
+            width: '120px',
             align: 'center',
             badgeConfig: {
                 'SI': { label: '✓ Sí', variant: 'success' },
@@ -150,10 +142,10 @@ export class ApicultoresListComponent implements OnInit {
             formatter: (value: string | null) => value ? 'SI' : 'NO'
         },
         {
-            key: 'ippSiniga',
-            label: 'IPP/SINIGA',
+            key: 'uppSiniiga',
+            label: 'UPPSINIIGA',
             type: 'badge',
-            width: '100px',
+            width: '120px',
             align: 'center',
             badgeConfig: {
                 'SI': { label: '✓ Sí', variant: 'success' },
@@ -164,6 +156,14 @@ export class ApicultoresListComponent implements OnInit {
         {
             key: 'cantidadApiarios',
             label: 'Apiarios',
+            type: 'number',
+            sortable: true,
+            width: '100px',
+            align: 'center'
+        },
+        {
+            key: 'totalColmenas',
+            label: 'Colmenas',
             type: 'number',
             sortable: true,
             width: '100px',
@@ -350,17 +350,17 @@ export class ApicultoresListComponent implements OnInit {
             filtered = filtered.filter(a => a.estatus === state['estatus']);
         }
 
-        // ✅ FILTRO 4: Certificaciones
+        // ✅ FILTRO 4: Certificaciones (v2.0: senasica → idRasmiel, ippSiniga → uppSiniiga)
         if (state['certificaciones'] && state['certificaciones'] !== '') {
             const certFilter = state['certificaciones'];
             filtered = filtered.filter(a => {
-                const hasSenasica = a.senasica !== null && a.senasica.trim() !== '';
-                const hasIPP = a.ippSiniga !== null && a.ippSiniga.trim() !== '';
+                const hasRasmiel = a.idRasmiel !== null && a.idRasmiel.trim() !== '';
+                const hasUPP = a.uppSiniiga !== null && a.uppSiniiga.trim() !== '';
 
-                if (certFilter === 'senasica') return hasSenasica;
-                if (certFilter === 'ipp') return hasIPP;
-                if (certFilter === 'ambas') return hasSenasica && hasIPP;
-                if (certFilter === 'ninguna') return !hasSenasica && !hasIPP;
+                if (certFilter === 'senasica') return hasRasmiel; // Mantener nombre de filtro por compatibilidad
+                if (certFilter === 'ipp') return hasUPP;
+                if (certFilter === 'ambas') return hasRasmiel && hasUPP;
+                if (certFilter === 'ninguna') return !hasRasmiel && !hasUPP;
                 return true;
             });
         }
@@ -489,11 +489,11 @@ export class ApicultoresListComponent implements OnInit {
     }
 
     /**
-     * Ver proveedores del apicultor
+     * Ver proveedores del apicultor (v2.0: usar cantidadProveedores)
      */
     private viewProveedores(apicultor: ApicultorAPI): void {
         console.log('Ver proveedores:', apicultor);
-        alert(`Proveedores de ${apicultor.nombre}\nTotal: ${apicultor.totalProveedores}`);
+        alert(`Proveedores de ${apicultor.nombreCompleto}\nTotal: ${apicultor.cantidadProveedores}`);
     }
 
     /**

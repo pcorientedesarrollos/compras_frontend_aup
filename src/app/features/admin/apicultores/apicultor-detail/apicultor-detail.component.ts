@@ -1,17 +1,25 @@
 /**
  * ============================================================================
- * 🐝 APICULTOR DETAIL COMPONENT - SISTEMA OAXACA MIEL
+ * 🐝 APICULTOR DETAIL COMPONENT - SISTEMA OAXACA MIEL v2.0
  * ============================================================================
- * 
+ *
  * Formulario para crear y editar apicultores
- * 
+ *
+ * CAMBIOS v2.0:
+ * - Campo 'codigo' eliminado del form (se genera automáticamente)
+ * - Campo 'nombre' dividido en: nombre, apellidoPaterno, apellidoMaterno
+ * - Campos 'estadoCodigo' y 'municipioCodigo' ahora obligatorios
+ * - Select-autocomplete para estados y municipios (cascada)
+ * - Campos renombrados: senasica → idRasmiel, ippSiniga → uppSiniiga
+ * - Proveedores: por defecto muestra seleccionados, botón "Mostrar Todos"
+ *
  * CARACTERÍSTICAS:
- * - Formulario reactivo con validaciones
+ * - Formulario reactivo con validaciones v2.0
  * - Multi-select de proveedores (gestión de vínculos N:N)
  * - Validación de CURP (18 caracteres)
  * - RFC opcional (sin validación estricta)
  * - Modo CREATE y EDIT
- * 
+ *
  * ============================================================================
  */
 
@@ -29,12 +37,20 @@ import {
     ApicultorAPI,
     CreateApicultorRequest,
     UpdateApicultorRequest,
-    ProveedorAPI
+    ProveedorAPI,
+    EstadoAPI,
+    MunicipioAPI,
+    estadosToOptions,
+    municipiosToOptions,
+    EstadoOption,
+    MunicipioOption
 } from '../../../../core/models/index';
 
 // Servicios
 import { ApicultorService } from '../../../../core/services/apicultor.service';
 import { ProveedorService } from '../../../../core/services/proveedor.service';
+import { EstadoService } from '../../../../core/services/estado.service';
+import { MunicipioService } from '../../../../core/services/municipio.service';
 
 type FormMode = 'create' | 'edit';
 
@@ -53,6 +69,8 @@ export class ApicultorDetailComponent implements OnInit {
     private fb = inject(FormBuilder);
     private apicultorService = inject(ApicultorService);
     private proveedorService = inject(ProveedorService);
+    private estadoService = inject(EstadoService);
+    private municipioService = inject(MunicipioService);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
     private destroyRef = inject(DestroyRef);
@@ -82,6 +100,18 @@ export class ApicultorDetailComponent implements OnInit {
     /** IDs de proveedores seleccionados */
     selectedProveedorIds = signal<number[]>([]);
 
+    /** Mostrar todos los proveedores (toggle) */
+    showAllProveedores = signal<boolean>(false);
+
+    /** Término de búsqueda de proveedores */
+    proveedorSearchTerm = signal<string>('');
+
+    /** Lista de estados disponibles */
+    estados = signal<EstadoOption[]>([]);
+
+    /** Lista de municipios disponibles (según estado seleccionado) */
+    municipios = signal<MunicipioOption[]>([]);
+
     // ============================================================================
     // FORM
     // ============================================================================
@@ -102,13 +132,40 @@ export class ApicultorDetailComponent implements OnInit {
         this.mode() === 'create' ? 'Crear Apicultor' : 'Actualizar Apicultor'
     );
 
-    /** Si el formulario es válido */
-    isFormValid = computed(() => this.apicultorForm?.valid || false);
+    /** Si el formulario es válido (signal reactivo) */
+    isFormValid = signal<boolean>(false);
 
     /** Proveedores filtrados disponibles (activos) */
     proveedoresActivos = computed(() =>
         this.proveedoresDisponibles().filter(p => p.deleteProve === 0)
     );
+
+    /** Proveedores que se mostrarán (seleccionados o todos según toggle) */
+    proveedoresToShow = computed(() => {
+        const activos = this.proveedoresActivos();
+        const selected = this.selectedProveedorIds();
+        const searchTerm = this.proveedorSearchTerm().toLowerCase();
+
+        // Si no está activado "Mostrar Todos", solo mostrar seleccionados
+        if (!this.showAllProveedores()) {
+            const selectedProveedores = activos.filter(p => selected.includes(p.idProveedor));
+            // Aplicar búsqueda si existe
+            if (searchTerm) {
+                return selectedProveedores.filter(p =>
+                    p.nombre.toLowerCase().includes(searchTerm)
+                );
+            }
+            return selectedProveedores;
+        }
+
+        // Mostrar todos con búsqueda si existe
+        if (searchTerm) {
+            return activos.filter(p =>
+                p.nombre.toLowerCase().includes(searchTerm)
+            );
+        }
+        return activos;
+    });
 
     // ============================================================================
     // LIFECYCLE
@@ -116,6 +173,7 @@ export class ApicultorDetailComponent implements OnInit {
 
     ngOnInit(): void {
         this.initForm();
+        this.loadEstados();
         this.loadProveedores();
         this.checkMode();
     }
@@ -125,21 +183,43 @@ export class ApicultorDetailComponent implements OnInit {
     // ============================================================================
 
     /**
-     * Inicializar formulario reactivo
+     * Inicializar formulario reactivo v2.0
+     * CAMBIOS: codigo eliminado, nombre dividido, campos renombrados
      */
     private initForm(): void {
         this.apicultorForm = this.fb.group({
-            codigo: ['', [Validators.required, Validators.minLength(3)]],
-            nombre: ['', [Validators.required, Validators.minLength(3)]],
+            // IDENTIFICACIÓN
+            estatus: ['ACTIVO', Validators.required],
+            nombre: ['', [Validators.required, Validators.maxLength(100)]],
+            apellidoPaterno: ['', [Validators.required, Validators.maxLength(100)]],
+            apellidoMaterno: ['', [Validators.maxLength(100)]],
             curp: ['', [Validators.required, Validators.minLength(18), Validators.maxLength(18)]],
-            rfc: [''], // RFC opcional, sin validación estricta
-            estadoCodigo: [''],
-            municipioCodigo: [''],
-            direccion: [''],
-            senasica: [''],
-            ippSiniga: [''],
-            estatus: ['ACTIVO', Validators.required]
+            rfc: ['', [Validators.maxLength(13)]],
+            idRasmiel: ['', [Validators.maxLength(50)]],
+            uppSiniiga: ['', [Validators.maxLength(50)]],
+
+            // UBICACIÓN
+            estadoCodigo: ['', Validators.required],
+            municipioCodigo: ['', Validators.required], // NO disabled inicialmente
+            direccion: ['']
         });
+
+        // Escuchar cambios en estadoCodigo para cargar municipios
+        this.apicultorForm.get('estadoCodigo')?.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(estadoCodigo => {
+                this.onEstadoChange(estadoCodigo);
+            });
+
+        // Escuchar cambios en el estado del formulario para actualizar signal
+        this.apicultorForm.statusChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => {
+                this.isFormValid.set(this.apicultorForm.valid);
+            });
+
+        // Actualizar estado inicial
+        this.isFormValid.set(this.apicultorForm.valid);
     }
 
     /**
@@ -160,6 +240,49 @@ export class ApicultorDetailComponent implements OnInit {
     // ============================================================================
     // DATA LOADING
     // ============================================================================
+
+    /**
+     * Cargar catálogo de estados
+     */
+    private loadEstados(): void {
+        this.estadoService
+            .getAllEstados()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (estados) => {
+                    this.estados.set(estadosToOptions(estados));
+                },
+                error: (error) => {
+                    console.error('Error al cargar estados:', error);
+                }
+            });
+    }
+
+    /**
+     * Cargar municipios según el estado seleccionado (cascada)
+     */
+    private onEstadoChange(estadoCodigo: string): void {
+        // Limpiar municipio seleccionado
+        this.apicultorForm.patchValue({ municipioCodigo: '' });
+        this.municipios.set([]);
+
+        if (!estadoCodigo) {
+            return;
+        }
+
+        // Cargar municipios del estado seleccionado
+        this.municipioService
+            .getMunicipiosByEstado(estadoCodigo)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (municipios) => {
+                    this.municipios.set(municipiosToOptions(municipios));
+                },
+                error: (error) => {
+                    console.error('Error al cargar municipios:', error);
+                }
+            });
+    }
 
     /**
      * Cargar lista de proveedores disponibles
@@ -207,24 +330,36 @@ export class ApicultorDetailComponent implements OnInit {
     }
 
     /**
-     * Rellenar formulario con datos del apicultor
+     * Rellenar formulario con datos del apicultor v2.0
      */
     private patchFormValues(apicultor: ApicultorAPI): void {
         this.apicultorForm.patchValue({
-            codigo: apicultor.codigo,
+            estatus: apicultor.estatus,
             nombre: apicultor.nombre,
+            apellidoPaterno: apicultor.apellidoPaterno,
+            apellidoMaterno: apicultor.apellidoMaterno || '',
             curp: apicultor.curp,
             rfc: apicultor.rfc || '',
-            estadoCodigo: apicultor.estadoCodigo || '',
-            municipioCodigo: apicultor.municipioCodigo || '',
-            direccion: apicultor.direccion || '',
-            senasica: apicultor.senasica || '',
-            ippSiniga: apicultor.ippSiniga || '',
-            estatus: apicultor.estatus
+            idRasmiel: apicultor.idRasmiel || '',
+            uppSiniiga: apicultor.uppSiniiga || '',
+            estadoCodigo: apicultor.estadoCodigo,
+            municipioCodigo: apicultor.municipioCodigo,
+            direccion: apicultor.direccion || ''
         });
 
-        // Deshabilitar código y CURP en modo edición (no se pueden cambiar)
-        this.apicultorForm.get('codigo')?.disable();
+        // Cargar municipios del estado actual
+        if (apicultor.estadoCodigo) {
+            this.municipioService
+                .getMunicipiosByEstado(apicultor.estadoCodigo)
+                .pipe(takeUntilDestroyed(this.destroyRef))
+                .subscribe({
+                    next: (municipios) => {
+                        this.municipios.set(municipiosToOptions(municipios));
+                    }
+                });
+        }
+
+        // Deshabilitar CURP en modo edición (no se puede cambiar)
         this.apicultorForm.get('curp')?.disable();
     }
 
@@ -249,22 +384,24 @@ export class ApicultorDetailComponent implements OnInit {
     }
 
     /**
-     * Crear nuevo apicultor
+     * Crear nuevo apicultor v2.0
+     * IMPORTANTE: Campo 'codigo' NO se envía (se genera automáticamente)
      */
     private createApicultor(): void {
         this.isSaving.set(true);
 
         const formValue = this.apicultorForm.getRawValue();
         const request: CreateApicultorRequest = {
-            codigo: formValue.codigo,
             nombre: formValue.nombre,
+            apellidoPaterno: formValue.apellidoPaterno,
+            apellidoMaterno: formValue.apellidoMaterno || undefined,
             curp: formValue.curp,
             rfc: formValue.rfc || undefined,
-            estadoCodigo: formValue.estadoCodigo || undefined,
-            municipioCodigo: formValue.municipioCodigo || undefined,
+            estadoCodigo: formValue.estadoCodigo,
+            municipioCodigo: formValue.municipioCodigo,
             direccion: formValue.direccion || undefined,
-            senasica: formValue.senasica || undefined,
-            ippSiniga: formValue.ippSiniga || undefined,
+            idRasmiel: formValue.idRasmiel || undefined,
+            uppSiniiga: formValue.uppSiniiga || undefined,
             estatus: formValue.estatus,
             proveedorIds: this.selectedProveedorIds().length > 0
                 ? this.selectedProveedorIds()
@@ -276,6 +413,7 @@ export class ApicultorDetailComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (apicultor) => {
+                    console.log('Apicultor creado con código:', apicultor.codigo);
                     this.router.navigate(['/admin/apicultores']);
                     this.isSaving.set(false);
                 },
@@ -287,7 +425,8 @@ export class ApicultorDetailComponent implements OnInit {
     }
 
     /**
-     * Actualizar apicultor existente
+     * Actualizar apicultor existente v2.0
+     * nombreCompleto se recalcula automáticamente en el backend
      */
     private updateApicultor(): void {
         if (!this.apicultorId()) return;
@@ -297,12 +436,14 @@ export class ApicultorDetailComponent implements OnInit {
         const formValue = this.apicultorForm.getRawValue();
         const request: UpdateApicultorRequest = {
             nombre: formValue.nombre,
+            apellidoPaterno: formValue.apellidoPaterno,
+            apellidoMaterno: formValue.apellidoMaterno || undefined,
             rfc: formValue.rfc || undefined,
-            estadoCodigo: formValue.estadoCodigo || undefined,
-            municipioCodigo: formValue.municipioCodigo || undefined,
+            estadoCodigo: formValue.estadoCodigo,
+            municipioCodigo: formValue.municipioCodigo,
             direccion: formValue.direccion || undefined,
-            senasica: formValue.senasica || undefined,
-            ippSiniga: formValue.ippSiniga || undefined,
+            idRasmiel: formValue.idRasmiel || undefined,
+            uppSiniiga: formValue.uppSiniiga || undefined,
             estatus: formValue.estatus,
             proveedorIds: this.selectedProveedorIds() // Siempre enviamos para gestionar vínculos
         };
@@ -312,6 +453,7 @@ export class ApicultorDetailComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (apicultor) => {
+                    console.log('Apicultor actualizado:', apicultor.nombreCompleto);
                     this.router.navigate(['/admin/apicultores']);
                     this.isSaving.set(false);
                 },
@@ -361,6 +503,22 @@ export class ApicultorDetailComponent implements OnInit {
      */
     clearAllProveedores(): void {
         this.selectedProveedorIds.set([]);
+    }
+
+    /**
+     * Toggle mostrar todos los proveedores
+     */
+    toggleShowAllProveedores(): void {
+        this.showAllProveedores.set(!this.showAllProveedores());
+        // Limpiar búsqueda al cambiar vista
+        this.proveedorSearchTerm.set('');
+    }
+
+    /**
+     * Actualizar término de búsqueda de proveedores
+     */
+    onProveedorSearch(term: string): void {
+        this.proveedorSearchTerm.set(term);
     }
 
     // ============================================================================

@@ -1,10 +1,17 @@
 /**
  * ============================================================================
- * 🐝 APICULTOR SERVICE - SISTEMA OAXACA MIEL
+ * 🐝 APICULTOR SERVICE - SISTEMA OAXACA MIEL v2.0
  * ============================================================================
- * 
- * Servicio para consumir las APIs de Apicultores del backend
- * 
+ *
+ * Servicio para consumir las APIs de Apicultores del backend v2.0
+ *
+ * CAMBIOS v2.0:
+ * - Campo 'codigo' ya NO se envía en CREATE (se genera automáticamente)
+ * - Campos nuevos: nombre, apellidoPaterno, apellidoMaterno, nombreCompleto
+ * - Campos renombrados: senasica → idRasmiel, ippSiniga → uppSiniiga
+ * - Campos obligatorios: estadoCodigo, municipioCodigo
+ * - Nuevo campo: totalColmenas
+ *
  * ENDPOINTS:
  * - POST   /api/apicultores                    → Crear apicultor
  * - GET    /api/apicultores                    → Listar con filtros y paginación
@@ -14,8 +21,8 @@
  * - PUT    /api/apicultores/:id                → Actualizar (incluye proveedores)
  * - DELETE /api/apicultores/:id                → Eliminar (solo ADMIN)
  * - GET    /api/apicultores/:id/proveedores    → Proveedores vinculados
- * - GET    /api/apicultores/proveedor/:id      → Apicultores de un proveedor
- * 
+ * - GET    /api/proveedores/:id/apicultores    → Apicultores de un proveedor
+ *
  * ============================================================================
  */
 
@@ -51,11 +58,13 @@ export class ApicultorService {
     // ============================================================================
 
     /**
-     * Crear un nuevo apicultor
+     * Crear un nuevo apicultor (v2.0)
+     * IMPORTANTE: Campo 'codigo' NO se envía (se genera automáticamente)
+     * Campos obligatorios: nombre, apellidoPaterno, curp, estadoCodigo, municipioCodigo
      * Opcionalmente puede vincularse con proveedores usando proveedorIds[]
-     * 
+     *
      * @param data Datos del apicultor a crear
-     * @returns Observable con el apicultor creado
+     * @returns Observable con el apicultor creado (incluye código generado)
      */
     createApicultor(data: CreateApicultorRequest): Observable<ApicultorDetailAPI> {
         return this.httpService

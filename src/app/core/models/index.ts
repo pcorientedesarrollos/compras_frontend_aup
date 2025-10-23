@@ -9,3 +9,5 @@ export * from './entrada-miel.model';
 export * from './inventario.model';
 export * from './salida-miel.model';
 export * from './chofer.model';
+export * from './estado.model';
+export * from './municipio.model';

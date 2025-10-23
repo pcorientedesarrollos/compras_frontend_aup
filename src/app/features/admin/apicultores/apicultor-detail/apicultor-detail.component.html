@@ -44,32 +44,56 @@
             </h2>
 
             <div class="form-grid">
-                <!-- Código -->
+                <!-- Estatus (ARRIBA) -->
                 <div class="form-group">
-                    <label for="codigo" class="form-label">
-                        Código <span class="required">*</span>
+                    <label for="estatus" class="form-label">
+                        Estatus <span class="required">*</span>
                     </label>
-                    <input id="codigo" type="text" formControlName="codigo" class="form-input"
-                        placeholder="Ej: APIC-2025-001"
-                        [class.error]="hasError('codigo', 'required') || hasError('codigo', 'minlength')">
-                    @if (hasError('codigo', 'required') || hasError('codigo', 'minlength')) {
-                    <span class="error-message">{{ getErrorMessage('codigo') }}</span>
-                    }
-                    @if (mode() === 'edit') {
-                    <span class="help-text">El código no se puede modificar</span>
+                    <select id="estatus" formControlName="estatus" class="form-input">
+                        <option value="ACTIVO">Activo</option>
+                        <option value="INACTIVO">Inactivo</option>
+                    </select>
+                </div>
+
+                <!-- Espacio vacío para alineación -->
+                <div class="form-group"></div>
+
+                <!-- Nombre -->
+                <div class="form-group">
+                    <label for="nombre" class="form-label">
+                        Nombre(s) <span class="required">*</span>
+                    </label>
+                    <input id="nombre" type="text" formControlName="nombre" class="form-input"
+                        placeholder="Ej: Juan Carlos" maxlength="100"
+                        [class.error]="hasError('nombre', 'required') || hasError('nombre', 'maxlength')">
+                    @if (hasError('nombre', 'required') || hasError('nombre', 'maxlength')) {
+                    <span class="error-message">{{ getErrorMessage('nombre') }}</span>
                     }
                 </div>
 
-                <!-- Nombre -->
-                <div class="form-group col-span-2">
-                    <label for="nombre" class="form-label">
-                        Nombre Completo <span class="required">*</span>
+                <!-- Apellido Paterno -->
+                <div class="form-group">
+                    <label for="apellidoPaterno" class="form-label">
+                        Apellido Paterno <span class="required">*</span>
                     </label>
-                    <input id="nombre" type="text" formControlName="nombre" class="form-input"
-                        placeholder="Nombre completo del apicultor"
-                        [class.error]="hasError('nombre', 'required') || hasError('nombre', 'minlength')">
-                    @if (hasError('nombre', 'required') || hasError('nombre', 'minlength')) {
-                    <span class="error-message">{{ getErrorMessage('nombre') }}</span>
+                    <input id="apellidoPaterno" type="text" formControlName="apellidoPaterno" class="form-input"
+                        placeholder="Ej: Pérez" maxlength="100"
+                        [class.error]="hasError('apellidoPaterno', 'required') || hasError('apellidoPaterno', 'maxlength')">
+                    @if (hasError('apellidoPaterno', 'required') || hasError('apellidoPaterno', 'maxlength')) {
+                    <span class="error-message">{{ getErrorMessage('apellidoPaterno') }}</span>
+                    }
+                </div>
+
+                <!-- Apellido Materno (Opcional) -->
+                <div class="form-group">
+                    <label for="apellidoMaterno" class="form-label">
+                        Apellido Materno (Opcional)
+                    </label>
+                    <input id="apellidoMaterno" type="text" formControlName="apellidoMaterno" class="form-input"
+                        placeholder="Ej: García" maxlength="100"
+                        [class.error]="hasError('apellidoMaterno', 'maxlength')">
+                    @if (hasError('apellidoMaterno', 'maxlength')) {
+                    <span class="error-message">{{ getErrorMessage('apellidoMaterno') }}</span>
                     }
                 </div>
 
@@ -95,8 +119,34 @@
                     <label for="rfc" class="form-label">
                         RFC (Opcional)
                     </label>
-                    <input id="rfc" type="text" formControlName="rfc" class="form-input" placeholder="RFC (opcional)">
-                    <span class="help-text">Campo opcional, sin validación estricta</span>
+                    <input id="rfc" type="text" formControlName="rfc" class="form-input" placeholder="13 caracteres"
+                        maxlength="13" [class.error]="hasError('rfc', 'maxlength')">
+                    @if (hasError('rfc', 'maxlength')) {
+                    <span class="error-message">{{ getErrorMessage('rfc') }}</span>
+                    }
+                    <span class="help-text">Campo opcional</span>
+                </div>
+
+                <!-- ID-RASMIEL (ABAJO) -->
+                <div class="form-group">
+                    <label for="idRasmiel" class="form-label">ID-RASMIEL (Opcional)</label>
+                    <input id="idRasmiel" type="text" formControlName="idRasmiel" class="form-input"
+                        placeholder="" maxlength="50"
+                        [class.error]="hasError('idRasmiel', 'maxlength')">
+                    @if (hasError('idRasmiel', 'maxlength')) {
+                    <span class="error-message">{{ getErrorMessage('idRasmiel') }}</span>
+                    }
+                </div>
+
+                <!-- UPPSINIIGA (ABAJO) -->
+                <div class="form-group">
+                    <label for="uppSiniiga" class="form-label">UPPSINIIGA (Opcional)</label>
+                    <input id="uppSiniiga" type="text" formControlName="uppSiniiga" class="form-input"
+                        placeholder="" maxlength="50"
+                        [class.error]="hasError('uppSiniiga', 'maxlength')">
+                    @if (hasError('uppSiniiga', 'maxlength')) {
+                    <span class="error-message">{{ getErrorMessage('uppSiniiga') }}</span>
+                    }
                 </div>
             </div>
         </div>
@@ -109,67 +159,53 @@
             </h2>
 
             <div class="form-grid">
-                <!-- Estado -->
+                <!-- Estado (con select normal o autocomplete si tienes componente) -->
                 <div class="form-group">
-                    <label for="estadoCodigo" class="form-label">Estado</label>
-                    <input id="estadoCodigo" type="text" formControlName="estadoCodigo" class="form-input"
-                        placeholder="Ej: 20 (Oaxaca)">
-                    <span class="help-text">Código del estado</span>
+                    <label for="estadoCodigo" class="form-label">
+                        Estado <span class="required">*</span>
+                    </label>
+                    <select id="estadoCodigo" formControlName="estadoCodigo" class="form-input"
+                        [class.error]="hasError('estadoCodigo', 'required')">
+                        <option value="">Seleccione un estado</option>
+                        @for (estado of estados(); track estado.value) {
+                        <option [value]="estado.value">{{ estado.label }}</option>
+                        }
+                    </select>
+                    @if (hasError('estadoCodigo', 'required')) {
+                    <span class="error-message">Selecciona un estado</span>
+                    }
                 </div>
 
-                <!-- Municipio -->
+                <!-- Municipio (carga al seleccionar estado) -->
                 <div class="form-group">
-                    <label for="municipioCodigo" class="form-label">Municipio</label>
-                    <input id="municipioCodigo" type="text" formControlName="municipioCodigo" class="form-input"
-                        placeholder="Código del municipio">
-                    <span class="help-text">Código del municipio</span>
+                    <label for="municipioCodigo" class="form-label">
+                        Municipio <span class="required">*</span>
+                    </label>
+                    <select id="municipioCodigo" formControlName="municipioCodigo" class="form-input"
+                        [class.error]="hasError('municipioCodigo', 'required')">
+                        <option value="">Seleccione un municipio</option>
+                        @for (municipio of municipios(); track municipio.value) {
+                        <option [value]="municipio.value">{{ municipio.label }}</option>
+                        }
+                    </select>
+                    @if (hasError('municipioCodigo', 'required')) {
+                    <span class="error-message">Selecciona un municipio</span>
+                    }
+                    @if (municipios().length === 0) {
+                    <span class="help-text">Primero seleccione un estado</span>
+                    }
                 </div>
 
                 <!-- Dirección -->
                 <div class="form-group col-span-2">
-                    <label for="direccion" class="form-label">Dirección</label>
+                    <label for="direccion" class="form-label">Dirección (Opcional)</label>
                     <textarea id="direccion" formControlName="direccion" class="form-input" rows="2"
                         placeholder="Dirección completa del apicultor"></textarea>
                 </div>
             </div>
         </div>
 
-        <!-- Sección 3: Certificaciones -->
-        <div class="form-section">
-            <h2 class="section-title">
-                <app-icon name="shield-check" size="md" color="text-honey-primary" />
-                <span>Certificaciones</span>
-            </h2>
-
-            <div class="form-grid">
-                <!-- SENASICA -->
-                <div class="form-group">
-                    <label for="senasica" class="form-label">SENASICA</label>
-                    <input id="senasica" type="text" formControlName="senasica" class="form-input"
-                        placeholder="Número de certificación SENASICA">
-                </div>
-
-                <!-- IPP/SINIGA -->
-                <div class="form-group">
-                    <label for="ippSiniga" class="form-label">IPP/SINIGA</label>
-                    <input id="ippSiniga" type="text" formControlName="ippSiniga" class="form-input"
-                        placeholder="Número IPP/SINIGA">
-                </div>
-
-                <!-- Estatus -->
-                <div class="form-group">
-                    <label for="estatus" class="form-label">
-                        Estatus <span class="required">*</span>
-                    </label>
-                    <select id="estatus" formControlName="estatus" class="form-input">
-                        <option value="ACTIVO">Activo</option>
-                        <option value="INACTIVO">Inactivo</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sección 4: Proveedores -->
+        <!-- Sección 3: Proveedores -->
         <div class="form-section">
             <h2 class="section-title">
                 <app-icon name="building-office" size="md" color="text-honey-primary" />
@@ -178,6 +214,12 @@
 
             <div class="proveedores-section">
                 <div class="proveedores-actions">
+                    <button type="button" class="btn-secondary" (click)="toggleShowAllProveedores()">
+                        <app-icon [name]="showAllProveedores() ? 'eye-slash' : 'eye'" size="sm" />
+                        <span>{{ showAllProveedores() ? 'Mostrar Seleccionados' : 'Mostrar Todos' }}</span>
+                    </button>
+
+                    @if (showAllProveedores()) {
                     <button type="button" class="btn-select-all" (click)="selectAllProveedores()">
                         <app-icon name="check" size="sm" />
                         <span>Seleccionar todos</span>
@@ -186,13 +228,24 @@
                         <app-icon name="x-mark" size="sm" />
                         <span>Limpiar selección</span>
                     </button>
+                    }
+
                     <span class="selected-count">
                         {{ selectedProveedorIds().length }} seleccionado(s)
                     </span>
                 </div>
 
+                <!-- Buscador (solo visible cuando se muestran todos) -->
+                @if (showAllProveedores()) {
+                <div class="search-box">
+                    <input type="text" placeholder="Buscar proveedor por nombre..."
+                        [value]="proveedorSearchTerm()" (input)="onProveedorSearch($any($event.target).value)"
+                        class="form-input">
+                </div>
+                }
+
                 <div class="proveedores-grid">
-                    @for (proveedor of proveedoresActivos(); track proveedor.idProveedor) {
+                    @for (proveedor of proveedoresToShow(); track proveedor.idProveedor) {
                     <label class="proveedor-item" [class.selected]="isProveedorSelected(proveedor.idProveedor)">
                         <input type="checkbox" [checked]="isProveedorSelected(proveedor.idProveedor)"
                             (change)="toggleProveedor(proveedor.idProveedor)" class="proveedor-checkbox">
@@ -202,7 +255,13 @@
                         </div>
                     </label>
                     } @empty {
-                    <p class="empty-message">No hay proveedores disponibles</p>
+                    <p class="empty-message">
+                        @if (showAllProveedores()) {
+                        No se encontraron proveedores
+                        } @else {
+                        No hay proveedores seleccionados. Haz clic en "Mostrar Todos" para seleccionar.
+                        }
+                    </p>
                     }
                 </div>
 
@@ -212,6 +271,8 @@
                 </p>
             </div>
         </div>
+
+     
 
         <!-- Botones de acción -->
         <div class="form-actions">

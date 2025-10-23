@@ -2,10 +2,19 @@
  * ============================================================================
  * 🐝 APICULTOR API MODELS - SISTEMA OAXACA MIEL
  * ============================================================================
- * 
- * Modelos TypeScript para la API de Apicultores del backend
- * Basado en documentación: documentacion_apicultores_backend.md
- * 
+ *
+ * Modelos TypeScript para la API de Apicultores del backend v2.0
+ * Basado en documentación: DOCUMENTACION_CAMBIOS_FRONTEND.md
+ *
+ * CAMBIOS BREAKING v2.0:
+ * - Campo 'codigo' ya NO se envía en CREATE (se genera automáticamente)
+ * - Campo 'nombre' dividido en: nombre, apellidoPaterno, apellidoMaterno
+ * - Campo 'senasica' renombrado a 'idRasmiel'
+ * - Campo 'ippSiniga' renombrado a 'uppSiniiga'
+ * - Campos 'estadoCodigo' y 'municipioCodigo' ahora obligatorios
+ * - Nuevo campo 'nombreCompleto' (generado automáticamente)
+ * - Nuevo campo 'totalColmenas' (suma de colmenas de apiarios)
+ *
  * ENDPOINTS:
  * - POST   /api/apicultores                    → Crear apicultor
  * - GET    /api/apicultores                    → Listar con filtros
@@ -15,8 +24,8 @@
  * - PUT    /api/apicultores/:id                → Actualizar (incluye proveedores)
  * - DELETE /api/apicultores/:id                → Eliminar (solo ADMIN)
  * - GET    /api/apicultores/:id/proveedores    → Proveedores vinculados
- * - GET    /api/apicultores/proveedor/:id      → Apicultores de un proveedor
- * 
+ * - GET    /api/proveedores/:id/apicultores    → Apicultores de un proveedor
+ *
  * ============================================================================
  */
 
@@ -27,27 +36,30 @@ export type ApicultorEstado = 'ACTIVO' | 'INACTIVO';
 
 /**
  * ============================================================================
- * APICULTOR - ESTRUCTURA COMPLETA DE LA API
+ * APICULTOR - ESTRUCTURA COMPLETA DE LA API v2.0
  * ============================================================================
  */
 export interface ApicultorAPI {
     id: string;                          // CUID
-    codigo: string;                      // Código único (APIC-2025-001)
-    nombre: string;                      // Nombre completo
+    codigo: string;                      // Código único formato: XX-XXX-XXX (generado automáticamente)
+    nombre: string;                      // Solo primer nombre (antes era nombre completo)
+    apellidoPaterno: string;             // Apellido paterno (NUEVO - obligatorio)
+    apellidoMaterno: string | null;      // Apellido materno (NUEVO - opcional)
+    nombreCompleto: string;              // Nombre completo generado automáticamente
     curp: string;                        // CURP (18 caracteres, único)
     rfc: string | null;                  // RFC (13 caracteres, opcional)
-    estadoCodigo: string | null;         // Código del estado (ej: "20" = Oaxaca)
-    municipioCodigo: string | null;      // Código del municipio
+    estadoCodigo: string;                // Código del estado (ej: "20" = Oaxaca) - AHORA OBLIGATORIO
+    municipioCodigo: string;             // Código del municipio - AHORA OBLIGATORIO
     direccion: string | null;            // Dirección física
-    senasica: string | null;             // Certificación SENASICA
-    ippSiniga: string | null;            // Certificación IPP/SINIGA
+    idRasmiel: string | null;            // ID-RASMIEL (antes: senasica)
+    uppSiniiga: string | null;           // UPPSINIIGA (antes: ippSiniga)
     estatus: ApicultorEstado;            // ACTIVO | INACTIVO
     fechaAlta: string;                   // ISO 8601
     createdAt: string;                   // ISO 8601
     updatedAt: string;                   // ISO 8601
-    totalApiarios: number;               // Contador (join)
-    totalProveedores: number;            // Contador (join)
-    cantidadApiarios: number;          // Contador alternativo (join)
+    cantidadApiarios: number;            // Contador de apiarios
+    cantidadProveedores: number;         // Contador de proveedores
+    totalColmenas: number;               // NUEVO - Suma total de colmenas de todos los apiarios
 }
 
 /**
@@ -89,42 +101,50 @@ export interface ApicultorProveedor {
 
 /**
  * ============================================================================
- * REQUEST PARA CREAR APICULTOR
+ * REQUEST PARA CREAR APICULTOR v2.0
  * ============================================================================
+ * IMPORTANTE: Campo 'codigo' YA NO SE ENVÍA (se genera automáticamente)
  */
 export interface CreateApicultorRequest {
-    codigo: string;                      // Código único (obligatorio)
-    nombre: string;                      // Nombre completo (obligatorio)
+    nombre: string;                      // Solo primer nombre (obligatorio, max 100 chars)
+    apellidoPaterno: string;             // Apellido paterno (obligatorio, max 100 chars)
+    apellidoMaterno?: string;            // Apellido materno (opcional, max 100 chars)
     curp: string;                        // CURP 18 caracteres (obligatorio, único)
-    rfc?: string;                        // RFC (opcional, sin validación estricta)
-    estadoCodigo?: string;               // Código del estado
-    municipioCodigo?: string;            // Código del municipio
+    rfc?: string;                        // RFC (opcional, max 13 chars)
+    estadoCodigo: string;                // Código del estado (AHORA OBLIGATORIO)
+    municipioCodigo: string;             // Código del municipio (AHORA OBLIGATORIO)
     direccion?: string;                  // Dirección física
-    senasica?: string;                   // Certificación SENASICA
-    ippSiniga?: string;                  // Certificación IPP/SINIGA
+    idRasmiel?: string;                  // ID-RASMIEL (opcional, max 50 chars)
+    uppSiniiga?: string;                 // UPPSINIIGA (opcional, max 50 chars)
     estatus?: ApicultorEstado;           // Default: ACTIVO
     proveedorIds?: number[];             // IDs de proveedores a vincular
 }
 
 /**
  * ============================================================================
- * REQUEST PARA ACTUALIZAR APICULTOR
+ * REQUEST PARA ACTUALIZAR APICULTOR v2.0
  * ============================================================================
- * 
- * IMPORTANTE: Campo proveedorIds gestiona vínculos completos:
- * - Si NO se envía: mantiene vínculos actuales
- * - Si se envía con IDs: reemplaza completamente los vínculos
- * - Si se envía vacío []: elimina todos los vínculos
+ *
+ * IMPORTANTE:
+ * - Campo 'codigo' NO se puede modificar (se muestra como solo lectura)
+ * - Campo 'curp' NO se puede modificar (es único e inmutable)
+ * - Campo 'nombreCompleto' se recalcula automáticamente al actualizar nombres
+ * - Campo proveedorIds gestiona vínculos completos:
+ *   · Si NO se envía: mantiene vínculos actuales
+ *   · Si se envía con IDs: reemplaza completamente los vínculos
+ *   · Si se envía vacío []: elimina todos los vínculos
  */
 export interface UpdateApicultorRequest {
-    nombre?: string;
-    rfc?: string;
-    estadoCodigo?: string;
-    municipioCodigo?: string;
-    direccion?: string;
-    senasica?: string;
-    ippSiniga?: string;
-    estatus?: ApicultorEstado;
+    nombre?: string;                     // Solo primer nombre (max 100 chars)
+    apellidoPaterno?: string;            // Apellido paterno (max 100 chars)
+    apellidoMaterno?: string;            // Apellido materno (max 100 chars)
+    rfc?: string;                        // RFC (max 13 chars)
+    estadoCodigo?: string;               // Código del estado
+    municipioCodigo?: string;            // Código del municipio
+    direccion?: string;                  // Dirección física
+    idRasmiel?: string;                  // ID-RASMIEL (max 50 chars)
+    uppSiniiga?: string;                 // UPPSINIIGA (max 50 chars)
+    estatus?: ApicultorEstado;           // ACTIVO | INACTIVO
     proveedorIds?: number[];             // Gestión de vínculos (opcional)
 }
 
@@ -213,17 +233,17 @@ export interface ProveedoresDeApicultorResponse {
  */
 
 /**
- * Verificar si el apicultor tiene certificación SENASICA
+ * Verificar si el apicultor tiene certificación ID-RASMIEL
  */
-export function tieneCertificacionSenasica(apicultor: ApicultorAPI): boolean {
-    return apicultor.senasica !== null && apicultor.senasica.trim() !== '';
+export function tieneCertificacionRasmiel(apicultor: ApicultorAPI): boolean {
+    return apicultor.idRasmiel !== null && apicultor.idRasmiel.trim() !== '';
 }
 
 /**
- * Verificar si el apicultor tiene certificación IPP/SINIGA
+ * Verificar si el apicultor tiene certificación UPPSINIIGA
  */
-export function tieneCertificacionIPP(apicultor: ApicultorAPI): boolean {
-    return apicultor.ippSiniga !== null && apicultor.ippSiniga.trim() !== '';
+export function tieneCertificacionUPP(apicultor: ApicultorAPI): boolean {
+    return apicultor.uppSiniiga !== null && apicultor.uppSiniiga.trim() !== '';
 }
 
 /**
