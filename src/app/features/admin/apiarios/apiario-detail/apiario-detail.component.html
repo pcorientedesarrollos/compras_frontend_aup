@@ -46,6 +46,21 @@
             <div class="form-grid">
                 <!-- Apicultor con Autocomplete -->
                 <div class="form-group col-span-2">
+                    <!-- ✅ Mostrar nombre cuando está pre-seleccionado -->
+                    @if (apicultorPreseleccionadoNombre()) {
+                    <label class="form-label">
+                        Apicultor <span class="required">*</span>
+                    </label>
+                    <div class="preselected-apicultor">
+                        <app-icon name="user" size="md" color="text-honey-primary" />
+                        <span class="font-semibold">{{ apicultorPreseleccionadoNombre() }}</span>
+                        <span class="badge-locked">
+                            <app-icon name="lock-closed" size="sm" />
+                            Bloqueado
+                        </span>
+                    </div>
+                    <p class="help-text mt-2">Apicultor pre-seleccionado desde el modal</p>
+                    } @else {
                     <app-autocomplete-select formControlName="apicultorId" [options]="apicultoresActivos()"
                         optionValue="id" optionLabel="nombre" [optionTemplate]="formatApicultorLabel"
                         placeholder="Buscar apicultor por código o nombre..." label="Apicultor" [required]="true"
@@ -53,6 +68,7 @@
                         [errorMessage]="hasError('apicultorId', 'required') ? getErrorMessage('apicultorId') : ''" />
                     @if (mode() === 'edit') {
                     <p class="help-text mt-2">El apicultor no se puede cambiar en modo edición</p>
+                    }
                     }
                 </div>
 

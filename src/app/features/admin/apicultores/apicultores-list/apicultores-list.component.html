@@ -94,4 +94,12 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal de detalle -->
+    <app-apicultor-detail-modal
+        [apicultor]="selectedApicultor()!"
+        [isOpen]="isModalOpen()"
+        [initialTab]="selectedTab()"
+        (close)="closeModal()">
+    </app-apicultor-detail-modal>
 </div>

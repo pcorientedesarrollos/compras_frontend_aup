@@ -21,6 +21,7 @@ import { Router } from '@angular/router';
 import { HoneyTableComponent } from '../../../../shared/components/data/honey-table/honey-table.component';
 import { TableFiltersComponent } from '../../../../shared/components/data/table-filters/table-filters.component';
 import { IconComponent } from '../../../../shared/components/ui/icon/icon.component';
+import { ApicultorDetailModalComponent } from '../apicultor-detail-modal/apicultor-detail-modal.component';
 
 // Tipos y modelos
 import { TableColumn, TableConfig } from '../../../../shared/components/data/honey-table/types/table.types';
@@ -41,7 +42,8 @@ import { ApicultorService } from '../../../../core/services/apicultor.service';
         CommonModule,
         HoneyTableComponent,
         TableFiltersComponent,
-        IconComponent
+        IconComponent,
+        ApicultorDetailModalComponent
     ],
     templateUrl: './apicultores-list.component.html',
     styleUrl: './apicultores-list.component.css'
@@ -78,6 +80,11 @@ export class ApicultoresListComponent implements OnInit {
     /** ✅ Paginación LOCAL */
     currentPage = signal<number>(1);
     pageSize = signal<number>(10);
+
+    /** Modal de detalle */
+    isModalOpen = signal<boolean>(false);
+    selectedApicultor = signal<ApicultorAPI | null>(null);
+    selectedTab = signal<'general' | 'proveedores' | 'apiarios'>('general');
 
     // ============================================================================
     // COMPUTED
@@ -473,11 +480,12 @@ export class ApicultoresListComponent implements OnInit {
     }
 
     /**
-     * Ver detalle del apicultor
+     * ✅ Ver detalle del apicultor (abre modal en tab General)
      */
     private viewApicultorDetail(apicultor: ApicultorAPI): void {
-        console.log('Ver detalle:', apicultor);
-        alert(`Detalle de ${apicultor.nombre}\nCódigo: ${apicultor.codigo}\nCURP: ${apicultor.curp}`);
+        this.selectedApicultor.set(apicultor);
+        this.selectedTab.set('general');
+        this.isModalOpen.set(true);
     }
 
     /**
@@ -489,19 +497,21 @@ export class ApicultoresListComponent implements OnInit {
     }
 
     /**
-     * Ver proveedores del apicultor (v2.0: usar cantidadProveedores)
+     * ✅ Ver proveedores del apicultor (abre modal en tab Proveedores)
      */
     private viewProveedores(apicultor: ApicultorAPI): void {
-        console.log('Ver proveedores:', apicultor);
-        alert(`Proveedores de ${apicultor.nombreCompleto}\nTotal: ${apicultor.cantidadProveedores}`);
+        this.selectedApicultor.set(apicultor);
+        this.selectedTab.set('proveedores');
+        this.isModalOpen.set(true);
     }
 
     /**
-     * Ver apiarios del apicultor
+     * ✅ Ver apiarios del apicultor (abre modal en tab Apiarios)
      */
     private viewApiarios(apicultor: ApicultorAPI): void {
-        console.log('Ver apiarios:', apicultor);
-        alert(`Apiarios de ${apicultor.nombre}\nTotal: ${apicultor.cantidadApiarios}`);
+        this.selectedApicultor.set(apicultor);
+        this.selectedTab.set('apiarios');
+        this.isModalOpen.set(true);
     }
 
     /**
@@ -542,6 +552,15 @@ export class ApicultoresListComponent implements OnInit {
         this.pageSize.set(size);
         this.currentPage.set(1);
         this.applyFiltersAndPagination();
+    }
+
+    /**
+     * ✅ Cerrar modal de detalle
+     */
+    closeModal(): void {
+        this.isModalOpen.set(false);
+        this.selectedApicultor.set(null);
+        this.selectedTab.set('general');
     }
 
     /**

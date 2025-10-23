@@ -1,0 +1,189 @@
+<!-- Modal Overlay -->
+@if (isOpen()) {
+<div class="modal-overlay" (click)="onClose()" (keydown)="onKeydown($event)">
+    <!-- Modal Container -->
+    <div class="modal-container" (click)="onModalClick($event)">
+
+        <!-- Header -->
+        <div class="modal-header">
+            <div class="header-content">
+                <div class="flex items-center space-x-3">
+                    <div class="icon-wrapper">
+                        <app-icon name="user" size="xl" color="text-honey-primary" />
+                    </div>
+                    <div>
+                        <h2 class="modal-title">{{ apicultor().nombreCompleto }}</h2>
+                        <p class="modal-subtitle">
+                            Código: {{ apicultor().codigo }}
+                            <span class="separator">•</span>
+                            <span>CURP: {{ apicultor().curp }}</span>
+                        </p>
+                    </div>
+                </div>
+
+                <button class="close-button" (click)="onClose()" title="Cerrar (Esc)">
+                    <app-icon name="x-mark" size="md" />
+                </button>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div class="tabs-nav">
+                @for (tab of tabs(); track tab.id) {
+                <button class="tab-button" [class.active]="isTabActive(tab.id)" (click)="selectTab(tab.id)">
+                    <app-icon [name]="tab.icon" size="sm" />
+                    <span>{{ tab.label }}</span>
+                </button>
+                }
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+
+            <!-- TAB 1: INFORMACIÓN GENERAL -->
+            @if (activeTab() === 'general') {
+            <div class="tab-content">
+                <div class="info-grid">
+
+                    <!-- Columna 1: Datos Personales -->
+                    <div class="info-section">
+                        <h3 class="section-title">Datos Personales</h3>
+
+                        <div class="info-item">
+                            <label>Nombre:</label>
+                            <span class="font-semibold">{{ apicultor().nombre }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Apellido Paterno:</label>
+                            <span class="font-semibold">{{ apicultor().apellidoPaterno }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Apellido Materno:</label>
+                            <span>{{ apicultor().apellidoMaterno || 'N/A' }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>CURP:</label>
+                            <span class="font-mono">{{ apicultor().curp }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>RFC:</label>
+                            <span class="font-mono">{{ apicultor().rfc || 'No especificado' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Columna 2: Ubicación -->
+                    <div class="info-section">
+                        <h3 class="section-title">Ubicación</h3>
+
+                        <div class="info-item">
+                            <label>Estado:</label>
+                            <span>{{ apicultor().estadoCodigo }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Municipio:</label>
+                            <span>{{ apicultor().municipioCodigo }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Dirección:</label>
+                            <span>{{ apicultor().direccion || 'No especificada' }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Estado:</label>
+                            <app-badge [variant]="apicultor().estatus === 'ACTIVO' ? 'success' : 'danger'" size="sm">
+                                {{ apicultor().estatus }}
+                            </app-badge>
+                        </div>
+                    </div>
+
+                    <!-- Columna 3: Certificaciones y Estadísticas -->
+                    <div class="info-section">
+                        <h3 class="section-title">Certificaciones</h3>
+
+                        <div class="info-item">
+                            <label>ID-RASMIEL:</label>
+                            <span>{{ apicultor().idRasmiel || 'No especificado' }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>UPPSINIIGA:</label>
+                            <span>{{ apicultor().uppSiniiga || 'No especificado' }}</span>
+                        </div>
+
+                        <h3 class="section-title mt-6">Estadísticas</h3>
+
+                        <div class="info-item">
+                            <label>Total Apiarios:</label>
+                            <span class="font-bold text-honey-primary">{{ apicultor().cantidadApiarios }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Total Colmenas:</label>
+                            <span class="font-bold text-green-600">{{ apicultor().totalColmenas }}</span>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Proveedores Vinculados:</label>
+                            <span class="font-bold text-blue-600">{{ apicultor().cantidadProveedores }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+
+            <!-- TAB 2: PROVEEDORES -->
+            @if (activeTab() === 'proveedores') {
+            <div class="tab-content">
+                <div class="proveedores-header">
+                    <p class="text-sm text-gray-600">
+                        Total de proveedores vinculados:
+                        <span class="font-bold text-gray-900">{{ apicultor().cantidadProveedores }}</span>
+                    </p>
+                </div>
+
+                <app-honey-table [columns]="proveedoresColumns()" [data]="proveedores()"
+                    [config]="proveedoresTableConfig()" rowKey="id">
+                </app-honey-table>
+            </div>
+            }
+
+            <!-- TAB 3: APIARIOS -->
+            @if (activeTab() === 'apiarios') {
+            <div class="tab-content">
+                <div class="apiarios-header">
+                    <p class="text-sm text-gray-600">
+                        Total de apiarios registrados:
+                        <span class="font-bold text-gray-900">{{ apicultor().cantidadApiarios }}</span>
+                        <span class="separator">•</span>
+                        <span class="font-bold text-green-600">{{ apicultor().totalColmenas }} colmenas</span>
+                    </p>
+
+                    <button class="btn-new-apiario" (click)="crearNuevoApiario()" title="Crear nuevo apiario">
+                        <app-icon name="plus" size="sm" />
+                        <span>Nuevo Apiario</span>
+                    </button>
+                </div>
+
+                <app-honey-table [columns]="apiariosColumns()" [data]="apiarios()" [config]="apiariosTableConfig()"
+                    rowKey="id">
+                </app-honey-table>
+            </div>
+            }
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+            <button class="footer-button secondary" (click)="onClose()">
+                <app-icon name="x-mark" size="sm" />
+                Cerrar
+            </button>
+        </div>
+    </div>
+</div>
+}

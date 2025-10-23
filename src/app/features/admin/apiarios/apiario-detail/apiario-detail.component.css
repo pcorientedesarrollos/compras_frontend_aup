@@ -139,6 +139,18 @@ select.form-input {
 }
 
 /* ============================================================================
+   APICULTOR PRE-SELECCIONADO
+   ============================================================================ */
+
+.preselected-apicultor {
+    @apply flex items-center gap-3 px-4 py-3 bg-honey-primary/10 border-2 border-honey-primary/30 rounded-lg;
+}
+
+.badge-locked {
+    @apply ml-auto flex items-center gap-1.5 px-3 py-1 bg-gray-600 text-white text-xs font-semibold rounded-full;
+}
+
+/* ============================================================================
    GEOLOCALIZACIÓN
    ============================================================================ */
 

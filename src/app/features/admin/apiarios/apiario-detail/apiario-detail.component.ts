@@ -91,6 +91,9 @@ export class ApiarioDetailComponent implements OnInit {
     /** ✅ SIGNAL para validez del formulario (REACTIVO) */
     private formValidSignal = signal<boolean>(false);
 
+    /** ✅ Nombre del apicultor pre-seleccionado (cuando viene por query param) */
+    apicultorPreseleccionadoNombre = signal<string | null>(null);
+
     // ============================================================================
     // FORM
     // ============================================================================
@@ -164,9 +167,11 @@ export class ApiarioDetailComponent implements OnInit {
 
     /**
      * Determinar modo (create/edit) según la ruta
+     * ✅ NUEVO: Detectar query param apicultorId para pre-selección
      */
     private checkMode(): void {
         const id = this.route.snapshot.paramMap.get('id');
+        const apicultorIdFromQuery = this.route.snapshot.queryParamMap.get('apicultorId');
 
         if (id && id !== 'nuevo') {
             this.mode.set('edit');
@@ -174,6 +179,11 @@ export class ApiarioDetailComponent implements OnInit {
             this.loadApiario(id);
         } else {
             this.mode.set('create');
+
+            // ✅ Si viene apicultorId por query params, pre-seleccionar y bloquear
+            if (apicultorIdFromQuery) {
+                this.preSelectApicultor(apicultorIdFromQuery);
+            }
         }
     }
 
@@ -235,6 +245,29 @@ export class ApiarioDetailComponent implements OnInit {
 
         // Deshabilitar apicultorId en modo edición (no se puede cambiar)
         this.apiarioForm.get('apicultorId')?.disable();
+    }
+
+    /**
+     * ✅ Pre-seleccionar apicultor cuando viene por query param
+     * Esto ocurre cuando se crea desde el modal de apicultor
+     */
+    private preSelectApicultor(apicultorId: string): void {
+        // Pre-llenar el campo
+        this.apiarioForm.patchValue({
+            apicultorId: apicultorId
+        });
+
+        // Deshabilitar el campo para que no se pueda cambiar
+        this.apiarioForm.get('apicultorId')?.disable();
+
+        // Buscar el nombre del apicultor en la lista disponible
+        // Esto se ejecutará después de que se carguen los apicultores
+        setTimeout(() => {
+            const apicultor = this.apicultoresDisponibles().find(a => a.id === apicultorId);
+            if (apicultor) {
+                this.apicultorPreseleccionadoNombre.set(apicultor.nombreCompleto);
+            }
+        }, 100);
     }
 
     // ============================================================================
