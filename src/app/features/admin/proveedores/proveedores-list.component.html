@@ -89,6 +89,10 @@
     </div>
 
     <!-- Modal de detalle -->
-    <app-proveedor-detail-modal [proveedor]="selectedProveedor()!" [isOpen]="isModalOpen()" (close)="closeModal()">
+    <app-proveedor-detail-modal
+        [proveedor]="selectedProveedor()!"
+        [isOpen]="isModalOpen()"
+        [initialTab]="selectedTab()"
+        (close)="closeModal()">
     </app-proveedor-detail-modal>
 </div>

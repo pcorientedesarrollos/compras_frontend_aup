@@ -65,7 +65,7 @@ export class ProveedorService {
     /**
      * Obtiene el catálogo completo de tipos de miel
      * Tabla de solo lectura (NO modificable)
-     * 
+     *
      * @returns Observable con array de tipos de miel
      */
     getTiposMiel(): Observable<TipoDeMiel[]> {
@@ -74,6 +74,18 @@ export class ProveedorService {
             .pipe(
                 map(response => response.data)
             );
+    }
+
+    /**
+     * Obtiene SOLO los tipos de miel usados en Entradas/Salidas
+     * Filtra por IDs 1 y 2 (Miel pura y Orgánica)
+     *
+     * @returns Observable con array filtrado de tipos de miel
+     */
+    getTiposMielFiltrados(): Observable<TipoDeMiel[]> {
+        return this.getTiposMiel().pipe(
+            map(tipos => tipos.filter(t => [1, 2].includes(t.idTipoDeMiel)))
+        );
     }
 
     // ============================================================================

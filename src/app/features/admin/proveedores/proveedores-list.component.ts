@@ -89,6 +89,7 @@ export class ProveedoresListComponent implements OnInit {
     /** Modal de detalle */
     isModalOpen = signal<boolean>(false);
     selectedProveedor = signal<ProveedorAPI | null>(null);
+    selectedTab = signal<'general' | 'apicultores' | 'mapa'>('general');
 
     // ============================================================================
     // COMPUTED
@@ -280,10 +281,10 @@ export class ProveedoresListComponent implements OnInit {
     // ============================================================================
 
     /**
-     * Cargar catálogo de tipos de miel
+     * ✅ Cargar catálogo de tipos de miel FILTRADOS (solo IDs 1 y 2)
      */
     private loadTiposMiel(): void {
-        this.proveedorService.getTiposMiel()
+        this.proveedorService.getTiposMielFiltrados()
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (tipos) => {
@@ -472,12 +473,13 @@ export class ProveedoresListComponent implements OnInit {
     }
 
     /**
-     * Ver ubicación en mapa
+     * ✅ Ver ubicación en mapa (abre modal en tab GPS)
      */
     private viewUbicacion(proveedor: ProveedorAPI): void {
         if (!proveedor.latitud || !proveedor.longitud) return;
-        console.log('Ver ubicación:', proveedor.latitud, proveedor.longitud);
-        alert(`Ubicación GPS:\nLat: ${proveedor.latitud}\nLng: ${proveedor.longitud}`);
+        this.selectedProveedor.set(proveedor);
+        this.selectedTab.set('mapa');
+        this.isModalOpen.set(true);
     }
 
     /**
@@ -498,26 +500,29 @@ export class ProveedoresListComponent implements OnInit {
     }
 
     /**
-     * Ver detalle del proveedor (Modal)
+     * ✅ Ver detalle del proveedor (Modal en tab General)
      */
     private viewProveedorDetail(proveedor: ProveedorAPI): void {
         this.selectedProveedor.set(proveedor);
+        this.selectedTab.set('general');
         this.isModalOpen.set(true);
     }
 
     /**
-     * Cerrar modal de detalle
+     * ✅ Cerrar modal de detalle
      */
     closeModal(): void {
         this.isModalOpen.set(false);
         this.selectedProveedor.set(null);
+        this.selectedTab.set('general'); // Reset tab
     }
 
     /**
-     * Ver apicultores del proveedor
+     * ✅ Ver apicultores del proveedor (abre modal en tab Apicultores)
      */
     private viewApicultores(proveedor: ProveedorAPI): void {
-        console.log('Ver apicultores de:', proveedor);
-        alert(`Apicultores de ${proveedor.nombre}\nTotal: ${proveedor.cantidadApicultores}`);
+        this.selectedProveedor.set(proveedor);
+        this.selectedTab.set('apicultores');
+        this.isModalOpen.set(true);
     }
 }

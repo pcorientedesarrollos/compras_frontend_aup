@@ -21,6 +21,7 @@ import { CommonModule } from '@angular/common';
 import { IconComponent } from '../../../shared/components/ui/icon/icon.component';
 import { BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
 import { HoneyTableComponent } from '../../../shared/components/data/honey-table/honey-table.component';
+import { LeafletMapComponent } from '../../../shared/components/map/leaflet-map.component';
 
 // Tipos y modelos
 import { TableColumn, TableConfig } from '../../../shared/components/data/honey-table/types/table.types';
@@ -52,7 +53,8 @@ interface Tab {
         CommonModule,
         IconComponent,
         BadgeComponent,
-        HoneyTableComponent
+        HoneyTableComponent,
+        LeafletMapComponent
     ],
     templateUrl: './proveedor-detail-modal.component.html',
     styleUrl: './proveedor-detail-modal.component.css'
@@ -70,6 +72,9 @@ export class ProveedorDetailModalComponent {
 
     /** Si el modal está abierto */
     isOpen = input<boolean>(false);
+
+    /** Tab inicial a mostrar */
+    initialTab = input<TabId>('general');
 
     /** Evento de cierre */
     close = output<void>();
@@ -201,6 +206,13 @@ export class ProveedorDetailModalComponent {
     // ============================================================================
 
     constructor() {
+        // ✅ Establecer tab inicial cuando se abre el modal
+        effect(() => {
+            if (this.isOpen()) {
+                this.activeTab.set(this.initialTab());
+            }
+        });
+
         // Cargar apicultores cuando se abre el modal y el tab es 'apicultores'
         effect(() => {
             if (this.isOpen() && this.activeTab() === 'apicultores') {

@@ -194,17 +194,14 @@
                         </div>
                     </div>
 
-                    <!-- TODO: Integrar componente de Leaflet Map -->
-                    <div class="map-placeholder">
-                        <app-icon name="map" size="2xl" color="text-gray-400" />
-                        <p class="text-gray-600 mt-4">Mapa GPS</p>
-                        <p class="text-sm text-gray-500">
-                            {{ proveedor().latitud }}, {{ proveedor().longitud }}
-                        </p>
-                        <p class="text-xs text-gray-400 mt-2">
-                            (Integración con Leaflet pendiente)
-                        </p>
-                    </div>
+                    <!-- Mapa Leaflet -->
+                    <app-leaflet-map
+                        [latitude]="proveedor().latitud!"
+                        [longitude]="proveedor().longitud!"
+                        [markerTitle]="proveedor().nombre"
+                        [zoom]="13"
+                        [height]="'450px'">
+                    </app-leaflet-map>
                 </div>
             </div>
             }
