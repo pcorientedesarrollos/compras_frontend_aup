@@ -24,6 +24,7 @@ import { IconComponent } from '../../../../shared/components/ui/icon/icon.compon
 // Modelos
 import {
     EntradaMielAPI,
+    EntradaMielDetailAPI,
     EntradaMielFilterParams,
     EstadoEntrada
 } from '../../../../core/models/index';
@@ -68,6 +69,10 @@ export class EntradasMielListComponent implements OnInit {
     filterEstado = signal<EstadoEntrada | ''>('');
     filterFechaInicio = signal('');
     filterFechaFin = signal('');
+
+    /** Detalle seleccionado (para modal) */
+    entradaDetalle = signal<EntradaMielDetailAPI | null>(null);
+    loadingDetalle = signal(false);
 
     /**
     * Math para template
@@ -201,8 +206,28 @@ export class EntradasMielListComponent implements OnInit {
      * Ver detalle de una entrada
      */
     verDetalle(id: string): void {
-        // TODO: Implementar modal o página de detalle
-        console.log('Ver detalle:', id);
+        this.loadingDetalle.set(true);
+        this.entradaDetalle.set(null);
+
+        this.entradaMielService.getEntradaById(id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (detalle) => {
+                    this.entradaDetalle.set(detalle);
+                    this.loadingDetalle.set(false);
+                },
+                error: () => {
+                    this.loadingDetalle.set(false);
+                    alert('Error al cargar el detalle de la entrada');
+                }
+            });
+    }
+
+    /**
+     * Cerrar modal de detalle
+     */
+    cerrarDetalle(): void {
+        this.entradaDetalle.set(null);
     }
 
     /**
@@ -268,5 +293,12 @@ export class EntradasMielListComponent implements OnInit {
      */
     formatCurrency(value: number): string {
         return `$${value.toFixed(2)}`;
+    }
+
+    /**
+     * Calcular total de kilos de una entrada
+     */
+    getTotalKilos(detalle: EntradaMielDetailAPI): number {
+        return detalle.detalles.reduce((sum, d) => sum + d.kilos, 0);
     }
 }

@@ -75,7 +75,7 @@ export class InventarioService {
      * @returns Observable con detalles de entradas disponibles
      * 
      * @example
-     * const params = { tipoMielId: 1, clasificacion: ClasificacionMiel.CALIDAD };
+     * const params = { tipoMielId: 1, clasificacion: ClasificacionMiel.EXPORTACION };
      * this.inventarioService.getDetallesInventario(params).subscribe(response => {
      *   console.log('Stock disponible:', response.totalKilosDisponibles);
      *   this.entradasDisponibles = response.detalles;
@@ -98,14 +98,14 @@ export class InventarioService {
 
     /**
      * Validar si hay suficiente stock para una salida
-     * 
+     *
      * @param tipoMielId - ID del tipo de miel
-     * @param clasificacion - Clasificación (CALIDAD/CONVENCIONAL)
+     * @param clasificacion - Clasificación (EXPORTACION/NACIONAL)
      * @param kilosSolicitados - Cantidad de kilos a sacar
      * @returns Observable<StockDisponibleDisplay> con validación
-     * 
+     *
      * @example
-     * this.inventarioService.validarStock(1, ClasificacionMiel.CALIDAD, 500)
+     * this.inventarioService.validarStock(1, ClasificacionMiel.EXPORTACION, 500)
      *   .subscribe(stock => {
      *     if (!stock.suficiente) {
      *       alert(`Solo hay ${stock.kilosDisponibles}kg disponibles`);
@@ -139,13 +139,13 @@ export class InventarioService {
     /**
      * Obtener stock disponible para display en formulario
      * (sin validar cantidad, solo mostrar disponibilidad)
-     * 
+     *
      * @param tipoMielId - ID del tipo de miel
-     * @param clasificacion - Clasificación (CALIDAD/CONVENCIONAL)
+     * @param clasificacion - Clasificación (EXPORTACION/NACIONAL)
      * @returns Observable con kilos disponibles
-     * 
+     *
      * @example
-     * this.inventarioService.getStockDisponible(1, ClasificacionMiel.CALIDAD)
+     * this.inventarioService.getStockDisponible(1, ClasificacionMiel.EXPORTACION)
      *   .subscribe(kilos => {
      *     this.stockDisponibleText = `Disponible: ${kilos}kg`;
      *   });

@@ -1,8 +1,8 @@
 <!-- ============================================================================
-     📦 ENTRADAS MIEL CREATE - TEMPLATE
+     📦 ENTRADAS MIEL CREATE - NUEVO DISEÑO CON TAMBORES DINÁMICOS
      ============================================================================ -->
 
-<div class="container mx-auto px-4 py-6 max-w-6xl">
+<div class="container mx-auto px-4 py-6 max-w-7xl">
 
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
@@ -11,11 +11,11 @@
                 <app-icon name="shopping-bag" size="xl" color="text-honey-primary" />
                 Nueva Entrada de Miel
             </h1>
-            <p class="text-gray-600 mt-1">Registra la compra de miel a un apicultor</p>
+            <p class="text-gray-600 mt-1">Registra la compra de miel por tambores</p>
         </div>
 
         <div class="text-right">
-            <p class="text-sm text-gray-600">Fecha actual</p>
+            <p class="text-sm text-gray-600">Fecha</p>
             <p class="text-lg font-semibold text-gray-900">{{ form.get('fecha')?.value }}</p>
         </div>
     </div>
@@ -24,7 +24,7 @@
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-6">
 
         <!-- ================================================================
-             SECCIÓN ENCABEZADO
+             SECCIÓN 1: INFORMACIÓN GENERAL
              ================================================================ -->
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -42,214 +42,211 @@
                     <input type="date" formControlName="fecha"
                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-honey-primary"
                         [class.border-red-500]="form.get('fecha')?.invalid && form.get('fecha')?.touched" />
-                    @if (form.get('fecha')?.invalid && form.get('fecha')?.touched) {
-                    <p class="text-red-500 text-sm mt-1">La fecha es requerida</p>
-                    }
                 </div>
 
-                <!-- Apicultor (Autocomplete) -->
+                <!-- Apicultor -->
                 <div>
                     <app-autocomplete-select formControlName="apicultorId" [options]="apicultores()" optionValue="id"
                         optionLabel="nombre" [optionTemplate]="formatApicultor" placeholder="Buscar apicultor..."
                         label="Apicultor" [required]="true" />
                 </div>
 
-                <!-- Observaciones (full width) -->
+                <!-- Tipo de Miel (UNO SOLO PARA TODOS) -->
+                <div>
+                    <app-autocomplete-select formControlName="tipoMielId" [options]="tiposMiel()" optionValue="id"
+                        optionLabel="nombre" [optionTemplate]="formatTipoMiel" placeholder="Seleccionar tipo..."
+                        label="Tipo de Miel" [required]="true" />
+                </div>
+
+                <!-- Número de Tambores -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Número de Tambores <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" formControlName="numeroTambores" min="1" max="100"
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-honey-primary"
+                        placeholder="Ej: 8"
+                        [class.border-red-500]="form.get('numeroTambores')?.invalid && form.get('numeroTambores')?.touched" />
+                    <p class="text-xs text-gray-500 mt-1">Al escribir el número se generarán las filas automáticamente
+                    </p>
+                </div>
+
+                <!-- Observaciones -->
                 <div class="md:col-span-2">
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                         Observaciones
                     </label>
                     <textarea formControlName="observaciones" rows="2"
                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-honey-primary"
-                        placeholder="Notas adicionales sobre la entrada..."></textarea>
+                        placeholder="Notas adicionales..."></textarea>
                 </div>
 
             </div>
         </div>
 
         <!-- ================================================================
-             SECCIÓN DETALLES (FormArray)
+             SECCIÓN 2: TABLA DE TAMBORES
              ================================================================ -->
+        @if (tamboresArray.length > 0) {
         <div class="bg-white rounded-lg shadow-md p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-2">
                     <app-icon name="clipboard" size="md" color="text-honey-primary" />
-                    Detalles de Miel ({{ detallesArray.length }})
+                    Detalle de Tambores ({{ tamboresArray.length }})
                 </h2>
-
-                <button type="button" (click)="addDetalle()"
-                    class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
-                    <app-icon name="plus" size="sm" />
-                    Agregar Detalle
-                </button>
             </div>
 
-            <!-- Lista de Detalles -->
-            <div formArrayName="detalles" class="space-y-4">
+            <!-- Tabla Responsive -->
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-honey-primary/10 border-b-2 border-honey-primary">
+                            <th class="px-3 py-3 text-left text-sm font-semibold text-gray-900">#</th>
+                            <th class="px-3 py-3 text-left text-sm font-semibold text-gray-900">PB (kg)</th>
+                            <th class="px-3 py-3 text-left text-sm font-semibold text-gray-900">T (kg)</th>
+                            <th class="px-3 py-3 text-left text-sm font-semibold text-gray-900">PN (kg)</th>
+                            <th class="px-3 py-3 text-left text-sm font-semibold text-gray-900">Floración</th>
+                            <th class="px-3 py-3 text-left text-sm font-semibold text-gray-900">Humedad (%)</th>
+                            <th class="px-3 py-3 text-left text-sm font-semibold text-gray-900">Color</th>
+                            <th class="px-3 py-3 text-left text-sm font-semibold text-gray-900">Clasificación</th>
+                        </tr>
+                    </thead>
+                    <tbody formArrayName="tambores">
+                        @for (tambor of tamboresArray.controls; track $index) {
+                        <tr [formGroupName]="$index" class="border-b hover:bg-gray-50 transition-colors">
 
-                @for (detalle of detallesArray.controls; track $index) {
-                <div [formGroupName]="$index"
-                    class="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:bg-white transition-colors">
+                            <!-- # (Índice) -->
+                            <td class="px-3 py-3">
+                                <span
+                                    class="inline-flex items-center justify-center w-8 h-8 bg-honey-primary text-white rounded-full font-semibold text-sm">
+                                    {{ $index + 1 }}
+                                </span>
+                            </td>
 
-                    <!-- Header del detalle -->
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="font-semibold text-gray-800 flex items-center gap-2">
-                            <span
-                                class="w-8 h-8 bg-honey-primary text-white rounded-full flex items-center justify-center text-sm">
-                                {{ $index + 1 }}
-                            </span>
-                            Detalle #{{ $index + 1 }}
+                            <!-- PB (Peso Bruto) -->
+                            <td class="px-3 py-3">
+                                <input type="number" formControlName="bruto" step="0.01" min="0"
+                                    class="w-24 px-2 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-honey-primary focus:border-honey-primary text-sm"
+                                    placeholder="0.00"
+                                    [class.border-red-500]="tambor.get('bruto')?.invalid && tambor.get('bruto')?.touched" />
+                            </td>
 
-                            <!-- Badge Clasificación -->
-                            @if (getClasificacion($index)) {
-                            <span
-                                [class]="'px-2.5 py-0.5 rounded-full text-xs font-medium ' + getClasificacionBadgeClass($index)">
-                                {{ getClasificacion($index) }}
-                            </span>
-                            }
-                        </h3>
+                            <!-- T (Tara) -->
+                            <td class="px-3 py-3">
+                                <input type="number" formControlName="tara" step="0.01" min="0"
+                                    class="w-24 px-2 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-honey-primary focus:border-honey-primary text-sm"
+                                    placeholder="0.00"
+                                    [class.border-red-500]="tambor.get('tara')?.invalid && tambor.get('tara')?.touched" />
+                            </td>
 
-                        <!-- Botón eliminar -->
-                        @if (detallesArray.length > 1) {
-                        <button type="button" (click)="removeDetalle($index)"
-                            class="text-red-600 hover:text-red-800 transition-colors">
-                            <app-icon name="trash" size="sm" />
-                        </button>
-                        }
-                    </div>
-
-                    <!-- Campos del detalle -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                        <!-- Tipo de Miel -->
-                        <div>
-                            <app-autocomplete-select formControlName="tipoMielId" [options]="tiposMiel()"
-                                optionValue="id" optionLabel="nombre" [optionTemplate]="formatTipoMiel"
-                                placeholder="Seleccionar tipo..." label="Tipo de Miel" [required]="true" />
-                        </div>
-
-                        <!-- Kilos -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                Kilos <span class="text-red-500">*</span>
-                            </label>
-                            <input type="number" formControlName="kilos" step="0.01" min="0"
-                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-honey-primary"
-                                placeholder="0.00" />
-                        </div>
-
-                        <!-- Humedad -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                Humedad (%) <span class="text-red-500">*</span>
-                            </label>
-                            <input type="number" formControlName="humedad" step="0.01" min="0" max="100"
-                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-honey-primary"
-                                placeholder="0.00" />
-                        </div>
-
-                        <!-- Precio -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                Precio/Kg <span class="text-red-500">*</span>
-                            </label>
-                            <input type="number" formControlName="precio" step="0.01" min="0"
-                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-honey-primary"
-                                placeholder="0.00" />
-                        </div>
-
-                        <!-- Costo Total (calculado) -->
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                Costo Total
-                            </label>
-                            <div
-                                class="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-800 font-semibold">
-                                ${{ calcularCostoDetalle($index).toFixed(2) }}
-                            </div>
-                        </div>
-
-                        <!-- Campos Opcionales (colapsables) -->
-                        <div class="md:col-span-3">
-                            <details class="bg-white rounded-lg border border-gray-200 p-3">
-                                <summary
-                                    class="cursor-pointer text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                    <app-icon name="chevron-down" size="sm" />
-                                    Información Adicional (Opcional)
-                                </summary>
-
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                                    <!-- Zona -->
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Zona</label>
-                                        <input type="text" formControlName="zona"
-                                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary" />
-                                    </div>
-
-                                    <!-- Trazabilidad -->
-                                    <div>
-                                        <label
-                                            class="block text-sm font-semibold text-gray-700 mb-2">Trazabilidad</label>
-                                        <input type="text" formControlName="trazabilidad"
-                                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary" />
-                                    </div>
-
-                                    <!-- Peso Lista -->
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Peso Lista</label>
-                                        <input type="number" formControlName="pesoLista" step="0.01"
-                                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary" />
-                                    </div>
-
-                                    <!-- Bruto -->
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Peso Bruto</label>
-                                        <input type="number" formControlName="bruto" step="0.01"
-                                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary" />
-                                    </div>
-
-                                    <!-- Tara -->
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Tara</label>
-                                        <input type="number" formControlName="tara" step="0.01"
-                                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary" />
-                                    </div>
-
-                                    <!-- Referencia -->
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Referencia</label>
-                                        <input type="text" formControlName="referencia"
-                                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary" />
-                                    </div>
-
-                                    <!-- Observaciones -->
-                                    <div class="md:col-span-3">
-                                        <label
-                                            class="block text-sm font-semibold text-gray-700 mb-2">Observaciones</label>
-                                        <textarea formControlName="observaciones" rows="2"
-                                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary"></textarea>
-                                    </div>
+                            <!-- PN (Peso Neto - Calculado) -->
+                            <td class="px-3 py-3">
+                                <div class="px-2 py-1.5 bg-gray-100 rounded text-sm font-semibold text-gray-900">
+                                    {{ calcularPesoNeto($index).toFixed(2) }}
                                 </div>
-                            </details>
-                        </div>
+                            </td>
 
-                    </div>
-                </div>
-                }
+                            <!-- Floración (SELECT) -->
+                            <td class="px-3 py-3">
+                                <select formControlName="floracionId"
+                                    class="w-full px-2 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-honey-primary focus:border-honey-primary text-sm">
+                                    <option [value]="null">Sin especificar</option>
+                                    @for (floracion of floraciones(); track floracion.idFloracion) {
+                                    <option [value]="floracion.idFloracion">{{ floracion.floracion }}</option>
+                                    }
+                                </select>
+                            </td>
 
+                            <!-- Humedad -->
+                            <td class="px-3 py-3">
+                                <input type="number" formControlName="humedad" step="0.01" min="0" max="100"
+                                    class="w-20 px-2 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-honey-primary focus:border-honey-primary text-sm"
+                                    placeholder="0.00"
+                                    [class.border-red-500]="tambor.get('humedad')?.invalid && tambor.get('humedad')?.touched" />
+                            </td>
+
+                            <!-- Color (SELECT) -->
+                            <td class="px-3 py-3">
+                                <select formControlName="colorId"
+                                    class="w-full px-2 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-honey-primary focus:border-honey-primary text-sm">
+                                    <option [value]="null">Sin especificar</option>
+                                    @for (color of colores(); track color.idColor) {
+                                    <option [value]="color.idColor">{{ color.color }}</option>
+                                    }
+                                </select>
+                            </td>
+
+                            <!-- Clasificación (Badge) -->
+                            <td class="px-3 py-3">
+                                @if (getClasificacion($index)) {
+                                <span
+                                    [class]="'px-2.5 py-1 rounded-full text-xs font-semibold ' + getClasificacionBadgeClass($index)">
+                                    {{ getClasificacion($index) }}
+                                </span>
+                                } @else {
+                                <span class="text-gray-400 text-xs">-</span>
+                                }
+                            </td>
+
+                        </tr>
+                        }
+                    </tbody>
+
+                    <!-- TOTALES -->
+                    <tfoot class="bg-gray-50 border-t-2 border-gray-300">
+                        <tr class="font-bold">
+                            <td class="px-3 py-3 text-right text-gray-900">TOTALES:</td>
+                            <td class="px-3 py-3 text-gray-900">{{ totalPB().toFixed(2) }}</td>
+                            <td class="px-3 py-3 text-gray-900">{{ totalTara().toFixed(2) }}</td>
+                            <td class="px-3 py-3 text-gray-900 bg-honey-primary/20">{{ totalPN().toFixed(2) }}</td>
+                            <td colspan="4" class="px-3 py-3"></td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
         </div>
+        }
 
         <!-- ================================================================
-             TOTAL GENERAL
+             SECCIÓN 3: PRECIO E IMPORTE
              ================================================================ -->
-        <div
-            class="bg-gradient-to-r from-honey-primary/10 to-amber-100/50 rounded-lg shadow-md p-6 border-2 border-honey-primary">
-            <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold text-gray-900">Total General</h2>
-                <p class="text-3xl font-bold text-honey-dark">${{ totalGeneral().toFixed(2) }}</p>
+        @if (tamboresArray.length > 0) {
+        <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg shadow-md p-6 border-2 border-honey-primary">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Precio Promedio -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Precio Promedio ($/kg) <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                        <input type="number" formControlName="precioPromedio" step="0.01" min="0.01"
+                            class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-honey-primary text-lg font-semibold"
+                            placeholder="0.00"
+                            [class.border-red-500]="form.get('precioPromedio')?.invalid && form.get('precioPromedio')?.touched" />
+                    </div>
+                    <p class="text-xs text-gray-600 mt-1">Este precio se aplicará a todos los tambores</p>
+                </div>
+
+                <!-- Importe Total (Calculado) -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Importe Total
+                    </label>
+                    <div class="bg-white rounded-lg border-2 border-honey-dark p-3">
+                        <p class="text-3xl font-bold text-honey-dark">
+                            ${{ importeTotal().toFixed(2) }}
+                        </p>
+                        <p class="text-xs text-gray-600 mt-1">
+                            {{ form.get('precioPromedio')?.value || 0 }} $/kg × {{ totalPN().toFixed(2) }} kg
+                        </p>
+                    </div>
+                </div>
+
             </div>
         </div>
+        }
 
         <!-- ================================================================
              BOTONES DE ACCIÓN
@@ -260,7 +257,7 @@
                 Cancelar
             </button>
 
-            <button type="submit" [disabled]="loading()"
+            <button type="submit" [disabled]="loading() || form.invalid || tamboresArray.length === 0"
                 class="px-6 py-3 bg-honey-primary hover:bg-honey-dark text-white rounded-lg transition-colors font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                 @if (loading()) {
                 <app-icon name="arrow-path" size="sm" class="animate-spin" />

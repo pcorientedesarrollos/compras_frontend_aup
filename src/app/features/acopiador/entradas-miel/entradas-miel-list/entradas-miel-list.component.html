@@ -159,14 +159,14 @@
                                     <app-icon name="eye" size="sm" />
                                 </button>
 
-                                <!-- Cancelar (solo si está ACTIVO) -->
+                                <!-- Cancelar (solo si está ACTIVO)
                                 @if (entrada.estado === EstadoEntrada.ACTIVO) {
                                 <button (click)="cancelarEntrada(entrada)"
                                     class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                     title="Cancelar entrada">
                                     <app-icon name="x-circle" size="sm" />
                                 </button>
-                                }
+                                } -->
 
                             </div>
                         </td>
@@ -223,5 +223,150 @@
         }
 
     </div>
+
+    <!-- ================================================================
+         MODAL DE DETALLE
+         ================================================================ -->
+    @if (entradaDetalle()) {
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        (click)="cerrarDetalle()">
+        <div class="bg-white rounded-lg shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto"
+            (click)="$event.stopPropagation()">
+
+            <!-- Header del Modal -->
+            <div class="sticky top-0 bg-gradient-to-r from-honey-primary to-amber-600 text-white px-6 py-4 z-10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold">Detalle de Entrada</h2>
+                        <p class="text-sm opacity-90 mt-1">Folio: {{ entradaDetalle()!.folio }}</p>
+                    </div>
+                    <button (click)="cerrarDetalle()"
+                        class="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                        <app-icon name="x-mark" size="lg" color="text-white" />
+                    </button>
+                </div>
+            </div>
+
+            <!-- Contenido del Modal -->
+            <div class="p-6 space-y-6">
+
+                <!-- Información General -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-600 mb-1">Fecha</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ formatDate(entradaDetalle()!.fecha) }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-600 mb-1">Apicultor</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ entradaDetalle()!.apicultorNombre }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-600 mb-1">Proveedor</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ entradaDetalle()!.proveedorNombre }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-xs text-gray-600 mb-1">Estado</p>
+                        <span
+                            [class]="'px-3 py-1 rounded-full text-sm font-semibold inline-block ' + getEstadoBadgeClass(entradaDetalle()!.estado)">
+                            {{ entradaDetalle()!.estado }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Observaciones -->
+                @if (entradaDetalle()!.observaciones) {
+                <div class="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
+                    <p class="text-xs text-blue-700 font-semibold mb-1">Observaciones</p>
+                    <p class="text-sm text-gray-800">{{ entradaDetalle()!.observaciones }}</p>
+                </div>
+                }
+
+                <!-- Detalles de Miel (Tambores) -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <app-icon name="clipboard" size="md" color="text-honey-primary" />
+                        Detalles de Tambores ({{ entradaDetalle()!.detalles.length }})
+                    </h3>
+
+                    <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-100 border-b border-gray-200">
+                                <tr>
+                                    <th class="px-3 py-2 text-left font-semibold text-gray-700">#</th>
+                                    <th class="px-3 py-2 text-left font-semibold text-gray-700">Tipo</th>
+                                    <th class="px-3 py-2 text-left font-semibold text-gray-700">Floración</th>
+                                    <th class="px-3 py-2 text-left font-semibold text-gray-700">Color</th>
+                                    <th class="px-3 py-2 text-right font-semibold text-gray-700">PB (kg)</th>
+                                    <th class="px-3 py-2 text-right font-semibold text-gray-700">T (kg)</th>
+                                    <th class="px-3 py-2 text-right font-semibold text-gray-700">PN (kg)</th>
+                                    <th class="px-3 py-2 text-right font-semibold text-gray-700">Humedad %</th>
+                                    <th class="px-3 py-2 text-center font-semibold text-gray-700">Clasificación</th>
+                                    <th class="px-3 py-2 text-right font-semibold text-gray-700">Precio/kg</th>
+                                    <th class="px-3 py-2 text-right font-semibold text-gray-700">Costo Total</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                @for (detalle of entradaDetalle()!.detalles; track detalle.id; let idx = $index) {
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-3 py-2 text-gray-900 font-semibold">{{ idx + 1 }}</td>
+                                    <td class="px-3 py-2 text-gray-900">{{ detalle.tipoMielNombre }}</td>
+                                    <td class="px-3 py-2 text-gray-700">{{ detalle.floracionNombre || '-' }}</td>
+                                    <td class="px-3 py-2 text-gray-700">{{ detalle.colorNombre || '-' }}</td>
+                                    <td class="px-3 py-2 text-right text-gray-900">{{ detalle.bruto?.toFixed(2) || '-' }}</td>
+                                    <td class="px-3 py-2 text-right text-gray-900">{{ detalle.tara?.toFixed(2) || '-' }}</td>
+                                    <td class="px-3 py-2 text-right font-semibold text-gray-900">{{ detalle.kilos.toFixed(2) }}</td>
+                                    <td class="px-3 py-2 text-right text-gray-900">{{ detalle.humedad.toFixed(1) }}%</td>
+                                    <td class="px-3 py-2 text-center">
+                                        <span [class]="detalle.clasificacion === 'EXPORTACION'
+                                            ? 'px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800'
+                                            : 'px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800'">
+                                            {{ detalle.clasificacion }}
+                                        </span>
+                                    </td>
+                                    <td class="px-3 py-2 text-right text-gray-900">${{ detalle.precio.toFixed(2) }}</td>
+                                    <td class="px-3 py-2 text-right font-bold text-green-700">${{ detalle.costoTotal.toFixed(2) }}</td>
+                                </tr>
+                                }
+                            </tbody>
+                            <tfoot class="bg-gray-50 border-t-2 border-gray-300">
+                                <tr class="font-bold">
+                                    <td colspan="6" class="px-3 py-3 text-right text-gray-900">TOTALES:</td>
+                                    <td class="px-3 py-3 text-right text-gray-900">
+                                        {{ getTotalKilos(entradaDetalle()!).toFixed(2) }} kg
+                                    </td>
+                                    <td colspan="3"></td>
+                                    <td class="px-3 py-3 text-right text-green-700 text-lg">
+                                        {{ formatCurrency(entradaDetalle()!.totalCompra) }}
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Información de Auditoría -->
+                <div class="bg-gray-50 rounded-lg p-4 text-xs text-gray-600 space-y-1">
+                    <p><strong>Creado por:</strong> {{ entradaDetalle()!.usuarioCreadorNombre }} el {{ formatDate(entradaDetalle()!.fechaCreacion) }}</p>
+                    @if (entradaDetalle()!.estado === 'CANCELADO' && entradaDetalle()!.usuarioCanceladorNombre) {
+                    <p class="text-red-600"><strong>Cancelado por:</strong> {{ entradaDetalle()!.usuarioCanceladorNombre }} el {{ formatDate(entradaDetalle()!.fechaCancelacion!) }}</p>
+                    <p class="text-red-600"><strong>Motivo:</strong> {{ entradaDetalle()!.motivoCancelacion }}</p>
+                    }
+                </div>
+
+            </div>
+
+            <!-- Footer del Modal -->
+            <div class="border-t border-gray-200 px-6 py-4 bg-gray-50">
+                <div class="flex justify-end">
+                    <button (click)="cerrarDetalle()"
+                        class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors font-semibold">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    }
 
 </div>

@@ -67,7 +67,7 @@ export class SalidaMielService {
      *   choferId: 'clxxx123',
      *   detalles: [{
      *     tipoMielId: 1,
-     *     clasificacion: ClasificacionMiel.CALIDAD,
+     *     clasificacion: ClasificacionMiel.EXPORTACION,
      *     kilos: 500,
      *     precio: 85.50
      *   }]

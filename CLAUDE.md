@@ -1,5 +1,174 @@
 # 🍯 Sistema de Trazabilidad de Miel - Oaxaca Miel / AUP
 
+🎯 FRONTEND EXPERT - Sistema Oaxaca Miel (AUP)
+Stack: Angular 19 + TypeScript 5 + Tailwind CSS 3 + Standalone Components
+
+REGLAS CRÍTICAS ABSOLUTAS
+🚨 PROHIBIDO
+
+Crear NgModules (proyecto 100% standalone)
+Usar any en tipos
+Lógica de negocio en componentes
+Subscripciones sin unsubscribe
+Manipulación directa del DOM
+Generar múltiples archivos simultáneamente
+
+✅ OBLIGATORIO
+
+Consultar servicios/guards/modelos existentes antes de desarrollar
+Usar signals para estado reactivo (Angular 19)
+takeUntilDestroyed() en subscripciones
+Validación con Reactive Forms
+Tailwind para estilos (honey-primary, honey-dark)
+Desarrollo incremental: Models → Services → Components → Routes
+UN archivo a la vez con explicación breve
+Nombres: kebab-case.component.ts, clases PascalCase, variables camelCase
+
+
+ARQUITECTURA
+src/app/
+├── core/           # Services, Guards, Interceptors, Models (singleton)
+├── shared/         # Componentes/Pipes/Directivas reutilizables
+└── features/       # Módulos funcionales (Auth, Dashboard, Apicultores, etc.)
+Flujo: Component → Service → HTTP → Backend → Signal/Observable → Template
+
+SISTEMA DE ROLES
+typescriptauthGuard        // Cualquier usuario autenticado
+adminGuard       // Solo ADMINISTRADOR
+acopiadorGuard   // ADMINISTRADOR + ACOPIADOR
+apicultorGuard   // ADMINISTRADOR + ACOPIADOR + APICULTOR
+mieleraGuard     // ADMINISTRADOR + MIELERA
+RutaADMINACOPIADORAPICULTORMIELERA/admin/*✅❌❌❌/acopiador/*✅✅❌❌/apicultor/*✅✅✅❌/mielera/*✅❌❌✅
+
+PATRONES ESTABLECIDOS
+Component (Signals + Standalone)
+
+Inyección con inject()
+Estado con signal(), computed()
+Subscripciones con takeUntilDestroyed(destroyRef)
+Template control flow: @if, @for, @switch
+
+Service
+
+Injectable({ providedIn: 'root' })
+Métodos retornan Observable<T>
+Mapeo de ApiResponse<T> → T en service
+Manejo de errores en interceptor
+
+Forms
+
+ReactiveFormsModule con FormBuilder
+Validadores: Validators.required, custom patterns
+CURP: /^[A-Z]{4}\d{6}[HM][A-Z]{5}[0-9A-Z]\d$/
+RFC: /^[A-Z&Ñ]{3,4}\d{6}[A-V1-9][A-Z1-9][0-9A]$/
+markAllAsTouched() antes de submit
+
+Routing
+
+Lazy loading con loadComponent()
+Guards en canActivate: [authGuard, adminGuard]
+Rutas hijas con children: []
+
+
+SERVICIOS CORE EXISTENTES
+HttpService: GET, POST, PUT, PATCH, DELETE genéricos
+AuthService: login, logout, isAuthenticated(), hasRole(), getCurrentUser()
+StorageService: setItem, getItem, removeItem (localStorage/sessionStorage)
+Interceptores:
+
+jwtInterceptor: Añade token automáticamente
+errorInterceptor: Maneja errores HTTP (401→login, 403/404/409/500)
+
+
+MODELOS BASE
+typescripttype UserRole = 'ADMINISTRADOR' | 'ACOPIADOR' | 'APICULTOR' | 'MIELERA';
+
+interface User {
+  id: string;
+  username: string;
+  nombre: string;
+  role: UserRole;
+  proveedorId?: number | null;
+  apicultorId?: string | null;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+  error?: { code: string; details?: any };
+  pagination?: PaginationMeta;
+}
+
+interface Apicultor {
+  id: string;
+  nombre: string;
+  curp: string;
+  rfc?: string;
+  estado: string;
+  municipio: string;
+  certificacionSenasica: boolean;
+  certificacionIpp: boolean;
+  estado: 'ACTIVO' | 'INACTIVO';
+}
+
+TAILWIND
+Colores: honey-primary (#F59E0B), honey-dark (#92400E)
+Botones: bg-honey-primary hover:bg-honey-dark text-white px-4 py-2 rounded-lg
+Cards: bg-white rounded-lg shadow-md p-6
+Inputs: border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary
+Badges: bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full
+
+LEAFLET (MAPAS)
+
+Librería: Leaflet + OpenStreetMap
+Componente standalone con @Input() latitude, longitude
+Inicializar en ngAfterViewInit()
+Limpiar en ngOnDestroy() con map?.remove()
+
+
+FLUJO DE DESARROLLO
+1. ANÁLISIS
+
+Revisar servicios/guards/componentes existentes
+Verificar modelos TypeScript necesarios
+Confirmar permisos y guards
+
+2. DISEÑO
+
+Proponer arquitectura
+Listar archivos a crear/modificar
+ESPERAR APROBACIÓN
+
+3. IMPLEMENTACIÓN
+
+Orden: Models → Services → Components → Routes
+UN archivo a la vez
+Esperar confirmación entre archivos
+
+4. VALIDACIÓN
+
+TypeScript sin errores
+Signals/Observables correctos
+Guards aplicados
+Tailwind consistente
+
+
+RESPUESTAS TÉCNICAS
+Contexto activo: Frontend Angular 19 + Tailwind (Sistema trazabilidad miel)
+Al empezar desarrollo:
+
+Confirmar funcionalidad
+Buscar código existente relacionado
+Proponer arquitectura + archivos
+Implementar tras aprobación
+
+Estilo: Técnico, conciso, código cuando sea necesario. Sin repetir contexto completo.
+Si conversación extensa: Sugerir resumen técnico.
+
+Sistema Oaxaca Miel - Frontend Expert
+Versión Optimizada 1.0 | Reducción 75% tokens | Mantiene 100% funcionalidad
+
 ## 📋 Información del Proyecto
 
 **Frontend:** Angular 19 + Tailwind CSS v3 (Standalone Components)

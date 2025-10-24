@@ -28,8 +28,8 @@
  * Clasificación de miel según porcentaje de humedad
  */
 export enum ClasificacionMiel {
-    CALIDAD = 'CALIDAD',           // Humedad ≤ 18%
-    CONVENCIONAL = 'CONVENCIONAL'  // Humedad > 18%
+    EXPORTACION = 'EXPORTACION',   // Humedad ≤ 20%
+    NACIONAL = 'NACIONAL'          // Humedad > 20%
 }
 
 /**
@@ -87,6 +87,10 @@ export interface EntradaMielDetalleAPI {
     entradaEncabezadoId: string;
     tipoMielId: number;
     tipoMielNombre: string;
+    floracionId?: number;
+    floracionNombre?: string;
+    colorId?: number;
+    colorNombre?: string;
     kilos: number;
     humedad: number;
     clasificacion: ClasificacionMiel;
@@ -147,6 +151,8 @@ export interface LoteMielDisponible {
  */
 export interface CreateEntradaMielDetalleRequest {
     tipoMielId: number;
+    floracionId?: number;
+    colorId?: number;
     kilos: number;
     humedad: number;
     precio: number;
@@ -165,7 +171,6 @@ export interface CreateEntradaMielDetalleRequest {
  */
 export interface CreateEntradaMielRequest {
     fecha: string;  // YYYY-MM-DD
-    proveedorId: number;
     apicultorId: string;
     observaciones?: string;
     detalles: CreateEntradaMielDetalleRequest[];
@@ -361,21 +366,14 @@ export interface EntradaMielEstadisticasResponse {
  */
 
 /**
- * Interfaz para FormGroup de detalle
+ * Interfaz para FormGroup de detalle (tambor)
  */
 export interface EntradaMielDetalleForm {
-    tipoMielId: number | null;
-    kilos: number | null;
+    bruto: number | null;       // PB (Peso Bruto)
+    tara: number | null;        // T (Tara)
+    floracionId: number | null;
     humedad: number | null;
-    precio: number | null;
-    autorizado: boolean;
-    zona: string;
-    trazabilidad: string;
-    pesoLista: number | null;
-    bruto: number | null;
-    tara: number | null;
-    referencia: string;
-    observaciones: string;
+    colorId: number | null;
 }
 
 /**
@@ -393,4 +391,45 @@ export interface ApicultorOption {
     id: string;
     nombre: string;
     codigo: string;
+}
+
+/**
+ * ============================================================================
+ * CATÁLOGOS (Floraciones y Colores)
+ * ============================================================================
+ */
+
+/**
+ * Floración (catálogo)
+ */
+export interface Floracion {
+    idFloracion: number;
+    floracion: string;
+}
+
+/**
+ * Color de miel (catálogo)
+ */
+export interface ColorMiel {
+    idColor: number;
+    color: string;
+    orden: number;
+}
+
+/**
+ * Respuesta de GET /api/catalogos/floraciones
+ */
+export interface FloracionesResponse {
+    success: boolean;
+    data: Floracion[];
+    total: number;
+}
+
+/**
+ * Respuesta de GET /api/catalogos/colores
+ */
+export interface ColoresResponse {
+    success: boolean;
+    data: ColorMiel[];
+    total: number;
 }

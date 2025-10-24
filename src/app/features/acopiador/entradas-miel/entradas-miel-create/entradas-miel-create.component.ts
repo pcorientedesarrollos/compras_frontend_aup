@@ -32,7 +32,9 @@ import {
     CreateEntradaMielDetalleRequest,
     ApicultorOption,
     TipoMielOption,
-    ClasificacionMiel
+    ClasificacionMiel,
+    Floracion,
+    ColorMiel
 } from '../../../../core/models/index';
 
 import { TipoDeMiel, ApicultorDeProveedor } from '../../../../core/models/proveedor.model';
@@ -72,22 +74,29 @@ export class EntradasMielCreateComponent implements OnInit {
     /** Tipos de miel disponibles (catálogo) */
     tiposMiel = signal<TipoMielOption[]>([]);
 
+    /** Floraciones disponibles (catálogo) */
+    floraciones = signal<Floracion[]>([]);
+
+    /** Colores de miel disponibles (catálogo) */
+    colores = signal<ColorMiel[]>([]);
+
     /** Estado de carga */
     loading = signal(false);
 
     /** Proveedor del usuario actual */
     proveedorId = signal<number | null>(null);
 
-    /** Total general calculado */
-    totalGeneral = computed(() => {
-        let total = 0;
-        this.detallesArray.controls.forEach(control => {
-            const kilos = control.get('kilos')?.value || 0;
-            const precio = control.get('precio')?.value || 0;
-            total += kilos * precio;
-        });
-        return total;
-    });
+    /** Total PB (Peso Bruto) calculado */
+    totalPB = signal(0);
+
+    /** Total Tara calculado */
+    totalTara = signal(0);
+
+    /** Total PN (Peso Neto) calculado */
+    totalPN = signal(0);
+
+    /** Importe total calculado */
+    importeTotal = signal(0);
 
     // ============================================================================
     // FORM
@@ -96,8 +105,11 @@ export class EntradasMielCreateComponent implements OnInit {
     form: FormGroup = this.fb.group({
         fecha: [this.getTodayDate(), Validators.required],
         apicultorId: [null, Validators.required],
+        tipoMielId: [null, Validators.required],
+        numeroTambores: [null, [Validators.required, Validators.min(1), Validators.max(100)]],
+        precioPromedio: [null, [Validators.required, Validators.min(0.01)]],
         observaciones: [''],
-        detalles: this.fb.array([])
+        tambores: this.fb.array([])
     });
 
     // ============================================================================
@@ -107,7 +119,9 @@ export class EntradasMielCreateComponent implements OnInit {
     ngOnInit(): void {
         this.loadProveedorId();
         this.loadTiposMiel();
-        this.addDetalle(); // Agregar primer detalle por defecto
+        this.loadFloraciones();
+        this.loadColores();
+        this.setupNumeroTamboresWatcher();
     }
 
     // ============================================================================
@@ -177,67 +191,136 @@ export class EntradasMielCreateComponent implements OnInit {
             });
     }
 
-    // ============================================================================
-    // FORM ARRAY - DETALLES
-    // ============================================================================
-
-    get detallesArray(): FormArray {
-        return this.form.get('detalles') as FormArray;
+    /**
+     * Cargar catálogo de floraciones
+     */
+    private loadFloraciones(): void {
+        this.entradaMielService.getFloraciones()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (floraciones) => {
+                    this.floraciones.set(floraciones);
+                },
+                error: () => {
+                    alert('Error al cargar floraciones');
+                }
+            });
     }
 
     /**
-     * Agregar un nuevo detalle al FormArray
+     * Cargar catálogo de colores
      */
-    addDetalle(): void {
-        const detalleGroup = this.fb.group({
-            tipoMielId: [null, Validators.required],
-            kilos: [null, [Validators.required, Validators.min(0.01)]],
-            humedad: [null, [Validators.required, Validators.min(0), Validators.max(100)]],
-            precio: [null, [Validators.required, Validators.min(0.01)]],
-            autorizado: [true],
-            zona: [''],
-            trazabilidad: [''],
-            pesoLista: [null],
-            bruto: [null],
-            tara: [null],
-            referencia: [''],
-            observaciones: ['']
+    private loadColores(): void {
+        this.entradaMielService.getColores()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (colores) => {
+                    this.colores.set(colores);
+                },
+                error: () => {
+                    alert('Error al cargar colores');
+                }
+            });
+    }
+
+    /**
+     * Configurar watcher para generar tambores dinámicamente
+     */
+    private setupNumeroTamboresWatcher(): void {
+        this.form.get('numeroTambores')?.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((numero: number) => {
+                if (numero && numero > 0 && numero <= 100) {
+                    this.generarTambores(numero);
+                }
+            });
+
+        // Watcher para recalcular totales cuando cambien los tambores
+        this.tamboresArray.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => {
+                this.recalcularTotales();
+            });
+
+        // Watcher para recalcular importe cuando cambie el precio promedio
+        this.form.get('precioPromedio')?.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => {
+                this.recalcularTotales();
+            });
+    }
+
+    /**
+     * Recalcular todos los totales
+     */
+    private recalcularTotales(): void {
+        let sumaPB = 0;
+        let sumaTara = 0;
+        let sumaPN = 0;
+
+        this.tamboresArray.controls.forEach(control => {
+            const bruto = control.get('bruto')?.value || 0;
+            const tara = control.get('tara')?.value || 0;
+            sumaPB += bruto;
+            sumaTara += tara;
+            sumaPN += (bruto - tara);
         });
 
-        this.detallesArray.push(detalleGroup);
+        this.totalPB.set(sumaPB);
+        this.totalTara.set(sumaTara);
+        this.totalPN.set(sumaPN);
+
+        const precioPromedio = this.form.get('precioPromedio')?.value || 0;
+        this.importeTotal.set(sumaPN * precioPromedio);
+    }
+
+    // ============================================================================
+    // FORM ARRAY - TAMBORES
+    // ============================================================================
+
+    get tamboresArray(): FormArray {
+        return this.form.get('tambores') as FormArray;
     }
 
     /**
-     * Eliminar un detalle del FormArray
+     * Generar N tambores dinámicamente
      */
-    removeDetalle(index: number): void {
-        if (this.detallesArray.length > 1) {
-            this.detallesArray.removeAt(index);
-        } else {
-            alert('Debe haber al menos un detalle');
+    generarTambores(cantidad: number): void {
+        this.tamboresArray.clear();
+
+        for (let i = 0; i < cantidad; i++) {
+            const tamborGroup = this.fb.group({
+                bruto: [null, [Validators.required, Validators.min(0.01)]],
+                tara: [null, [Validators.required, Validators.min(0)]],
+                floracionId: [null],
+                humedad: [null, [Validators.required, Validators.min(0), Validators.max(100)]],
+                colorId: [null]
+            });
+
+            this.tamboresArray.push(tamborGroup);
         }
     }
 
     /**
-     * Calcular costo total de un detalle
+     * Calcular Peso Neto de un tambor (PB - T)
      */
-    calcularCostoDetalle(index: number): number {
-        const detalle = this.detallesArray.at(index);
-        const kilos = detalle.get('kilos')?.value || 0;
-        const precio = detalle.get('precio')?.value || 0;
-        return kilos * precio;
+    calcularPesoNeto(index: number): number {
+        const tambor = this.tamboresArray.at(index);
+        const bruto = tambor.get('bruto')?.value || 0;
+        const tara = tambor.get('tara')?.value || 0;
+        return bruto - tara;
     }
 
     /**
      * Obtener clasificación según humedad
      */
     getClasificacion(index: number): ClasificacionMiel | null {
-        const detalle = this.detallesArray.at(index);
-        const humedad = detalle.get('humedad')?.value;
+        const tambor = this.tamboresArray.at(index);
+        const humedad = tambor.get('humedad')?.value;
 
         if (humedad === null || humedad === undefined) return null;
 
-        return humedad <= 18 ? ClasificacionMiel.CALIDAD : ClasificacionMiel.CONVENCIONAL;
+        return humedad <= 20 ? ClasificacionMiel.EXPORTACION : ClasificacionMiel.NACIONAL;
     }
 
     /**
@@ -247,9 +330,20 @@ export class EntradasMielCreateComponent implements OnInit {
         const clasificacion = this.getClasificacion(index);
         if (!clasificacion) return 'bg-gray-100 text-gray-800';
 
-        return clasificacion === ClasificacionMiel.CALIDAD
+        return clasificacion === ClasificacionMiel.EXPORTACION
             ? 'bg-green-100 text-green-800'
             : 'bg-yellow-100 text-yellow-800';
+    }
+
+    /**
+     * Validar que PB > T
+     */
+    validarPesos(index: number): boolean {
+        const tambor = this.tamboresArray.at(index);
+        const bruto = tambor.get('bruto')?.value || 0;
+        const tara = tambor.get('tara')?.value || 0;
+
+        return bruto > tara;
     }
 
     // ============================================================================
@@ -297,31 +391,56 @@ export class EntradasMielCreateComponent implements OnInit {
             return;
         }
 
+        if (this.tamboresArray.length === 0) {
+            alert('Debe ingresar al menos un tambor');
+            return;
+        }
+
+        // Validar que todos los PB > T
+        for (let i = 0; i < this.tamboresArray.length; i++) {
+            if (!this.validarPesos(i)) {
+                alert(`Tambor #${i + 1}: El Peso Bruto debe ser mayor que la Tara`);
+                return;
+            }
+        }
+
         this.loading.set(true);
 
         const formValue = this.form.value;
+        const precioPromedio = formValue.precioPromedio;
+        const tipoMielId = formValue.tipoMielId;
 
-        // Construir request
+        // Construir request con todos los tambores
         const request: CreateEntradaMielRequest = {
             fecha: formValue.fecha,
-            proveedorId: this.proveedorId()!,
             apicultorId: formValue.apicultorId,
-            observaciones: formValue.observaciones || undefined,
-            detalles: formValue.detalles.map((d: any) => ({
-                tipoMielId: d.tipoMielId,
-                kilos: d.kilos,
-                humedad: d.humedad,
-                precio: d.precio,
-                autorizado: d.autorizado,
-                zona: d.zona || undefined,
-                trazabilidad: d.trazabilidad || undefined,
-                pesoLista: d.pesoLista || undefined,
-                bruto: d.bruto || undefined,
-                tara: d.tara || undefined,
-                referencia: d.referencia || undefined,
-                observaciones: d.observaciones || undefined
-            }))
+            ...(formValue.observaciones && { observaciones: formValue.observaciones }),
+            detalles: formValue.tambores.map((tambor: any) => {
+                const detalle: any = {
+                    tipoMielId: tipoMielId,
+                    kilos: Number((tambor.bruto - tambor.tara).toFixed(2)),  // PN = PB - T
+                    humedad: Number(tambor.humedad),
+                    precio: Number(precioPromedio),
+                    bruto: Number(tambor.bruto),
+                    tara: Number(tambor.tara),
+                    autorizado: true
+                };
+
+                // Solo agregar floracionId si tiene valor
+                if (tambor.floracionId) {
+                    detalle.floracionId = Number(tambor.floracionId);
+                }
+
+                // Solo agregar colorId si tiene valor
+                if (tambor.colorId) {
+                    detalle.colorId = Number(tambor.colorId);
+                }
+
+                return detalle;
+            })
         };
+
+        console.log('📤 REQUEST A ENVIAR:', JSON.stringify(request, null, 2));
 
         // Enviar al backend
         this.entradaMielService.createEntrada(request)

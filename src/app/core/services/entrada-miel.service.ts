@@ -37,7 +37,11 @@ import {
     CancelarEntradaMielResponse,
     PoolDisponiblesResponse,
     EntradaMielEstadisticas,
-    EntradaMielEstadisticasResponse
+    EntradaMielEstadisticasResponse,
+    Floracion,
+    ColorMiel,
+    FloracionesResponse,
+    ColoresResponse
 } from '../models/index';
 
 @Injectable({
@@ -208,7 +212,7 @@ export class EntradaMielService {
     /**
      * Cancelar una entrada de miel (acción irreversible)
      * Actualiza estado a CANCELADO en encabezado y detalles
-     * 
+     *
      * @param id ID de la entrada a cancelar
      * @param motivoCancelacion Motivo (mínimo 10 caracteres)
      * @returns Observable con datos de la cancelación
@@ -219,6 +223,41 @@ export class EntradaMielService {
                 `${this.BASE_PATH}/${id}/cancelar`,
                 { motivoCancelacion }
             )
+            .pipe(
+                map(response => response.data)
+            );
+    }
+
+    // ============================================================================
+    // CATÁLOGOS: GET /api/catalogos/floraciones
+    // ============================================================================
+
+    /**
+     * Obtener catálogo de floraciones
+     *
+     * @returns Observable con listado de floraciones
+     */
+    getFloraciones(): Observable<Floracion[]> {
+        return this.httpService
+            .get<FloracionesResponse>('catalogos/floraciones')
+            .pipe(
+                map(response => response.data)
+            );
+    }
+
+    // ============================================================================
+    // CATÁLOGOS: GET /api/catalogos/colores
+    // ============================================================================
+
+    /**
+     * Obtener catálogo de colores de miel
+     * Ordenados por campo 'orden'
+     *
+     * @returns Observable con listado de colores
+     */
+    getColores(): Observable<ColorMiel[]> {
+        return this.httpService
+            .get<ColoresResponse>('catalogos/colores')
             .pipe(
                 map(response => response.data)
             );
