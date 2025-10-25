@@ -178,6 +178,12 @@ export const routes: Routes = [
                     .then(m => m.SalidasMielCreateComponent)
             },
 
+            // Asignación de Tambores
+            {
+                path: 'asignacion-tambores',
+                loadComponent: () => import('./features/acopiador/asignacion-tambores/asignacion-tambores-list/asignacion-tambores-list.component')
+                    .then(m => m.AsignacionTamboresListComponent)
+            },
 
             // Redirección por defecto
             {

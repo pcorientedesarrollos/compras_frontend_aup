@@ -11,3 +11,4 @@ export * from './salida-miel.model';
 export * from './chofer.model';
 export * from './estado.model';
 export * from './municipio.model';
+export * from './tambor.model';

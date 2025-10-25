@@ -1,0 +1,310 @@
+<!-- ============================================================================
+     🛢️ ASIGNACIÓN TAMBORES - TEMPLATE
+     ============================================================================ -->
+
+<div class="container mx-auto px-4 py-6 max-w-7xl">
+
+    <!-- Header -->
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <app-icon name="shopping-bag" size="xl" color="text-honey-primary" />
+            Asignación de Tambores
+        </h1>
+        <p class="text-gray-600 mt-1">Agrupa detalles de entradas en tambores para mejor control de inventario</p>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <app-icon name="funnel" size="md" color="text-honey-primary" />
+            Filtros
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+            <!-- Clasificación -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Clasificación</label>
+                <select [(ngModel)]="filterClasificacion"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-honey-primary">
+                    <option value="">Todas</option>
+                    <option value="EXPORTACION">Exportación</option>
+                    <option value="NACIONAL">Nacional</option>
+                </select>
+            </div>
+
+            <!-- Tipo de Miel -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Tipo de Miel</label>
+                <input type="number" [(ngModel)]="filterTipoMielId" placeholder="ID del tipo"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-honey-primary" />
+            </div>
+
+            <!-- Apicultor -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Apicultor</label>
+                <input type="text" [(ngModel)]="filterApicultor" placeholder="Buscar por nombre"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-honey-primary" />
+            </div>
+
+            <!-- Botones -->
+            <div class="flex items-end gap-2">
+                <button type="button" (click)="applyFilters()"
+                    class="flex-1 px-4 py-2.5 bg-honey-primary hover:bg-honey-dark text-white rounded-lg transition-colors font-semibold">
+                    Aplicar
+                </button>
+                <button type="button" (click)="clearFilters()"
+                    class="px-4 py-2.5 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors">
+                    <app-icon name="x-mark" size="sm" />
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Detalles Disponibles -->
+    <div class="bg-white rounded-lg shadow-md mb-6">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <app-icon name="document-text" size="lg" color="text-honey-primary" />
+                Detalles Disponibles
+                <span class="ml-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
+                    {{ detallesFiltrados().length }} disponibles
+                </span>
+            </h2>
+        </div>
+
+        <!-- Loading State -->
+        @if (loading()) {
+        <div class="flex items-center justify-center py-12">
+            <app-icon name="arrow-path" size="xl" color="text-honey-primary" class="animate-spin" />
+            <span class="ml-3 text-gray-600">Cargando detalles...</span>
+        </div>
+        }
+
+        <!-- Empty State -->
+        @else if (detallesFiltrados().length === 0) {
+        <div class="text-center py-12">
+            <app-icon name="inbox" size="xl" color="text-gray-400" class="mx-auto mb-4" />
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No hay detalles disponibles</h3>
+            <p class="text-gray-600">Todos los detalles ya están asignados a tambores o no hay registros.</p>
+        </div>
+        }
+
+        <!-- Tabla -->
+        @else {
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                            <input type="checkbox" class="w-4 h-4 text-honey-primary rounded" disabled />
+                        </th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Folio</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Fecha</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Apicultor</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Tipo Miel</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Clasificación</th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Kilos</th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Humedad %</th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Costo Total</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    @for (detalle of detallesFiltrados(); track detalle.id) {
+                    <tr class="hover:bg-gray-50 cursor-pointer transition-colors"
+                        [class.bg-honey-50]="isSeleccionado(detalle.id)"
+                        (click)="toggleSeleccion(detalle.id)">
+                        <td class="px-4 py-3">
+                            <input type="checkbox" [checked]="isSeleccionado(detalle.id)"
+                                class="w-4 h-4 text-honey-primary rounded" />
+                        </td>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ detalle.entradaFolio }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">{{ formatDate(detalle.fecha) }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ detalle.apicultorNombre }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">{{ detalle.tipoMielNombre }}</td>
+                        <td class="px-4 py-3">
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                                [class]="detalle.clasificacion === 'EXPORTACION' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'">
+                                {{ detalle.clasificacion }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-right text-sm font-semibold text-gray-900">
+                            {{ formatNumber(detalle.kilos) }} kg
+                        </td>
+                        <td class="px-4 py-3 text-right text-sm text-gray-600">
+                            {{ formatNumber(detalle.humedad, 1) }}%
+                        </td>
+                        <td class="px-4 py-3 text-right text-sm font-semibold text-gray-900">
+                            {{ formatCurrency(detalle.costoTotal) }}
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer con selección -->
+        <div class="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+                <span class="font-semibold">Seleccionados:</span>
+                {{ detallesSeleccionados().length }} detalles |
+                <span class="font-semibold">Total:</span> {{ formatNumber(totalKilosSeleccionados()) }} kg |
+                <span class="font-semibold">Costo:</span> {{ formatCurrency(totalCostoSeleccionado()) }}
+            </div>
+
+            <div class="flex gap-2">
+                <button type="button" (click)="deseleccionarTodos()"
+                    [disabled]="detallesSeleccionados().length === 0"
+                    class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    Deseleccionar Todos
+                </button>
+                <button type="button" (click)="crearTamborBorrador()"
+                    [disabled]="detallesSeleccionados().length === 0"
+                    class="px-6 py-2 bg-honey-primary hover:bg-honey-dark text-white rounded-lg transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                    <app-icon name="plus" size="sm" />
+                    Crear Tambor
+                </button>
+            </div>
+        </div>
+        }
+    </div>
+
+    <!-- Tambores Borrador -->
+    @if (tamboresBorrador().length > 0) {
+    <div class="bg-white rounded-lg shadow-md">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <app-icon name="shopping-bag" size="lg" color="text-orange-600" />
+                Tambores Creados (Sin Guardar)
+                <span class="ml-2 px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-semibold">
+                    {{ contadorTambores() }} tambor(es)
+                </span>
+            </h2>
+        </div>
+
+        <div class="divide-y divide-gray-200">
+            @for (tambor of tamboresBorrador(); track tambor.id; let idx = $index) {
+            <div class="p-6 hover:bg-gray-50 transition-colors">
+                <!-- Header del tambor -->
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-4">
+                        <h3 class="text-lg font-bold" [class]="getTamborBadgeClass(tambor.totalKilos)">
+                            Tambor #{{ idx + 1 }}
+                        </h3>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-semibold">
+                            {{ formatNumber(tambor.totalKilos) }} kg
+                        </span>
+                        @if (tambor.totalKilos > 300) {
+                        <span class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-semibold">
+                            ⚠️ Supera 300kg
+                        </span>
+                        }
+                        <span class="text-sm text-gray-600">
+                            {{ tambor.detalles.length }} detalle(s)
+                        </span>
+                        <span class="text-sm font-semibold text-gray-900">
+                            {{ formatCurrency(tambor.totalCosto) }}
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" (click)="abrirModalObservaciones(tambor.id)"
+                            class="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition-colors text-sm font-semibold flex items-center gap-1">
+                            <app-icon name="pencil" size="sm" />
+                            Observaciones
+                        </button>
+                        <button type="button" (click)="editarTamborBorrador(tambor.id)"
+                            class="px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded-lg transition-colors text-sm font-semibold flex items-center gap-1">
+                            <app-icon name="pencil" size="sm" />
+                            Editar
+                        </button>
+                        <button type="button" (click)="eliminarTamborBorrador(tambor.id)"
+                            class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg transition-colors text-sm font-semibold flex items-center gap-1">
+                            <app-icon name="trash" size="sm" />
+                            Eliminar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Observaciones -->
+                @if (tambor.observaciones) {
+                <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-sm text-gray-700">
+                        <span class="font-semibold">Observaciones:</span> {{ tambor.observaciones }}
+                    </p>
+                </div>
+                }
+
+                <!-- Detalles del tambor -->
+                <div class="grid grid-cols-1 gap-2">
+                    @for (detalle of tambor.detalles; track detalle.id) {
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
+                        <div class="flex items-center gap-4">
+                            <span class="font-semibold text-gray-900">{{ detalle.entradaFolio }}</span>
+                            <span class="text-gray-600">{{ detalle.apicultorNombre }}</span>
+                            <span class="px-2 py-0.5 bg-gray-200 text-gray-800 rounded text-xs">
+                                {{ detalle.tipoMielNombre }}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="font-semibold text-gray-900">{{ formatNumber(detalle.kilos) }} kg</span>
+                            <span class="text-gray-600">{{ formatNumber(detalle.humedad, 1) }}% humedad</span>
+                            <span class="font-semibold text-gray-900">{{ formatCurrency(detalle.costoTotal) }}</span>
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+
+        <!-- Footer con acciones finales -->
+        <div class="p-6 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+            <button type="button" (click)="cancelarTodo()"
+                class="px-6 py-2.5 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors font-semibold">
+                Cancelar Todo
+            </button>
+
+            <button type="button" (click)="guardarTambores()" [disabled]="saving()"
+                class="px-8 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                @if (saving()) {
+                <app-icon name="arrow-path" size="sm" class="animate-spin" />
+                Guardando...
+                } @else {
+                <app-icon name="check" size="sm" />
+                Guardar Todos los Tambores
+                }
+            </button>
+        </div>
+    </div>
+    }
+
+</div>
+
+<!-- Modal: Observaciones -->
+@if (tamborObservaciones()) {
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+    (click)="cerrarModalObservaciones()">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6" (click)="$event.stopPropagation()">
+        <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <app-icon name="pencil" size="lg" color="text-honey-primary" />
+            Observaciones del Tambor
+        </h3>
+
+        <textarea [(ngModel)]="observacionesTemp" rows="4" placeholder="Ingrese observaciones (opcional)"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-honey-primary resize-none"></textarea>
+
+        <div class="flex justify-end gap-2 mt-4">
+            <button type="button" (click)="cerrarModalObservaciones()"
+                class="px-6 py-2.5 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors font-semibold">
+                Cancelar
+            </button>
+            <button type="button" (click)="guardarObservaciones()"
+                class="px-6 py-2.5 bg-honey-primary hover:bg-honey-dark text-white rounded-lg transition-colors font-semibold">
+                Guardar
+            </button>
+        </div>
+    </div>
+</div>
+}
