@@ -1,0 +1,33 @@
+/**
+ * ============================================================================
+ * =â ASIGNACIÓN TAMBORES - ESTILOS
+ * ============================================================================
+ */
+
+/* Espaciado para la barra flotante sticky */
+/* Cuando hay selección, se agrega padding bottom al body para que la barra no tape contenido */
+.asignacion-container {
+    padding-bottom: 0;
+    transition: padding-bottom 0.3s ease-in-out;
+}
+
+.asignacion-container.with-sticky-bar {
+    padding-bottom: 100px;
+}
+
+/* Animación de entrada de la barra flotante */
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Clase para animación opcional */
+.sticky-bar-enter {
+    animation: slideUp 0.3s ease-out;
+}

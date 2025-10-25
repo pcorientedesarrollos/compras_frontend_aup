@@ -13,7 +13,7 @@
  * ============================================================================
  */
 
-import { Component, signal, inject, DestroyRef, OnInit, computed } from '@angular/core';
+import { Component, signal, inject, DestroyRef, OnInit, computed, effect } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -31,6 +31,10 @@ import { ClasificacionMiel } from '../../../../core/models/entrada-miel.model';
 
 // Servicios
 import { TamborService } from '../../../../core/services/tambor.service';
+import { ProveedorService } from '../../../../core/services/proveedor.service';
+
+// Importar TipoMielOption del modelo
+import { TipoMielOption } from '../../../../core/models/entrada-miel.model';
 
 @Component({
     selector: 'app-asignacion-tambores-list',
@@ -45,11 +49,15 @@ import { TamborService } from '../../../../core/services/tambor.service';
 })
 export class AsignacionTamboresListComponent implements OnInit {
     private tamborService = inject(TamborService);
+    private proveedorService = inject(ProveedorService);
     private destroyRef = inject(DestroyRef);
 
     // ============================================================================
     // STATE - SIGNALS
     // ============================================================================
+
+    /** Flag para controlar la primera carga (evitar doble petición) */
+    private isFirstLoad = true;
 
     /** Detalles disponibles para asignar */
     detallesDisponibles = signal<DetalleDisponibleParaTambor[]>([]);
@@ -65,6 +73,9 @@ export class AsignacionTamboresListComponent implements OnInit {
 
     /** Guardando tambores */
     saving = signal(false);
+
+    /** Tipos de miel disponibles (catálogo) */
+    tiposMiel = signal<TipoMielOption[]>([]);
 
     // Filtros
     filterClasificacion = signal<ClasificacionMiel | ''>(ClasificacionMiel.EXPORTACION);
@@ -126,11 +137,37 @@ export class AsignacionTamboresListComponent implements OnInit {
     contadorTambores = computed(() => this.tamboresBorrador().length);
 
     // ============================================================================
+    // CONSTRUCTOR - EFFECTS
+    // ============================================================================
+
+    constructor() {
+        // Effect reactivo: recarga automáticamente cuando cambian los filtros de clasificación o tipo
+        effect(() => {
+            // Leer los signals para que el effect se suscriba a cambios
+            const clasificacion = this.filterClasificacion();
+            const tipoMielId = this.filterTipoMielId();
+
+            // Evitar carga doble en la inicialización
+            if (this.isFirstLoad) {
+                return;
+            }
+
+            // Limpiar selección y recargar
+            this.deseleccionarTodos();
+            this.loadDetallesDisponibles();
+        });
+    }
+
+    // ============================================================================
     // LIFECYCLE
     // ============================================================================
 
     ngOnInit(): void {
+        this.loadTiposMiel();
         this.loadDetallesDisponibles();
+
+        // Después de la primera carga, activar los effects reactivos
+        this.isFirstLoad = false;
     }
 
     // ============================================================================
@@ -138,16 +175,44 @@ export class AsignacionTamboresListComponent implements OnInit {
     // ============================================================================
 
     /**
+     * Cargar catálogo de tipos de miel
+     */
+    loadTiposMiel(): void {
+        this.proveedorService.getTiposMiel()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (tipos) => {
+                    this.tiposMiel.set(tipos.map(t => ({
+                        id: t.idTipoDeMiel,
+                        nombre: t.tipoDeMiel
+                    })));
+                },
+                error: () => {
+                    console.error('Error al cargar tipos de miel');
+                }
+            });
+    }
+
+    /**
      * Cargar detalles disponibles
      */
     loadDetallesDisponibles(): void {
         this.loading.set(true);
 
-        const filtros = {
-            clasificacion: this.filterClasificacion() || undefined,
-            tipoMielId: this.filterTipoMielId() || undefined,
+        const filtros: any = {
             limit: 999 // Cargar todos
         };
+
+        // Solo agregar filtros si tienen valor
+        const clasificacion = this.filterClasificacion();
+        if (clasificacion) {
+            filtros.clasificacion = clasificacion;
+        }
+
+        const tipoMielId = this.filterTipoMielId();
+        if (tipoMielId) {
+            filtros.tipoMielId = tipoMielId;
+        }
 
         this.tamborService.getDetallesDisponibles(filtros)
             .pipe(takeUntilDestroyed(this.destroyRef))
