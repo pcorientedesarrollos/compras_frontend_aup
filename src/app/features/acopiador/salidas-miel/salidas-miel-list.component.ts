@@ -2,18 +2,21 @@
  * ============================================================================
  * 📦 SALIDAS MIEL LIST COMPONENT - SISTEMA OAXACA MIEL
  * ============================================================================
- * 
- * Listado de salidas de miel con:
- * - Vista COMPACTA tipo tabla (no cards)
- * - Resumen de kilos por tipo de miel
- * - Filtros (fecha, estado, chofer)
+ *
+ * Listado de salidas de miel con TAMBORES:
+ * - Vista compacta tipo tabla
+ * - Filtros (fecha, estado)
  * - Paginación backend
- * - Acciones (Ver detalle, Finalizar, Cancelar)
- * 
+ * - Acciones según estado:
+ *   - EN_PROCESO: Editar, Finalizar, Cancelar
+ *   - FINALIZADA: Marcar en Tránsito
+ *   - EN_TRANSITO: Solo ver
+ *   - VERIFICADA: Solo ver
+ *
  * ============================================================================
  */
 
-import { Component, signal, inject, DestroyRef, OnInit, computed } from '@angular/core';
+import { Component, signal, inject, DestroyRef, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -26,14 +29,12 @@ import { IconComponent } from '../../../shared/components/ui/icon/icon.component
 import {
     SalidaMielListItem,
     SalidaMielFilterParams,
-    EstadoSalida,
-    ResumenKilosPorTipo
+    EstadoSalida
 } from '../../../core/models/salida-miel.model';
-import { InventarioAgrupado } from '../../../core/models/chofer.model';
 
 // Servicios
 import { SalidaMielService } from '../../../core/services/salida-miel.service';
-import { InventarioService } from '../../../core/services/inventario.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
     selector: 'app-salidas-miel-list',
@@ -48,7 +49,7 @@ import { InventarioService } from '../../../core/services/inventario.service';
 })
 export class SalidasMielListComponent implements OnInit {
     private salidaMielService = inject(SalidaMielService);
-    private inventarioService = inject(InventarioService);
+    private notificationService = inject(NotificationService);
     private router = inject(Router);
     private destroyRef = inject(DestroyRef);
 
@@ -61,10 +62,11 @@ export class SalidasMielListComponent implements OnInit {
 
     /** Estado de carga */
     loading = signal(false);
+    processingAction = signal(false);
 
     /** Paginación */
     currentPage = signal(1);
-    pageSize = signal(15); // Más registros por página en tabla compacta
+    pageSize = signal(15);
     totalItems = signal(0);
     totalPages = signal(0);
 
@@ -72,17 +74,8 @@ export class SalidasMielListComponent implements OnInit {
     filterEstado = signal<EstadoSalida | ''>('');
     filterFechaInicio = signal('');
     filterFechaFin = signal('');
-    filterChofer = signal('');
 
-    /** Salida seleccionada para modal */
-    selectedSalidaId = signal<string | null>(null);
-
-    /** Inventario agrupado por tipo de miel con porcentajes */
-    inventarioAgrupado = signal<InventarioAgrupado[]>([]);
-
-    /**
-     * Math para template
-     */
+    /** Math para template */
     Math = Math;
 
     // ============================================================================
@@ -92,51 +85,19 @@ export class SalidasMielListComponent implements OnInit {
     /** Enum para template */
     readonly EstadoSalida = EstadoSalida;
 
-    /**
-     * Resumen de kilos totales por estado
-     */
-    resumenKilosPorEstado = computed(() => {
-        const salidas = this.salidas();
-        const resumen = {
-            [EstadoSalida.BORRADOR]: 0,
-            [EstadoSalida.EN_TRANSITO]: 0,
-            [EstadoSalida.ENTREGADA]: 0,
-            [EstadoSalida.CANCELADA]: 0
-        };
-
-        salidas.forEach(salida => {
-            resumen[salida.estado] += salida.totalKilos;
-        });
-
-        return resumen;
-    });
-
-    /**
-     * Total de kilos en todas las salidas visibles
-     */
-    totalKilosVisibles = computed(() => {
-        return this.salidas().reduce((sum, salida) => sum + salida.totalKilos, 0);
-    });
-
     // ============================================================================
     // LIFECYCLE
     // ============================================================================
 
     ngOnInit(): void {
         this.loadSalidas();
-        this.loadInventarioTotales();
     }
 
     // ============================================================================
-    // METHODS - DATA LOADING
+    // DATA LOADING
     // ============================================================================
 
-    /**
-     * Cargar salidas con filtros y paginación
-     */
     loadSalidas(): void {
-        this.loading.set(true);
-
         const params: SalidaMielFilterParams = {
             page: this.currentPage(),
             limit: this.pageSize()
@@ -155,253 +116,228 @@ export class SalidasMielListComponent implements OnInit {
             params.fechaFin = this.filterFechaFin();
         }
 
-        if (this.filterChofer()) {
-            params.choferId = this.filterChofer();
-        }
+        this.loading.set(true);
 
         this.salidaMielService.getSalidas(params)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (response) => {
                     this.salidas.set(response.data);
+                    this.currentPage.set(response.pagination.page);
                     this.totalItems.set(response.pagination.total);
                     this.totalPages.set(response.pagination.totalPages);
                     this.loading.set(false);
                 },
                 error: () => {
                     this.loading.set(false);
-                    alert('Error al cargar salidas de miel');
-                }
-            });
-    }
-
-    /**
-     * Cargar inventario agrupado por tipo de miel
-     */
-    loadInventarioTotales(): void {
-        this.inventarioService.getResumenInventario()
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: (response) => {
-                    const { resumen, totales } = response;
-
-                    // Agrupar por tipoMielId sumando kilos
-                    const porTipoMiel = resumen.reduce((acc: InventarioAgrupado[], item) => {
-                        const existe = acc.find(x => x.tipoMielId === item.tipoMielId);
-
-                        if (existe) {
-                            existe.kilos += item.kilosDisponibles;
-                        } else {
-                            acc.push({
-                                tipoMielId: item.tipoMielId,
-                                tipoMielNombre: item.tipoMielNombre,
-                                kilos: item.kilosDisponibles,
-                                porcentaje: 0
-                            });
-                        }
-
-                        return acc;
-                    }, []);
-
-                    // Calcular porcentajes
-                    const totalKilos = totales.kilosDisponibles;
-                    porTipoMiel.forEach(tipo => {
-                        tipo.porcentaje = totalKilos > 0
-                            ? parseFloat(((tipo.kilos / totalKilos) * 100).toFixed(2))
-                            : 0;
-                    });
-
-                    this.inventarioAgrupado.set(porTipoMiel);
-                },
-                error: () => {
-                    // Silenciar error, mantener array vacío
-                    this.inventarioAgrupado.set([]);
+                    this.notificationService.error('Error al cargar salidas', 'No se pudieron obtener las salidas de miel');
                 }
             });
     }
 
     // ============================================================================
-    // METHODS - FILTROS Y PAGINACIÓN
+    // FILTERS
     // ============================================================================
 
-    /**
-     * Aplicar filtros
-     */
-    applyFilters(): void {
-        this.currentPage.set(1); // Reset a página 1
-        this.loadSalidas();
-    }
-
-    /**
-     * Limpiar filtros
-     */
-    clearFilters(): void {
-        this.filterEstado.set('');
-        this.filterFechaInicio.set('');
-        this.filterFechaFin.set('');
-        this.filterChofer.set('');
+    onFilterChange(): void {
         this.currentPage.set(1);
         this.loadSalidas();
     }
 
-    /**
-     * Cambiar página
-     */
+    clearFilters(): void {
+        this.filterEstado.set('');
+        this.filterFechaInicio.set('');
+        this.filterFechaFin.set('');
+        this.currentPage.set(1);
+        this.loadSalidas();
+    }
+
+    // ============================================================================
+    // PAGINATION
+    // ============================================================================
+
     goToPage(page: number): void {
-        if (page < 1 || page > this.totalPages()) return;
         this.currentPage.set(page);
         this.loadSalidas();
     }
 
-    /**
-     * Array de páginas para paginador
-     */
-    getPageNumbers(): number[] {
-        const total = this.totalPages();
-        const current = this.currentPage();
-        const delta = 2; // Páginas a mostrar alrededor de la actual
-
-        const pages: number[] = [];
-
-        for (let i = Math.max(1, current - delta); i <= Math.min(total, current + delta); i++) {
-            pages.push(i);
+    previousPage(): void {
+        if (this.currentPage() > 1) {
+            this.goToPage(this.currentPage() - 1);
         }
+    }
 
-        return pages;
+    nextPage(): void {
+        if (this.currentPage() < this.totalPages()) {
+            this.goToPage(this.currentPage() + 1);
+        }
     }
 
     // ============================================================================
-    // METHODS - ACCIONES
+    // ACTIONS
     // ============================================================================
 
     /**
-     * Navegar a crear nueva salida
+     * Ir a crear nueva salida
      */
     crearNuevaSalida(): void {
         this.router.navigate(['/acopiador/salidas-miel/nueva']);
     }
 
     /**
-     * Ver detalle de una salida (modal)
+     * Editar salida (solo EN_PROCESO)
      */
-    verDetalle(id: string): void {
-        this.selectedSalidaId.set(id);
-        // TODO: Abrir modal de detalle
-        console.log('Ver detalle:', id);
+    editarSalida(salida: SalidaMielListItem): void {
+        if (!this.salidaMielService.esEditable(salida.estado)) {
+            this.notificationService.warning('No se puede editar', 'Solo se pueden editar salidas en estado EN PROCESO');
+            return;
+        }
+
+        this.router.navigate(['/acopiador/salidas-miel', salida.id]);
     }
 
     /**
-     * Finalizar una salida (cambiar de BORRADOR a EN_TRANSITO)
+     * Ver detalle de salida (por ahora redirige a editar)
+     */
+    verDetalle(salida: SalidaMielListItem): void {
+        // Por ahora solo permite ver salidas EN_PROCESO (editar)
+        if (salida.estado === 'EN_PROCESO') {
+            this.editarSalida(salida);
+        } else {
+            this.notificationService.info('Ver Detalle', `Salida ${salida.folio} - Estado: ${this.getEstadoLabel(salida.estado)}`);
+        }
+    }
+
+    /**
+     * Finalizar salida (EN_PROCESO → FINALIZADA)
      */
     finalizarSalida(salida: SalidaMielListItem): void {
-        if (salida.estado !== EstadoSalida.BORRADOR) {
-            alert('Solo se pueden finalizar salidas en estado BORRADOR');
+        if (!this.salidaMielService.esFinalizable(salida.estado)) {
+            this.notificationService.warning('No se puede finalizar', 'Solo se pueden finalizar salidas en estado EN PROCESO');
             return;
         }
 
-        if (!confirm(`¿Está seguro de finalizar la salida ${salida.folio}?\n\nEsta acción descontará el inventario usando FIFO y NO es reversible.`)) {
+        if (!confirm(`¿Está seguro de finalizar la salida ${salida.folio}?\n\nUna vez finalizada NO podrá añadir o quitar tambores.`)) {
             return;
         }
+
+        this.processingAction.set(true);
 
         this.salidaMielService.finalizarSalida(salida.id)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: () => {
-                    alert(`Salida ${salida.folio} finalizada exitosamente`);
+                    this.processingAction.set(false);
+                    this.notificationService.success('Salida finalizada', `${salida.folio} finalizada exitosamente`);
                     this.loadSalidas();
                 },
                 error: (error) => {
-                    alert(`Error al finalizar la salida: ${error.error?.message || 'Error desconocido'}`);
+                    this.processingAction.set(false);
+                    this.notificationService.error('Error al finalizar', error.error?.message || 'Error desconocido');
                 }
             });
     }
 
     /**
-     * Cancelar una salida (solo desde BORRADOR)
+     * Marcar como en tránsito (FINALIZADA → EN_TRANSITO)
      */
-    cancelarSalida(salida: SalidaMielListItem): void {
-        if (salida.estado !== EstadoSalida.BORRADOR) {
-            alert('Solo se pueden cancelar salidas en estado BORRADOR');
+    marcarEnTransito(salida: SalidaMielListItem): void {
+        if (!this.salidaMielService.puedeMarcarEnTransito(salida.estado)) {
+            this.notificationService.warning('No se puede marcar en tránsito', 'Solo se pueden marcar en tránsito las salidas FINALIZADAS');
             return;
         }
 
-        if (!confirm(`¿Está seguro de cancelar la salida ${salida.folio}?`)) {
+        if (!confirm(`¿Confirma que el chofer recogió la carga de la salida ${salida.folio}?`)) {
             return;
         }
+
+        this.processingAction.set(true);
+
+        this.salidaMielService.marcarEnTransito(salida.id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: () => {
+                    this.processingAction.set(false);
+                    this.notificationService.success('En tránsito', `${salida.folio} marcada como EN TRÁNSITO`);
+                    this.loadSalidas();
+                },
+                error: (error) => {
+                    this.processingAction.set(false);
+                    this.notificationService.error('Error al marcar en tránsito', error.error?.message || 'Error desconocido');
+                }
+            });
+    }
+
+    /**
+     * Cancelar salida (solo EN_PROCESO)
+     */
+    cancelarSalida(salida: SalidaMielListItem): void {
+        if (!this.salidaMielService.esCancelable(salida.estado)) {
+            this.notificationService.warning('No se puede cancelar', 'Solo se pueden cancelar salidas en estado EN PROCESO');
+            return;
+        }
+
+        if (!confirm(`¿Está seguro de CANCELAR la salida ${salida.folio}?\n\nEsta acción NO se puede deshacer.\nTodos los tambores volverán a estado ACTIVO.`)) {
+            return;
+        }
+
+        this.processingAction.set(true);
 
         this.salidaMielService.cancelarSalida(salida.id)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: () => {
-                    alert('Salida cancelada exitosamente');
+                    this.processingAction.set(false);
+                    this.notificationService.success('Salida cancelada', `${salida.folio} cancelada exitosamente`);
                     this.loadSalidas();
                 },
-                error: () => {
-                    alert('Error al cancelar la salida');
+                error: (error) => {
+                    this.processingAction.set(false);
+                    this.notificationService.error('Error al cancelar', error.error?.message || 'Error desconocido');
                 }
             });
-    }
-
-    /**
-     * Editar salida (solo BORRADOR)
-     */
-    editarSalida(id: string): void {
-        this.router.navigate(['/acopiador/salidas-miel/editar', id]);
     }
 
     // ============================================================================
     // HELPER METHODS
     // ============================================================================
 
-    /**
-     * Clase CSS para badge de estado
-     */
     getEstadoBadgeClass(estado: EstadoSalida): string {
         return this.salidaMielService.getEstadoBadgeClass(estado);
     }
 
-    /**
-     * Verificar si una salida es editable
-     */
-    esEditable(estado: EstadoSalida): boolean {
-        return this.salidaMielService.esEditable(estado);
+    getEstadoLabel(estado: EstadoSalida): string {
+        return this.salidaMielService.getEstadoLabel(estado);
     }
 
-    /**
-     * Verificar si una salida se puede finalizar
-     */
-    esFinalizable(estado: EstadoSalida): boolean {
-        return this.salidaMielService.esFinalizable(estado);
-    }
-
-    /**
-     * Verificar si una salida se puede cancelar
-     */
-    esCancelable(estado: EstadoSalida): boolean {
-        return this.salidaMielService.esCancelable(estado);
-    }
-
-    /**
-     * Formatear fecha
-     */
     formatDate(dateString: string): string {
         return this.salidaMielService.formatDate(dateString);
     }
 
-    /**
-     * Formatear moneda
-     */
     formatCurrency(value: number): string {
         return this.salidaMielService.formatCurrency(value);
     }
 
+    formatKilos(kilos: number): string {
+        return this.salidaMielService.formatKilos(kilos);
+    }
+
     /**
-     * Formatear kilos con validación
+     * Verificar si el usuario puede realizar acciones sobre una salida
      */
-    formatKilos(kilos: number | undefined): string {
-        if (kilos === undefined || kilos === null) {
-            return '0.00 kg';
-        }
-        return `${kilos.toFixed(2)} kg`;
+    puedeEditar(salida: SalidaMielListItem): boolean {
+        return this.salidaMielService.esEditable(salida.estado);
+    }
+
+    puedeFinalizar(salida: SalidaMielListItem): boolean {
+        return this.salidaMielService.esFinalizable(salida.estado);
+    }
+
+    puedeMarcarEnTransito(salida: SalidaMielListItem): boolean {
+        return this.salidaMielService.puedeMarcarEnTransito(salida.estado);
+    }
+
+    puedeCancelar(salida: SalidaMielListItem): boolean {
+        return this.salidaMielService.esCancelable(salida.estado);
     }
 }

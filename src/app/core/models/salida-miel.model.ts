@@ -2,57 +2,69 @@
  * ============================================================================
  * 📦 SALIDA MIEL MODEL - SISTEMA OAXACA MIEL
  * ============================================================================
- * 
- * Modelo para salidas de miel del inventario
- * 
+ *
+ * Modelo para salidas de miel con TAMBORES
+ *
  * FLUJO DE ESTADOS:
- * BORRADOR → EN_TRANSITO → ENTREGADA
+ * EN_PROCESO → FINALIZADA → EN_TRANSITO → VERIFICADA
  *     ↓
- * CANCELADA (solo desde BORRADOR)
- * 
- * ENDPOINTS:
- * - POST /api/salidas-miel (crear borrador)
- * - GET /api/salidas-miel (listar con filtros)
- * - GET /api/salidas-miel/folio/:folio (buscar por folio)
- * - GET /api/salidas-miel/:id (detalle completo)
- * - PATCH /api/salidas-miel/:id (actualizar borrador)
- * - POST /api/salidas-miel/:id/finalizar (finalizar y aplicar FIFO)
- * - DELETE /api/salidas-miel/:id (cancelar borrador)
- * 
+ * CANCELADA (solo desde EN_PROCESO)
+ *
+ * ENDPOINTS PRINCIPALES:
+ * - POST /api/salidas-miel (crear salida)
+ * - POST /api/salidas-miel/:id/tambores (añadir tambor)
+ * - DELETE /api/salidas-miel/:id/tambores/:detalleId (remover tambor)
+ * - PATCH /api/salidas-miel/:id/tambores/:detalleId/tara (actualizar tara)
+ * - POST /api/salidas-miel/:id/finalizar (finalizar)
+ * - POST /api/salidas-miel/:id/en-transito (marcar en tránsito)
+ * - GET /api/salidas-miel/tambores-disponibles (listar tambores ACTIVOS)
+ * - DELETE /api/salidas-miel/:id (cancelar solo EN_PROCESO)
+ *
  * ============================================================================
  */
 
 import { ClasificacionMiel } from "./entrada-miel.model";
 
 /**
- * Estado de la salida
+ * Estado de la salida (NUEVO FLUJO)
  */
 export enum EstadoSalida {
-    BORRADOR = 'BORRADOR',           // Editable, no afecta inventario
-    EN_TRANSITO = 'EN_TRANSITO',     // Finalizada, inventario descontado
-    ENTREGADA = 'ENTREGADA',         // Verificada en destino
-    CANCELADA = 'CANCELADA'          // Cancelada (solo desde BORRADOR)
+    EN_PROCESO = 'EN_PROCESO',       // Añadiendo/quitando tambores
+    FINALIZADA = 'FINALIZADA',       // No se pueden añadir tambores, se puede modificar tara
+    EN_TRANSITO = 'EN_TRANSITO',     // Chofer recogió la carga
+    VERIFICADA = 'VERIFICADA'        // Verificada en planta
 }
 
-
 /**
- * Detalle de salida (item individual)
+ * Detalle de salida (vinculado a un tambor)
+ * Snapshot de datos del tambor al momento de la salida
  */
 export interface DetalleSalidaMiel {
     id: string;
+    salidaEncabezadoId: string;
+    tamborId: string;
+
+    // Snapshot del tambor
     tipoMielId: number;
     tipoMielNombre: string;
+    floracionId: number | null;
+    floracionNombre: string | null;
+    colorId: number | null;
+    colorNombre: string | null;
     clasificacion: ClasificacionMiel;
-    kilos: number;
-    precio: number | null;
+    kilosDeclarados: number;      // Kilos brutos del tambor (con tara)
+    humedadPromedio: number | null;
     costoTotal: number;
+
+    // Datos capturados en salida
+    taraCapturada: number | null;
+
+    // Datos de verificación (solo para VERIFICADOR)
     verificado: boolean;
-    zona: string | null;
-    trazabilidad: string | null;
-    referencia: string | null;
-    observaciones: string | null;
-    createdAt: string; // ISO DateTime
-    updatedAt: string; // ISO DateTime
+    kilosVerificados: number | null;
+    humedadVerificada: number | null;
+    observacionesVerificador: string | null;
+    tieneDiferencias: boolean;
 }
 
 /**
@@ -73,6 +85,7 @@ export interface SalidaMielAPI {
     };
     totalKilos: number;
     totalCompra: number;
+    cantidadTambores: number;
     estado: EstadoSalida;
     tieneDiferencias: boolean;
     observaciones: string | null;
@@ -85,8 +98,14 @@ export interface SalidaMielAPI {
         id: string;
         nombre: string;
     } | null;
+    verificador: {
+        id: string;
+        nombre: string;
+    } | null;
     fechaCreacion: string; // ISO DateTime
     fechaFinalizacion: string | null; // ISO DateTime
+    fechaVerificacion: string | null; // ISO DateTime
+    observacionesVerificador: string | null;
     detalles: DetalleSalidaMiel[];
     createdAt: string; // ISO DateTime
     updatedAt: string; // ISO DateTime
@@ -105,48 +124,52 @@ export interface SalidaMielListItem {
     choferNombre: string;
     totalKilos: number;
     totalCompra: number;
+    cantidadTambores: number;
     estado: EstadoSalida;
     tieneDiferencias: boolean;
     observaciones: string | null;
     fechaCreacion: string; // ISO DateTime
     usuarioCreadorNombre: string;
-    cantidadDetalles: number;
 }
 
 /**
  * Request para crear salida (POST /api/salidas-miel)
+ * Ahora solo crea el encabezado, sin detalles
  */
 export interface CreateSalidaMielRequest {
     fecha: string; // YYYY-MM-DD
     choferId: string;
     observaciones?: string;
     observacionesChofer?: string;
-    detalles: CreateDetalleSalidaRequest[];
 }
 
 /**
- * Detalle para crear salida
+ * Request para actualizar encabezado (PATCH /api/salidas-miel/:id)
+ * Solo permitido en estado EN_PROCESO
  */
-export interface CreateDetalleSalidaRequest {
-    tipoMielId: number;
-    clasificacion: ClasificacionMiel;
-    kilos: number;
-    precio?: number;
-    zona?: string;
-    trazabilidad?: string;
-    referencia?: string;
-    observaciones?: string;
-}
-
-/**
- * Request para actualizar salida borrador (PATCH /api/salidas-miel/:id)
- */
-export interface UpdateSalidaMielRequest {
+export interface UpdateSalidaEncabezadoRequest {
     fecha?: string;
     choferId?: string;
     observaciones?: string;
     observacionesChofer?: string;
-    detalles?: CreateDetalleSalidaRequest[];
+}
+
+/**
+ * Request para añadir tambor a la salida
+ * POST /api/salidas-miel/:id/tambores
+ */
+export interface AddTamborToSalidaRequest {
+    tamborId: string;
+    taraCapturada?: number;
+    observaciones?: string;
+}
+
+/**
+ * Request para actualizar tara de un tambor
+ * PATCH /api/salidas-miel/:id/tambores/:detalleId/tara
+ */
+export interface UpdateTaraRequest {
+    taraCapturada: number;
 }
 
 /**
@@ -186,11 +209,22 @@ export interface SalidaMielResponse {
 }
 
 /**
- * Resumen de kilos por tipo de miel (para display)
+ * Tambor disponible para añadir a salida
+ * GET /api/salidas-miel/tambores-disponibles
  */
-export interface ResumenKilosPorTipo {
+export interface TamborDisponible {
+    id: string;
+    consecutivo: string; // TAMB-2025-NNNN
     tipoMielId: number;
     tipoMielNombre: string;
+    floracionId: number | null;
+    colorId: number | null;
     clasificacion: ClasificacionMiel;
     totalKilos: number;
+    humedadPromedio: number;
+    totalCosto: number;
+    cantidadDetalles: number;
+    estado: string; // 'ACTIVO'
+    observaciones: string | null;
+    fechaCreacion: string; // ISO DateTime
 }

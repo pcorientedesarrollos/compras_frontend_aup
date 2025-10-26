@@ -1,27 +1,30 @@
 <!-- ============================================================================
-     📦 CREAR SALIDA DE MIEL - FORMULARIO CON VALIDACIÓN DE STOCK
+     📦 CREAR/EDITAR SALIDA DE MIEL CON TAMBORES
+     TODO EN UNA PANTALLA (igual que entradas)
      ============================================================================ -->
 
 <div class="p-6 max-w-7xl mx-auto">
-    <!-- ============================================================================
-       HEADER
-       ============================================================================ -->
+    <!-- HEADER -->
     <div class="mb-6">
         <div class="flex items-center gap-3 mb-2">
             <button (click)="cancelar()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <app-icon name="arrow-left" size="md" class="text-gray-600" />
             </button>
-            <h1 class="text-2xl font-bold text-gray-900">Nueva Salida de Miel</h1>
+            <h1 class="text-2xl font-bold text-gray-900">
+                @if (isEditMode()) {
+                Editar Salida de Miel
+                } @else {
+                Nueva Salida de Miel
+                }
+            </h1>
         </div>
         <p class="text-sm text-gray-600 ml-12">
-            Complete la información para crear una salida en estado BORRADOR
+            Complete la información y seleccione los tambores para la salida
         </p>
     </div>
 
     <form [formGroup]="salidaForm" (ngSubmit)="onSubmit()" class="space-y-6">
-        <!-- ============================================================================
-         INFORMACIÓN GENERAL
-         ============================================================================ -->
+        <!-- INFORMACIÓN GENERAL -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <app-icon name="document-text" size="md" class="text-honey-primary" />
@@ -73,7 +76,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Observaciones
                     </label>
-                    <textarea formControlName="observaciones" rows="3"
+                    <textarea formControlName="observaciones" rows="2"
                         placeholder="Información adicional sobre la salida..."
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-honey-primary focus:border-honey-primary"></textarea>
                 </div>
@@ -90,157 +93,180 @@
             </div>
         </div>
 
-        <!-- ============================================================================
-         DETALLES DE MIEL
-         ============================================================================ -->
+        <!-- TABLA DE TAMBORES DISPONIBLES -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <app-icon name="honey" size="md" class="text-honey-primary" />
-                    Detalles de Miel
+                    <app-icon name="shopping-bag" size="md" class="text-honey-primary" />
+                    Tambores Disponibles
                 </h2>
-                <button type="button" (click)="agregarDetalle()"
-                    class="bg-honey-primary hover:bg-honey-dark text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
-                    <app-icon name="plus" size="sm" />
-                    Agregar
-                </button>
+
+                <!-- Filtros -->
+                <div class="flex items-center gap-3">
+                    <!-- Filtro Tipo de Miel -->
+                    <select [value]="filtroTipoMiel()" (change)="onFiltroTipoMielChange($any($event.target).value)"
+                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-honey-primary">
+                        <option value="">Todos los tipos</option>
+                        @for (tipo of tiposMielDisponibles; track tipo.id) {
+                        <option [value]="tipo.id">{{ tipo.nombre }}</option>
+                        }
+                    </select>
+
+                    <!-- Filtro Clasificación -->
+                    <select [value]="filtroClasificacion()" (change)="onFiltroClasificacionChange($any($event.target).value)"
+                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-honey-primary">
+                        <option value="">Todas las clasificaciones</option>
+                        <option value="EXPORTACION">Exportación</option>
+                        <option value="NACIONAL">Nacional</option>
+                    </select>
+
+                    <!-- Botón Limpiar Filtros -->
+                    @if (filtroTipoMiel() || filtroClasificacion()) {
+                    <button type="button" (click)="limpiarFiltros()"
+                        class="text-sm text-honey-primary hover:underline flex items-center gap-1">
+                        <app-icon name="x-circle" size="sm" />
+                        Limpiar
+                    </button>
+                    }
+                </div>
             </div>
 
-            @if (detalles.length === 0) {
-            <!-- Empty State -->
+            @if (loadingTambores()) {
+            <div class="text-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-honey-primary mx-auto"></div>
+                <p class="text-sm text-gray-600 mt-2">Cargando tambores...</p>
+            </div>
+            } @else if (tamboresFiltrados.length === 0) {
             <div class="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-                <app-icon name="shopping-bag" size="2xl" class="text-gray-400 mx-auto mb-3" />
-                <p class="text-gray-600 font-medium">No hay detalles agregados</p>
-                <p class="text-sm text-gray-500 mt-1">Haga clic en "Agregar" para añadir miel a la salida</p>
+                <app-icon name="inbox" size="2xl" class="text-gray-400 mx-auto mb-3" />
+                <p class="text-gray-600 font-medium">No hay tambores disponibles</p>
+                <p class="text-sm text-gray-500 mt-1">
+                    @if (filtroTipoMiel() || filtroClasificacion()) {
+                    Intente limpiar los filtros
+                    } @else {
+                    No existen tambores en estado ACTIVO
+                    }
+                </p>
             </div>
             } @else {
-            <!-- Tabla de detalles -->
-            <div class="space-y-4" formArrayName="detalles">
-                @for (detalle of detallesArray(); track $index) {
-                <div [formGroupName]="$index" class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                    <div class="flex items-start justify-between mb-3">
-                        <h3 class="text-sm font-semibold text-gray-700">Detalle #{{ $index + 1 }}</h3>
-                        <button type="button" (click)="removerDetalle($index)"
-                            class="text-red-600 hover:bg-red-50 p-1 rounded transition-colors">
-                            <app-icon name="trash" size="sm" />
-                        </button>
-                    </div>
+            <!-- Tabla -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-12">
+                                <input type="checkbox" class="rounded border-gray-300" disabled
+                                    title="Seleccionar todos" />
+                            </th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CÓDIGO</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">TIPO MIEL</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">FLORACIÓN</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">COLOR</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CLASIFICACIÓN
+                            </th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">KILOS BRUTOS
+                            </th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">TARA (KG)</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">KILOS NETOS
+                            </th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">HUMEDAD %
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @for (tambor of tamboresFiltrados; track tambor.id) {
+                        <tr class="hover:bg-gray-50 transition-colors" [class.bg-honey-50]="tambor.selected">
+                            <!-- Checkbox -->
+                            <td class="px-4 py-3 text-center">
+                                <input type="checkbox" [checked]="tambor.selected" (change)="toggleTambor(tambor)"
+                                    class="rounded border-gray-300 text-honey-primary focus:ring-honey-primary" />
+                            </td>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <!-- Tipo de Miel -->
-                        <div>
-                            <app-autocomplete-select formControlName="tipoMielId" [options]="tiposMiel()"
-                                optionValue="id" optionLabel="nombre" [optionTemplate]="formatTipoMiel"
-                                placeholder="Seleccionar tipo..." label="Tipo de Miel" [required]="true"
-                                (ngModelChange)="onTipoClasificacionChange($index)" />
-                        </div>
+                            <!-- Código -->
+                            <td class="px-4 py-3 text-sm font-mono font-semibold text-gray-900">{{ tambor.consecutivo }}
+                            </td>
 
-                        <!-- Clasificación -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Clasificación <span class="text-red-500">*</span>
-                            </label>
-                            <select formControlName="clasificacion" (change)="onTipoClasificacionChange($index)"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-honey-primary">
-                                <option value="">Seleccione</option>
-                                <option [value]="ClasificacionMiel.EXPORTACION">Exportación</option>
-                                <option [value]="ClasificacionMiel.NACIONAL">Nacional</option>
-                            </select>
-                        </div>
+                            <!-- Tipo Miel -->
+                            <td class="px-4 py-3 text-sm text-gray-900">{{ tambor.tipoMielNombre }}</td>
 
-                        <!-- Kilos -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Kilos <span class="text-red-500">*</span>
-                            </label>
-                            <input type="number" step="0.01" min="0.01" formControlName="kilos" placeholder="0.00"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-honey-primary"
-                                [class.border-red-500]="getErrorStock($index)" />
-                            <!-- Stock disponible -->
-                            @if (detalle.get('tipoMielId')?.value && detalle.get('clasificacion')?.value) {
-                            <p class="text-xs text-gray-600 mt-1">
-                                {{ getStockDisponible(detalle.get('tipoMielId')?.value,
-                                detalle.get('clasificacion')?.value) }}
-                            </p>
-                            }
-                            <!-- Error de stock -->
-                            @if (getErrorStock($index)) {
-                            <p class="text-red-500 text-xs mt-1 font-medium">
-                                {{ getErrorStock($index) }}
-                            </p>
-                            }
-                        </div>
+                            <!-- Floración -->
+                            <td class="px-4 py-3 text-sm text-gray-700">-</td>
 
-                        <!-- Precio -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Precio (opcional)
-                            </label>
-                            <input type="number" step="0.01" min="0" formControlName="precio" placeholder="0.00"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-honey-primary" />
-                        </div>
+                            <!-- Color -->
+                            <td class="px-4 py-3 text-sm text-gray-700">-</td>
 
-                        <!-- Zona -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Zona
-                            </label>
-                            <input type="text" formControlName="zona" placeholder="Ej: Z-001" maxlength="10"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-honey-primary" />
-                        </div>
+                            <!-- Clasificación -->
+                            <td class="px-4 py-3 text-sm">
+                                <span
+                                    [class]="tambor.clasificacion === 'EXPORTACION' ? 'text-green-700 bg-green-100' : 'text-blue-700 bg-blue-100'"
+                                    class="px-2 py-1 rounded text-xs font-medium">
+                                    {{ tambor.clasificacion }}
+                                </span>
+                            </td>
 
-                        <!-- Trazabilidad -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Trazabilidad
-                            </label>
-                            <input type="text" formControlName="trazabilidad" placeholder="Ej: LOTE-2025-001"
-                                maxlength="20"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-honey-primary" />
-                        </div>
+                            <!-- Kilos Brutos -->
+                            <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900">
+                                {{ tambor.totalKilos.toFixed(2) }}
+                            </td>
 
-                        <!-- Referencia -->
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Referencia
-                            </label>
-                            <input type="text" formControlName="referencia" placeholder="Ej: Cliente ACME Corp"
-                                maxlength="500"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-honey-primary" />
-                        </div>
+                            <!-- Tara -->
+                            <td class="px-4 py-3 text-sm text-right">
+                                <input type="number" step="0.01" min="0" placeholder="0.00"
+                                    [value]="tambor.taraCapturada"
+                                    (input)="onTaraChange(tambor, +$any($event.target).value)"
+                                    [disabled]="!tambor.selected"
+                                    class="w-24 border border-gray-300 rounded px-2 py-1 text-sm text-right focus:ring-1 focus:ring-honey-primary focus:border-honey-primary disabled:bg-gray-100 disabled:cursor-not-allowed" />
+                            </td>
 
-                        <!-- Observaciones -->
-                        <div class="md:col-span-3">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Observaciones
-                            </label>
-                            <textarea formControlName="observaciones" rows="2" placeholder="Notas adicionales..."
-                                maxlength="1000"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-honey-primary"></textarea>
-                        </div>
-                    </div>
-                </div>
+                            <!-- Kilos Netos -->
+                            <td class="px-4 py-3 text-sm text-right font-semibold text-green-700">
+                                {{ calcularKilosNetos(tambor).toFixed(2) }}
+                            </td>
+
+                            <!-- Humedad -->
+                            <td class="px-4 py-3 text-sm text-right text-gray-700">
+                                {{ tambor.humedadPromedio.toFixed(1) }}
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Info de registros -->
+            <div class="mt-3 text-sm text-gray-600">
+                Mostrando {{ tamboresFiltrados.length }} de {{ tambores().length }} tambores disponibles
+                @if (tamboresSeleccionados.length > 0) {
+                <span class="font-semibold text-honey-primary">
+                    | {{ tamboresSeleccionados.length }} seleccionados
+                </span>
                 }
             </div>
             }
         </div>
 
-        <!-- ============================================================================
-         RESUMEN
-         ============================================================================ -->
-        @if (detalles.length > 0) {
+        <!-- RESUMEN -->
+        @if (tamboresSeleccionados.length > 0) {
         <div class="bg-honey-50 border border-honey-200 rounded-lg p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <app-icon name="chart-bar" size="md" class="text-honey-primary" />
-                Resumen
+                Resumen de la Salida
             </h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <!-- Total Kilos -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Total Tambores -->
                 <div class="bg-white rounded-lg p-4 border border-honey-200">
-                    <p class="text-xs font-medium text-gray-600 uppercase">Total Kilos</p>
+                    <p class="text-xs font-medium text-gray-600 uppercase">Total Tambores</p>
                     <p class="text-2xl font-bold text-gray-900 mt-1">
-                        {{ formatKilos(totalKilos()) }}
+                        {{ cantidadTambores }}
+                    </p>
+                </div>
+
+                <!-- Total Kilos Netos -->
+                <div class="bg-white rounded-lg p-4 border border-honey-200">
+                    <p class="text-xs font-medium text-gray-600 uppercase">Total Kilos Netos</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">
+                        {{ formatKilos(totalKilos) }}
                     </p>
                 </div>
 
@@ -248,42 +274,14 @@
                 <div class="bg-white rounded-lg p-4 border border-honey-200">
                     <p class="text-xs font-medium text-gray-600 uppercase">Total Compra</p>
                     <p class="text-2xl font-bold text-gray-900 mt-1">
-                        {{ formatCurrency(totalCompra()) }}
+                        {{ formatCurrency(totalCompra) }}
                     </p>
-                </div>
-
-                <!-- Cantidad Detalles -->
-                <div class="bg-white rounded-lg p-4 border border-honey-200">
-                    <p class="text-xs font-medium text-gray-600 uppercase">Detalles</p>
-                    <p class="text-2xl font-bold text-gray-900 mt-1">
-                        {{ detalles.length }}
-                    </p>
-                </div>
-            </div>
-
-            <!-- Resumen por tipo de miel -->
-            <div class="bg-white rounded-lg p-4 border border-honey-200">
-                <p class="text-sm font-semibold text-gray-700 mb-3">Kilos por Tipo de Miel:</p>
-                <div class="space-y-2">
-                    @for (resumen of resumenKilosPorTipo(); track resumen.tipoMielId + '-' + resumen.clasificacion) {
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-700">
-                            {{ resumen.tipoMielNombre }}
-                            <span class="text-xs text-gray-500">({{ resumen.clasificacion }})</span>
-                        </span>
-                        <span class="font-semibold text-gray-900">
-                            {{ formatKilos(resumen.totalKilos) }}
-                        </span>
-                    </div>
-                    }
                 </div>
             </div>
         </div>
         }
 
-        <!-- ============================================================================
-         ACCIONES
-         ============================================================================ -->
+        <!-- ACCIONES -->
         <div class="flex items-center justify-end gap-3 pt-4">
             <button type="button" (click)="cancelar()"
                 class="px-6 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
@@ -293,30 +291,27 @@
 
             <button type="submit"
                 class="bg-honey-primary hover:bg-honey-dark text-white px-6 py-2.5 rounded-lg transition-colors font-medium flex items-center gap-2"
-                [disabled]="loading() || validatingStock() || tieneErroresStock()"
-                [class.opacity-50]="loading() || validatingStock() || tieneErroresStock()"
-                [class.cursor-not-allowed]="loading() || validatingStock() || tieneErroresStock()">
+                [disabled]="loading() || tamboresSeleccionados.length === 0"
+                [class.opacity-50]="loading() || tamboresSeleccionados.length === 0"
+                [class.cursor-not-allowed]="loading() || tamboresSeleccionados.length === 0">
                 @if (loading()) {
                 <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Creando...</span>
-                } @else if (validatingStock()) {
-                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Validando stock...</span>
+                <span>Guardando...</span>
                 } @else {
                 <app-icon name="check-circle" size="sm" />
-                <span>Crear Salida (BORRADOR)</span>
+                <span>Crear y Finalizar Salida</span>
                 }
             </button>
         </div>
 
-        <!-- Advertencia de errores de stock -->
-        @if (tieneErroresStock()) {
-        <div class="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-            <app-icon name="exclamation-triangle" size="md" class="text-red-600 mt-0.5" />
+        <!-- Advertencia si no hay tambores seleccionados -->
+        @if (tamboresSeleccionados.length === 0 && tambores().length > 0) {
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
+            <app-icon name="exclamation-triangle" size="md" class="text-yellow-600 mt-0.5" />
             <div>
-                <p class="font-semibold text-red-900">Errores de stock detectados</p>
-                <p class="text-sm text-red-700 mt-1">
-                    Por favor corrija las cantidades de los detalles marcados en rojo antes de continuar.
+                <p class="font-semibold text-yellow-900">No hay tambores seleccionados</p>
+                <p class="text-sm text-yellow-700 mt-1">
+                    Debe seleccionar al menos un tambor para crear la salida.
                 </p>
             </div>
         </div>
