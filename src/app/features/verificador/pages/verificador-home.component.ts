@@ -23,7 +23,7 @@ import { IconComponent } from '../../../shared/components/ui/icon/icon.component
   standalone: true,
   imports: [CommonModule, RouterModule, IconComponent],
   template: `
-    <div class="min-h-screen bg-gray-50 p-6">
+    <div class="p-6">
       <!-- Header con bienvenida -->
       <div class="mb-8">
         <div class="flex items-center justify-between">
