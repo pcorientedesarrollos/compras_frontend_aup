@@ -166,6 +166,13 @@ export class AuthService {
   }
 
   /**
+   * Verificar si el usuario es verificador
+   */
+  isVerificador(): boolean {
+    return this.hasRole('VERIFICADOR');
+  }
+
+  /**
    * Establecer sesión después del login
    */
   private setSession(authResult: LoginResponse): void {

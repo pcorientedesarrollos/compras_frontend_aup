@@ -23,6 +23,7 @@ Tailwind para estilos (honey-primary, honey-dark)
 Desarrollo incremental: Models → Services → Components → Routes
 UN archivo a la vez con explicación breve
 Nombres: kebab-case.component.ts, clases PascalCase, variables camelCase
+NO USES ALERTS! o aviso del sistema, o usamos toast o modales para confirmar
 
 
 ARQUITECTURA

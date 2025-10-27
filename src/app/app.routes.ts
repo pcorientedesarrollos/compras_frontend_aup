@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, adminGuard, acopiadorGuard, apicultorGuard } from './core/guards';
+import { verificadorGuard } from './core/guards/verificador.guard';
 
 export const routes: Routes = [
     // Ruta por defecto
@@ -204,6 +205,14 @@ export const routes: Routes = [
             // { path: 'apiarios', ... },
             // { path: 'compras', ... },
         ]
+    },
+
+    // ============================================================================
+    // RUTAS DE VERIFICADOR
+    // ============================================================================
+    {
+        path: 'verificador',
+        loadChildren: () => import('./features/verificador/verificador.routes').then(m => m.VERIFICADOR_ROUTES)
     },
 
     // 404 - Ruta no encontrada

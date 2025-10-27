@@ -1,4 +1,4 @@
-export type UserRole = 'ADMINISTRADOR' | 'ACOPIADOR' | 'APICULTOR' | 'MIELERA';
+export type UserRole = 'ADMINISTRADOR' | 'ACOPIADOR' | 'APICULTOR' | 'MIELERA' | 'VERIFICADOR';
 
 export interface User {
     id: string;  // UUID
@@ -7,6 +7,7 @@ export interface User {
     role: UserRole;
     proveedorId?: number | null;
     apicultorId?: string | null;  // UUID
+    verificadorId?: string | null;  // UUID para verificadores
 }
 
 export interface LoginRequest {

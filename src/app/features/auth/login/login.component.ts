@@ -100,6 +100,9 @@ export class LoginComponent {
             case 'MIELERA':
                 this.router.navigate(['/dashboard/mielera']);
                 break;
+            case 'VERIFICADOR':
+                this.router.navigate(['/verificador']);
+                break;
             default:
                 this.router.navigate(['/dashboard']);
         }

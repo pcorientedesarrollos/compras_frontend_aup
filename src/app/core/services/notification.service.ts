@@ -98,4 +98,23 @@ export class NotificationService {
     clear(): void {
         this.notifications.set([]);
     }
+
+    /**
+     * Aliases para compatibilidad
+     */
+    showSuccess(title: string, message?: string, duration = 3000): void {
+        this.success(title, message, duration);
+    }
+
+    showError(title: string, message?: string, duration = 5000): void {
+        this.error(title, message, duration);
+    }
+
+    showInfo(title: string, message?: string, duration = 3000): void {
+        this.info(title, message, duration);
+    }
+
+    showWarning(title: string, message?: string, duration = 4000): void {
+        this.warning(title, message, duration);
+    }
 }

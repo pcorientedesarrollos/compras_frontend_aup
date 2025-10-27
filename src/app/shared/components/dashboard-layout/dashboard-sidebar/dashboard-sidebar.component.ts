@@ -50,6 +50,8 @@ export class DashboardSidebarComponent {
                 return 'bee';
             case 'MIELERA':
                 return 'honey';
+            case 'VERIFICADOR':
+                return 'check-circle';
             default:
                 return 'user-circle';
         }
@@ -104,6 +106,14 @@ export class DashboardSidebarComponent {
             ];
         }
 
+        if (role === 'VERIFICADOR') {
+            return [
+                { icon: 'home', label: 'Dashboard', route: '/verificador' },
+                { icon: 'shopping-bag', label: 'En Tránsito', route: '/verificador/en-transito' },
+                { icon: 'check-circle', label: 'Verificadas', route: '/verificador/verificadas' }
+            ];
+        }
+
         return [];
     });
 
@@ -121,5 +131,12 @@ export class DashboardSidebarComponent {
      */
     isRouteActive(route: string): boolean {
         return this.router.url === route;
+    }
+
+    /**
+     * Cerrar sesión
+     */
+    onLogout(): void {
+        this.authService.logout();
     }
 }
