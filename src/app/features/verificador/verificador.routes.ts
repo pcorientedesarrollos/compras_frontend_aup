@@ -5,6 +5,7 @@
  *
  * Rutas del módulo de Verificación (Llegadas de Chofer)
  * Protegidas con verificadorGuard (VERIFICADOR + ADMIN)
+ * Ahora usa el DashboardLayoutComponent compartido con navbar y sidebar
  *
  * ============================================================================
  */
@@ -17,8 +18,8 @@ export const VERIFICADOR_ROUTES: Routes = [
     path: '',
     canActivate: [verificadorGuard],
     loadComponent: () =>
-      import('./pages/dashboard-verificador.component').then(
-        (m) => m.DashboardVerificadorComponent
+      import('../../shared/components/dashboard-layout/dashboard-layout.component').then(
+        (m) => m.DashboardLayoutComponent
       ),
     children: [
       {
