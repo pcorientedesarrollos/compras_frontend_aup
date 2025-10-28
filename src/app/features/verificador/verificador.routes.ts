@@ -56,6 +56,13 @@ export const VERIFICADOR_ROUTES: Routes = [
           import('./pages/detalle-verificacion.component').then(
             (m) => m.DetalleVerificacionComponent
           )
+      },
+      {
+        path: 'migracion-aup',
+        loadComponent: () =>
+          import('../migracion/pages/migracion-aup.component').then(
+            (m) => m.MigracionAupComponent
+          )
       }
     ]
   }

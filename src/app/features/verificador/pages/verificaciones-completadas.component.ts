@@ -28,7 +28,7 @@ import { VerificacionResponse } from '../../../core/models/verificador.model';
       <!-- Header -->
       <div class="mb-6">
         <h1 class="text-3xl font-bold text-gray-800">Verificaciones Completadas</h1>
-        <p class="text-gray-600 mt-1">Historial de tus verificaciones realizadas</p>
+        <p class="text-gray-600 mt-1">Historial de tus verificaciones realizadas - Migra cada verificación a AUP</p>
       </div>
 
       <!-- Filtros y Búsqueda -->
@@ -238,15 +238,28 @@ import { VerificacionResponse } from '../../../core/models/verificador.model';
                       }
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-center">
-                      <button
-                        (click)="verDetalle(verificacion.verificacionId)"
-                        class="text-honey-primary hover:text-honey-dark font-medium text-sm inline-flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                        Ver Detalle
-                      </button>
+                      <div class="flex items-center justify-center gap-2">
+                        <button
+                          (click)="verDetalle(verificacion.verificacionId)"
+                          class="text-blue-600 hover:text-blue-800 font-medium text-sm inline-flex items-center gap-1"
+                          title="Ver detalle de la verificación">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          Ver
+                        </button>
+                        <span class="text-gray-300">|</span>
+                        <button
+                          (click)="migrarVerificacion(verificacion)"
+                          class="bg-gradient-to-r from-honey-primary to-honey-dark hover:from-honey-dark hover:to-honey-primary text-white font-semibold text-xs px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 shadow-sm hover:shadow transition-all duration-200 group"
+                          title="Migrar esta verificación a AUP">
+                          <svg class="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Migrar
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 }
@@ -429,5 +442,14 @@ export class VerificacionesCompletadasComponent implements OnInit {
    */
   verDetalle(verificacionId: string): void {
     this.router.navigate(['/verificador/detalle', verificacionId]);
+  }
+
+  /**
+   * Migrar una verificación específica a AUP
+   */
+  migrarVerificacion(verificacion: VerificacionResponse): void {
+    this.router.navigate(['/verificador/migracion-aup'], {
+      state: { verificacion }
+    });
   }
 }
