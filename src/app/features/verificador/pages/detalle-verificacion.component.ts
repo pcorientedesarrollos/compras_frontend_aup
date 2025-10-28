@@ -17,7 +17,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { VerificacionService } from '../../../core/services/verificacion.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { DetalleVerificacionResponse } from '../../../core/models/verificador.model';
+import { DetalleVerificacionResponse, TamborVerificadoDetalle } from '../../../core/models/verificador.model';
+import { ClasificacionMiel } from '../../../core/models/entrada-miel.model';
 
 @Component({
   selector: 'app-detalle-verificacion',
@@ -190,7 +191,7 @@ import { DetalleVerificacionResponse } from '../../../core/models/verificador.mo
                         <div class="flex justify-between">
                           <span class="text-gray-600">Kilos:</span>
                           <span class="font-semibold">
-                            {{ tambor.tamborVerificado!.kilosVerificados | number: '1.2-2' }} kg
+                            {{ getKilosVerificados(tambor) | number: '1.2-2' }} kg
                             @if (tambor.diferencias!.kilos !== 0) {
                               <span class="text-xs ml-1" [class.text-red-600]="tambor.diferencias!.kilos < 0" [class.text-green-600]="tambor.diferencias!.kilos > 0">
                                 ({{ tambor.diferencias!.kilos > 0 ? '+' : '' }}{{ tambor.diferencias!.kilos | number: '1.2-2' }})
@@ -201,7 +202,7 @@ import { DetalleVerificacionResponse } from '../../../core/models/verificador.mo
                         <div class="flex justify-between">
                           <span class="text-gray-600">Humedad:</span>
                           <span class="font-semibold">
-                            {{ tambor.tamborVerificado!.humedadVerificada | number: '1.1-1' }}%
+                            {{ getHumedadVerificada(tambor) | number: '1.1-1' }}%
                             @if (tambor.diferencias!.humedad !== 0) {
                               <span class="text-xs ml-1" [class.text-red-600]="tambor.diferencias!.humedad < 0" [class.text-green-600]="tambor.diferencias!.humedad > 0">
                                 ({{ tambor.diferencias!.humedad > 0 ? '+' : '' }}{{ tambor.diferencias!.humedad | number: '1.1-1' }})
@@ -212,7 +213,7 @@ import { DetalleVerificacionResponse } from '../../../core/models/verificador.mo
                         <div class="flex justify-between">
                           <span class="text-gray-600">Floración:</span>
                           <span class="font-semibold">
-                            {{ tambor.tamborVerificado!.floracionVerificada || 'N/A' }}
+                            {{ getFloracionVerificada(tambor) || 'N/A' }}
                             @if (tambor.diferencias!.cambioFloracion) {
                               <span class="text-xs ml-1 text-yellow-600">(Cambió)</span>
                             }
@@ -221,7 +222,7 @@ import { DetalleVerificacionResponse } from '../../../core/models/verificador.mo
                         <div class="flex justify-between">
                           <span class="text-gray-600">Color:</span>
                           <span class="font-semibold">
-                            {{ tambor.tamborVerificado!.colorVerificado || 'N/A' }}
+                            {{ getColorVerificado(tambor) || 'N/A' }}
                             @if (tambor.diferencias!.cambioColor) {
                               <span class="text-xs ml-1 text-yellow-600">(Cambió)</span>
                             }
@@ -230,11 +231,11 @@ import { DetalleVerificacionResponse } from '../../../core/models/verificador.mo
                         <div class="flex justify-between">
                           <span class="text-gray-600">Clasificación:</span>
                           <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                                [class.bg-green-100]="tambor.tamborVerificado!.clasificacionVerificada === 'EXPORTACION'"
-                                [class.text-green-800]="tambor.tamborVerificado!.clasificacionVerificada === 'EXPORTACION'"
-                                [class.bg-orange-100]="tambor.tamborVerificado!.clasificacionVerificada === 'NACIONAL'"
-                                [class.text-orange-800]="tambor.tamborVerificado!.clasificacionVerificada === 'NACIONAL'">
-                            {{ tambor.tamborVerificado!.clasificacionVerificada }}
+                                [class.bg-green-100]="getClasificacionVerificada(tambor) === 'EXPORTACION'"
+                                [class.text-green-800]="getClasificacionVerificada(tambor) === 'EXPORTACION'"
+                                [class.bg-orange-100]="getClasificacionVerificada(tambor) === 'NACIONAL'"
+                                [class.text-orange-800]="getClasificacionVerificada(tambor) === 'NACIONAL'">
+                            {{ getClasificacionVerificada(tambor) }}
                             @if (tambor.diferencias!.cambioClasificacion) {
                               <span class="ml-1">(Cambió)</span>
                             }
@@ -323,5 +324,60 @@ export class DetalleVerificacionComponent implements OnInit {
    */
   volver(): void {
     this.router.navigate(['/verificador/verificadas']);
+  }
+
+  /**
+   * Obtener kilos verificados (calculados si tamborVerificado es null)
+   */
+  getKilosVerificados(tambor: TamborVerificadoDetalle): number {
+    if (tambor.tamborVerificado) {
+      return tambor.tamborVerificado.kilosVerificados;
+    }
+    // Calcular: declarados + diferencia
+    return tambor.tamborOriginal.kilosDeclarados + (tambor.diferencias?.kilos || 0);
+  }
+
+  /**
+   * Obtener humedad verificada (calculada si tamborVerificado es null)
+   */
+  getHumedadVerificada(tambor: TamborVerificadoDetalle): number {
+    if (tambor.tamborVerificado) {
+      return tambor.tamborVerificado.humedadVerificada;
+    }
+    // Calcular: declarada + diferencia
+    return tambor.tamborOriginal.humedadDeclarada + (tambor.diferencias?.humedad || 0);
+  }
+
+  /**
+   * Obtener floración verificada
+   */
+  getFloracionVerificada(tambor: TamborVerificadoDetalle): string | null {
+    if (tambor.tamborVerificado) {
+      return tambor.tamborVerificado.floracionVerificada;
+    }
+    // Si no cambió, es la misma
+    return tambor.tamborOriginal.floracionDeclarada;
+  }
+
+  /**
+   * Obtener color verificado
+   */
+  getColorVerificado(tambor: TamborVerificadoDetalle): string | null {
+    if (tambor.tamborVerificado) {
+      return tambor.tamborVerificado.colorVerificado;
+    }
+    // Si no cambió, es el mismo
+    return tambor.tamborOriginal.colorDeclarado;
+  }
+
+  /**
+   * Obtener clasificación verificada
+   */
+  getClasificacionVerificada(tambor: TamborVerificadoDetalle): ClasificacionMiel {
+    if (tambor.tamborVerificado) {
+      return tambor.tamborVerificado.clasificacionVerificada;
+    }
+    // Si no cambió, es la misma
+    return tambor.tamborOriginal.clasificacionDeclarada;
   }
 }
