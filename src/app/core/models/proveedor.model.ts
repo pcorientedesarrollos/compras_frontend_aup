@@ -45,6 +45,8 @@ export interface ProveedorAPI {
     longitud: number | null;            // Coordenada GPS
     cantidadApicultores: number;        // Contador calculado por backend
     deleteProve: number;
+    estaActivo?: boolean;               // Helper calculado
+    inventarioMiel?: InventarioMiel[];  // ✅ NUEVO: Inventario por tipo de miel
 }
 
 /**
@@ -56,6 +58,19 @@ export interface TipoDeMiel {
     idTipoDeMiel: number;
     tipoDeMiel: string;
     orden: number | null;
+}
+
+/**
+ * ============================================================================
+ * INVENTARIO DE MIEL POR TIPO
+ * ============================================================================
+ */
+export interface InventarioMiel {
+    tipoMielId: number;
+    tipoMielNombre: string;
+    totalEntradas: number;      // kg
+    totalSalidas: number;        // kg
+    disponible: number;          // kg
 }
 
 /**

@@ -37,11 +37,23 @@
 
     <!-- Tabla -->
     <div class="table-section">
+        <!-- ✅ Loader solo en área de tabla -->
+        @if (isLoading()) {
+        <div class="relative min-h-[400px] bg-white rounded-lg border border-gray-200">
+            <app-bee-loader
+                [message]="'Cargando proveedores...'"
+                [animation]="'load-hive'"
+                [fullscreen]="false">
+            </app-bee-loader>
+        </div>
+        } @else {
         <app-honey-table [columns]="columns()" [data]="paginatedProveedores()" [config]="tableConfig()"
             [rowActions]="rowActions()" (actionClick)="onActionClick($event)" (sort)="onSort($event)">
         </app-honey-table>
+        }
 
         <!-- Paginación -->
+        @if (!isLoading()) {
         <div class="pagination-container">
             <div class="pagination-info">
                 Mostrando {{ (currentPage() - 1) * pageSize() + 1 }} a
@@ -86,6 +98,7 @@
                 </select>
             </div>
         </div>
+        }
     </div>
 
     <!-- Modal de detalle -->

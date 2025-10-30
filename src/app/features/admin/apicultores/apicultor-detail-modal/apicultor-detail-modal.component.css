@@ -297,6 +297,65 @@
 /* ============================================================================
    RESPONSIVE
    ============================================================================ */
+/* ============================================================================
+   MIEL POR TIPO TAB
+   ============================================================================ */
+
+.miel-header {
+    @apply mb-4;
+}
+
+.miel-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+.miel-card {
+    @apply bg-gradient-to-br from-white to-amber-50 border border-amber-200 rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg;
+}
+
+.card-header {
+    @apply bg-gradient-to-r from-honey-primary/10 to-amber-100 px-4 py-3 border-b border-amber-200;
+}
+
+.card-title {
+    @apply text-base font-bold text-gray-900;
+}
+
+.card-body {
+    @apply p-4 space-y-3;
+}
+
+.miel-item {
+    @apply flex justify-between items-center py-2 border-b border-gray-200;
+}
+
+.item-label {
+    @apply text-sm text-gray-600 font-medium;
+}
+
+.item-value {
+    @apply text-base font-bold font-mono;
+}
+
+.miel-item-destacado {
+    @apply flex justify-between items-center py-3 bg-honey-primary/10 rounded-lg px-4 mt-2 border-2 border-honey-primary/30;
+}
+
+.item-label-destacado {
+    @apply text-sm text-honey-dark font-bold uppercase tracking-wide;
+}
+
+.item-value-destacado {
+    @apply text-xl font-black font-mono text-honey-dark;
+}
+
+.empty-state {
+    @apply flex flex-col items-center justify-center py-12 text-center;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
 @media (max-width: 768px) {
     .modal-container {
         max-width: 95%;

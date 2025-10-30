@@ -22,6 +22,7 @@ import { Router } from '@angular/router';
 import { HoneyTableComponent } from '../../../shared/components/data/honey-table/honey-table.component';
 import { TableFiltersComponent } from '../../../shared/components/data/table-filters/table-filters.component';
 import { IconComponent } from '../../../shared/components/ui/icon/icon.component';
+import { BeeLoaderComponent } from '../../../shared/components/bee-loader/bee-loader.component';
 
 // Tipos y modelos
 import { TableColumn, TableConfig } from '../../../shared/components/data/honey-table/types/table.types';
@@ -45,6 +46,7 @@ import { ProveedorDetailModalComponent } from './proveedor-detail-modal.componen
         HoneyTableComponent,
         TableFiltersComponent,
         IconComponent,
+        BeeLoaderComponent,
         ProveedorDetailModalComponent
     ],
     templateUrl: './proveedores-list.component.html',
@@ -89,7 +91,7 @@ export class ProveedoresListComponent implements OnInit {
     /** Modal de detalle */
     isModalOpen = signal<boolean>(false);
     selectedProveedor = signal<ProveedorAPI | null>(null);
-    selectedTab = signal<'general' | 'apicultores' | 'mapa'>('general');
+    selectedTab = signal<'general' | 'apicultores' | 'inventario' | 'mapa'>('general');
 
     // ============================================================================
     // COMPUTED

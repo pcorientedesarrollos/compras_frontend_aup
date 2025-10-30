@@ -420,12 +420,10 @@ export class ApiariosListComponent implements OnInit {
      * Ver detalle del apiario
      */
     private viewApiarioDetail(apiario: ApiarioAPI): void {
-        console.log('Ver detalle:', apiario);
         alert(`Detalle de ${apiario.nombre}\n\nApicultor: ${apiario.apicultor.nombre}\nColmenas: ${apiario.colmenas}\nUbicación: ${apiario.latitud.toFixed(6)}, ${apiario.longitud.toFixed(6)}`);
     }
 
     private editApiario(apiario: ApiarioAPI): void {
-        console.log('Editar:', apiario);
         this.router.navigate([apiario.id, 'edit'], { relativeTo: this.route });
     }
     /**

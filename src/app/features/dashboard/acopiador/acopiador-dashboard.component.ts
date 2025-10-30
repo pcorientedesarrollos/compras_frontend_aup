@@ -73,8 +73,8 @@ export class AcopiadorDashboardComponent {
             color: 'bg-blue-500 hover:bg-blue-600'
         },
         {
-            title: 'Mis Apicultores',
-            description: 'Ver apicultores vinculados',
+            title: 'Apicultores',
+            description: 'Gestionar mis apicultores vinculados',
             icon: '🐝',
             route: '/acopiador/apicultores',
             color: 'bg-green-500 hover:bg-green-600'

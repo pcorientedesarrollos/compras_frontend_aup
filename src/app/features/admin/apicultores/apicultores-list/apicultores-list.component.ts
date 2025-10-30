@@ -21,6 +21,7 @@ import { Router } from '@angular/router';
 import { HoneyTableComponent } from '../../../../shared/components/data/honey-table/honey-table.component';
 import { TableFiltersComponent } from '../../../../shared/components/data/table-filters/table-filters.component';
 import { IconComponent } from '../../../../shared/components/ui/icon/icon.component';
+import { BeeLoaderComponent } from '../../../../shared/components/bee-loader/bee-loader.component';
 import { ApicultorDetailModalComponent } from '../apicultor-detail-modal/apicultor-detail-modal.component';
 
 // Tipos y modelos
@@ -34,6 +35,9 @@ import {
 
 // Servicios
 import { ApicultorService } from '../../../../core/services/apicultor.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { EstadoService } from '../../../../core/services/estado.service';
+import { MunicipioService } from '../../../../core/services/municipio.service';
 
 @Component({
     selector: 'app-apicultores-list',
@@ -43,6 +47,7 @@ import { ApicultorService } from '../../../../core/services/apicultor.service';
         HoneyTableComponent,
         TableFiltersComponent,
         IconComponent,
+        BeeLoaderComponent,
         ApicultorDetailModalComponent
     ],
     templateUrl: './apicultores-list.component.html',
@@ -50,6 +55,9 @@ import { ApicultorService } from '../../../../core/services/apicultor.service';
 })
 export class ApicultoresListComponent implements OnInit {
     private apicultorService = inject(ApicultorService);
+    private authService = inject(AuthService);
+    private estadoService = inject(EstadoService);
+    private municipioService = inject(MunicipioService);
     private router = inject(Router);
     private destroyRef = inject(DestroyRef);
 
@@ -61,6 +69,10 @@ export class ApicultoresListComponent implements OnInit {
     // ============================================================================
     // STATE - SIGNALS
     // ============================================================================
+
+    /** ✅ Catálogos */
+    private estadosMap = signal<Map<string, string>>(new Map());
+    private municipiosMap = signal<Map<string, string>>(new Map());
 
     /** ✅ TODOS los apicultores (sin filtrar) */
     allApicultores = signal<ApicultorAPI[]>([]);
@@ -84,7 +96,7 @@ export class ApicultoresListComponent implements OnInit {
     /** Modal de detalle */
     isModalOpen = signal<boolean>(false);
     selectedApicultor = signal<ApicultorAPI | null>(null);
-    selectedTab = signal<'general' | 'proveedores' | 'apiarios'>('general');
+    selectedTab = signal<'general' | 'proveedores' | 'apiarios' | 'mielPorTipo'>('general');
 
     // ============================================================================
     // COMPUTED
@@ -132,9 +144,12 @@ export class ApicultoresListComponent implements OnInit {
             key: 'estadoCodigo',
             label: 'Estado',
             type: 'text',
-            width: '100px',
+            width: '150px',
             align: 'center',
-            formatter: (value: string | null) => value || 'N/A'
+            formatter: (value: string | null) => {
+                if (!value) return 'N/A';
+                return this.estadosMap().get(value) || value;
+            }
         },
         {
             key: 'idRasmiel',
@@ -174,6 +189,23 @@ export class ApicultoresListComponent implements OnInit {
             type: 'number',
             sortable: true,
             width: '100px',
+            align: 'center'
+        },
+        {
+            key: 'totalKilosEntregados',
+            label: 'Kilos Entregados',
+            type: 'number',
+            sortable: true,
+            width: '150px',
+            align: 'right',
+            formatter: (value: number) => value?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'
+        },
+        {
+            key: 'totalEntregas',
+            label: 'Total Entregas',
+            type: 'number',
+            sortable: true,
+            width: '120px',
             align: 'center'
         },
         {
@@ -293,7 +325,20 @@ export class ApicultoresListComponent implements OnInit {
     // ============================================================================
 
     ngOnInit(): void {
+        this.loadCatalogos();
         this.loadApicultores();
+    }
+
+    // ============================================================================
+    // HELPERS
+    // ============================================================================
+
+    /**
+     * ✅ Obtener la ruta base según el rol del usuario
+     */
+    private getBaseRoute(): string {
+        const currentUser = this.authService.getCurrentUser();
+        return currentUser?.role === 'ACOPIADOR' ? '/acopiador' : '/admin';
     }
 
     // ============================================================================
@@ -301,25 +346,89 @@ export class ApicultoresListComponent implements OnInit {
     // ============================================================================
 
     /**
-     * ✅ Cargar TODOS los apicultores (sin paginación backend)
+     * ✅ Cargar catálogos de estados y municipios
+     */
+    private loadCatalogos(): void {
+        // Cargar estados
+        this.estadoService.getAllEstados()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (estados) => {
+                    const map = new Map<string, string>();
+                    estados.forEach(estado => {
+                        map.set(estado.codigo_inegi, estado.estado);
+                    });
+                    this.estadosMap.set(map);
+                },
+                error: (error) => console.error('Error al cargar estados:', error)
+            });
+
+        // Cargar todos los municipios
+        this.municipioService.getAllMunicipios()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (municipios) => {
+                    const map = new Map<string, string>();
+                    municipios.forEach(municipio => {
+                        // Clave: "estadoCodigo-municipioCodigo"
+                        const key = `${municipio.estado_codigo}-${municipio.clave_municipio}`;
+                        map.set(key, municipio.nombreMunicipio);
+                    });
+                    this.municipiosMap.set(map);
+                },
+                error: (error) => console.error('Error al cargar municipios:', error)
+            });
+    }
+
+    /**
+     * ✅ Cargar apicultores según el rol del usuario
+     * - ADMINISTRADOR: Carga todos los apicultores
+     * - ACOPIADOR: Carga solo apicultores vinculados a su proveedor
      */
     private loadApicultores(): void {
         this.isLoading.set(true);
 
-        this.apicultorService
-            .getAllApicultores()
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: (apicultores) => {
-                    this.allApicultores.set(apicultores);
-                    this.applyFiltersAndPagination();
-                    this.isLoading.set(false);
-                },
-                error: (error) => {
-                    console.error('Error al cargar apicultores:', error);
-                    this.isLoading.set(false);
-                }
-            });
+        const currentUser = this.authService.getCurrentUser();
+
+        // Si es ACOPIADOR, filtrar por proveedorId
+        if (currentUser?.role === 'ACOPIADOR' && currentUser?.proveedorId) {
+            // TODO: Cuando tengas el endpoint de proveedores/{id}/apicultores, úsalo aquí
+            // Por ahora, cargamos todos y filtramos en frontend
+            this.apicultorService
+                .getAllApicultores()
+                .pipe(takeUntilDestroyed(this.destroyRef))
+                .subscribe({
+                    next: (apicultores) => {
+                        // Filtrar solo los apicultores vinculados a este proveedor
+                        const filtered = apicultores.filter(ap =>
+                            ap.cantidadProveedores > 0 // Tiene al menos un proveedor vinculado
+                        );
+                        this.allApicultores.set(filtered);
+                        this.applyFiltersAndPagination();
+                        this.isLoading.set(false);
+                    },
+                    error: (error) => {
+                        console.error('Error al cargar apicultores:', error);
+                        this.isLoading.set(false);
+                    }
+                });
+        } else {
+            // ADMINISTRADOR: Carga todos
+            this.apicultorService
+                .getAllApicultores()
+                .pipe(takeUntilDestroyed(this.destroyRef))
+                .subscribe({
+                    next: (apicultores) => {
+                        this.allApicultores.set(apicultores);
+                        this.applyFiltersAndPagination();
+                        this.isLoading.set(false);
+                    },
+                    error: (error) => {
+                        console.error('Error al cargar apicultores:', error);
+                        this.isLoading.set(false);
+                    }
+                });
+        }
     }
 
     // ============================================================================
@@ -492,8 +601,8 @@ export class ApicultoresListComponent implements OnInit {
      * Editar apicultor
      */
     private editApicultor(apicultor: ApicultorAPI): void {
-        console.log('Editar:', apicultor);
-        this.router.navigate(['/admin/apicultores', apicultor.id, 'edit']);
+        const baseRoute = this.getBaseRoute();
+        this.router.navigate([`${baseRoute}/apicultores`, apicultor.id, 'edit']);
     }
 
     /**
@@ -567,6 +676,7 @@ export class ApicultoresListComponent implements OnInit {
      * Navegar a crear nuevo apicultor
      */
     createApicultor(): void {
-        this.router.navigate(['/admin/apicultores/nuevo']);
+        const baseRoute = this.getBaseRoute();
+        this.router.navigate([`${baseRoute}/apicultores/nuevo`]);
     }
 }

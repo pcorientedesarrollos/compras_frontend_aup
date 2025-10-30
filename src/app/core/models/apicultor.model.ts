@@ -36,6 +36,18 @@ export type ApicultorEstado = 'ACTIVO' | 'INACTIVO';
 
 /**
  * ============================================================================
+ * MIEL POR TIPO - ENTREGAS DEL APICULTOR
+ * ============================================================================
+ */
+export interface MielPorTipo {
+    tipoMielId: number;                  // ID del tipo de miel
+    tipoMielNombre: string;              // Nombre del tipo de miel
+    totalKilos: number;                  // Total de kilos entregados de este tipo
+    cantidadEntregas: number;            // Número de entregas de este tipo
+}
+
+/**
+ * ============================================================================
  * APICULTOR - ESTRUCTURA COMPLETA DE LA API v2.0
  * ============================================================================
  */
@@ -60,6 +72,9 @@ export interface ApicultorAPI {
     cantidadApiarios: number;            // Contador de apiarios
     cantidadProveedores: number;         // Contador de proveedores
     totalColmenas: number;               // NUEVO - Suma total de colmenas de todos los apiarios
+    totalKilosEntregados: number;        // ✅ NUEVO - Total de kilos entregados a proveedores
+    totalEntregas: number;               // ✅ NUEVO - Número total de entregas realizadas
+    mielPorTipo: MielPorTipo[];          // ✅ NUEVO - Detalle de entregas por tipo de miel
 }
 
 /**

@@ -1,8 +1,9 @@
 import { Component, inject, signal, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter } from 'rxjs/operators';
 import { AuthService } from '../../../core/services/auth.service';
 import { BeeLoaderComponent } from '../../../shared/components/bee-loader/bee-loader.component';
 
@@ -60,11 +61,23 @@ export class LoginComponent {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (response) => {
-                    this.isLoading.set(false);
+                    // NO ocultar el loader todavía - esperar a NavigationEnd
 
                     // Obtener URL de retorno o redirigir según rol
                     const returnUrl = this.route.snapshot.queryParams['returnUrl'];
 
+                    // Suscribirse a NavigationEnd para ocultar loader cuando la navegación termine
+                    this.router.events
+                        .pipe(
+                            filter(event => event instanceof NavigationEnd),
+                            takeUntilDestroyed(this.destroyRef)
+                        )
+                        .subscribe(() => {
+                            // Ocultar loader solo cuando la navegación esté completamente terminada
+                            this.isLoading.set(false);
+                        });
+
+                    // Iniciar navegación
                     if (returnUrl) {
                         this.router.navigate([returnUrl]);
                     } else {

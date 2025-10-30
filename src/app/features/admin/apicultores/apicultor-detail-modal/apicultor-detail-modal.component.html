@@ -175,6 +175,55 @@
                 </app-honey-table>
             </div>
             }
+
+            <!-- TAB 4: MIEL POR TIPO -->
+            @if (activeTab() === 'mielPorTipo') {
+            <div class="tab-content">
+                <div class="miel-header">
+                    <p class="text-sm text-gray-600 mb-4">
+                        Entregas de miel por tipo de miel
+                        <span class="separator">•</span>
+                        <span class="font-bold text-honey-dark">{{ apicultor().totalKilosEntregados.toLocaleString('es-MX', { minimumFractionDigits: 2 }) }} kg</span> entregados
+                        <span class="separator">•</span>
+                        <span class="font-bold text-blue-600">{{ apicultor().totalEntregas }}</span> entregas
+                    </p>
+                </div>
+
+                @if (apicultor().mielPorTipo && apicultor().mielPorTipo.length > 0) {
+                <div class="miel-grid">
+                    @for (item of apicultor().mielPorTipo; track item.tipoMielId) {
+                    <div class="miel-card">
+                        <div class="card-header">
+                            <div class="flex items-center space-x-2">
+                                <app-icon name="shopping-bag" size="lg" color="text-honey-primary" />
+                                <h4 class="card-title">{{ item.tipoMielNombre }}</h4>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="miel-item">
+                                <span class="item-label">Total Kilos:</span>
+                                <span class="item-value text-honey-dark">
+                                    {{ item.totalKilos.toLocaleString('es-MX', { minimumFractionDigits: 2 }) }} kg
+                                </span>
+                            </div>
+                            <div class="miel-item-destacado">
+                                <span class="item-label-destacado">Entregas:</span>
+                                <span class="item-value-destacado">
+                                    {{ item.cantidadEntregas }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    }
+                </div>
+                } @else {
+                <div class="empty-state">
+                    <app-icon name="shopping-bag" size="xl" color="text-gray-400" />
+                    <p class="text-gray-500">No hay entregas registradas</p>
+                </div>
+                }
+            </div>
+            }
         </div>
 
         <!-- Footer -->

@@ -127,12 +127,28 @@ export const routes: Routes = [
             .then(m => m.DashboardLayoutComponent),
         canActivate: [authGuard, acopiadorGuard],
         children: [
-            // Mis Apicultores
+            // ✅ Apicultores (mismo componente que admin)
             {
-                path: 'mis-apicultores',
-                loadComponent: () => import('./features/acopiador/mis-apicultores/mis-apicultores.component')
-                    .then(m => m.MisApicultoresComponent)
+                path: 'apicultores',
+                loadComponent: () => import('./features/admin/apicultores/apicultores-list/apicultores-list.component')
+                    .then(m => m.ApicultoresListComponent)
             },
+
+            // ✅ Apicultores - Crear
+            {
+                path: 'apicultores/nuevo',
+                loadComponent: () => import('./features/admin/apicultores/apicultor-detail/apicultor-detail.component')
+                    .then(m => m.ApicultorDetailComponent)
+            },
+
+            // ✅ Apicultores - Editar
+            {
+                path: 'apicultores/:id/edit',
+                loadComponent: () => import('./features/admin/apicultores/apicultor-detail/apicultor-detail.component')
+                    .then(m => m.ApicultorDetailComponent)
+            },
+
+            // Apiarios
             {
                 path: 'apiarios',
                 loadComponent: () => import('./features/admin/apiarios/apiarios-list/apiarios-list.component')
@@ -196,7 +212,7 @@ export const routes: Routes = [
             // Redirección por defecto
             {
                 path: '',
-                redirectTo: 'mis-apicultores',
+                redirectTo: 'apicultores',
                 pathMatch: 'full'
             }
 

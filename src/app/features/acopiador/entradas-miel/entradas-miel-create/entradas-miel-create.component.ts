@@ -440,8 +440,6 @@ export class EntradasMielCreateComponent implements OnInit {
             })
         };
 
-        console.log('📤 REQUEST A ENVIAR:', JSON.stringify(request, null, 2));
-
         // Enviar al backend
         this.entradaMielService.createEntrada(request)
             .pipe(takeUntilDestroyed(this.destroyRef))

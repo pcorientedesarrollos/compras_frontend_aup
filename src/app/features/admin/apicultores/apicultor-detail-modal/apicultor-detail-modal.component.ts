@@ -36,7 +36,7 @@ import {
 import { ApicultorService } from '../../../../core/services/apicultor.service';
 import { IconName } from '../../../../shared/components/ui/icon';
 
-type TabId = 'general' | 'proveedores' | 'apiarios';
+type TabId = 'general' | 'proveedores' | 'apiarios' | 'mielPorTipo';
 
 interface Tab {
     id: TabId;
@@ -100,7 +100,7 @@ export class ApicultorDetailModalComponent {
      */
     tabs = computed<Tab[]>(() => {
         const apic = this.apicultor();
-        return [
+        const list: Tab[] = [
             {
                 id: 'general' as TabId,
                 label: 'Información General',
@@ -118,8 +118,15 @@ export class ApicultorDetailModalComponent {
                 label: `Apiarios (${apic.cantidadApiarios})`,
                 icon: 'map-pin' as IconName,
                 visible: true
+            },
+            {
+                id: 'mielPorTipo' as TabId,
+                label: 'Miel por Tipo',
+                icon: 'shopping-bag' as IconName,
+                visible: !!(apic.mielPorTipo && apic.mielPorTipo.length > 0)
             }
         ];
+        return list.filter(tab => tab.visible);
     });
 
     /**

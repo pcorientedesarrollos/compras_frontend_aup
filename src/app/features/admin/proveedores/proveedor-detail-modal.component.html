@@ -173,7 +173,58 @@
             </div>
             }
 
-            <!-- TAB 3: MAPA GPS -->
+            <!-- TAB 3: INVENTARIO DE MIEL -->
+            @if (activeTab() === 'inventario') {
+            <div class="tab-content">
+                <div class="inventario-header">
+                    <p class="text-sm text-gray-600 mb-4">
+                        Inventario disponible de miel por tipo
+                    </p>
+                </div>
+
+                @if (proveedor().inventarioMiel && proveedor().inventarioMiel!.length > 0) {
+                <div class="inventario-grid">
+                    @for (item of proveedor().inventarioMiel; track item.tipoMielId) {
+                    <div class="inventario-card">
+                        <div class="card-header">
+                            <div class="flex items-center space-x-2">
+                                <app-icon name="shopping-bag" size="lg" color="text-honey-primary" />
+                                <h4 class="card-title">{{ item.tipoMielNombre }}</h4>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="inventario-item">
+                                <span class="item-label">Total Entradas:</span>
+                                <span class="item-value text-green-600">
+                                    +{{ item.totalEntradas.toLocaleString('es-MX', { minimumFractionDigits: 2 }) }} kg
+                                </span>
+                            </div>
+                            <div class="inventario-item">
+                                <span class="item-label">Total Salidas:</span>
+                                <span class="item-value text-red-600">
+                                    -{{ item.totalSalidas.toLocaleString('es-MX', { minimumFractionDigits: 2 }) }} kg
+                                </span>
+                            </div>
+                            <div class="inventario-item-destacado">
+                                <span class="item-label-destacado">Disponible:</span>
+                                <span class="item-value-destacado">
+                                    {{ item.disponible.toLocaleString('es-MX', { minimumFractionDigits: 2 }) }} kg
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    }
+                </div>
+                } @else {
+                <div class="empty-state">
+                    <app-icon name="shopping-bag" size="xl" color="text-gray-400" />
+                    <p class="text-gray-500">No hay inventario disponible</p>
+                </div>
+                }
+            </div>
+            }
+
+            <!-- TAB 4: MAPA GPS -->
             @if (activeTab() === 'mapa') {
             <div class="tab-content">
                 <div class="map-section">

@@ -413,7 +413,6 @@ export class ApicultorDetailComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (apicultor) => {
-                    console.log('Apicultor creado con código:', apicultor.codigo);
                     this.router.navigate(['/admin/apicultores']);
                     this.isSaving.set(false);
                 },
@@ -453,7 +452,6 @@ export class ApicultorDetailComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (apicultor) => {
-                    console.log('Apicultor actualizado:', apicultor.nombreCompleto);
                     this.router.navigate(['/admin/apicultores']);
                     this.isSaving.set(false);
                 },

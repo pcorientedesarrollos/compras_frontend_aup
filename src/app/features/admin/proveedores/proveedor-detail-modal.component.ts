@@ -37,7 +37,7 @@ import {
 import { ProveedorService } from '../../../core/services/proveedor.service';
 import { IconName } from '../../../shared/components/ui/icon';
 
-type TabId = 'general' | 'apicultores' | 'mapa';
+type TabId = 'general' | 'apicultores' | 'inventario' | 'mapa';
 
 interface Tab {
     id: TabId;
@@ -103,7 +103,7 @@ export class ProveedorDetailModalComponent {
     // ============================================================================
 
     /**
-     * Tabs disponibles (Mapa solo si tiene GPS)
+     * Tabs disponibles (Inventario si existe, Mapa solo si tiene GPS)
      */
     tabs = computed<Tab[]>(() => {
         const prov = this.proveedor();
@@ -119,6 +119,12 @@ export class ProveedorDetailModalComponent {
                 label: `Apicultores (${prov.cantidadApicultores})`,
                 icon: 'users' as IconName,
                 visible: true
+            },
+            {
+                id: 'inventario' as TabId,
+                label: 'Inventario de Miel',
+                icon: 'shopping-bag' as IconName,
+                visible: !!(prov.inventarioMiel && prov.inventarioMiel.length > 0)
             },
             {
                 id: 'mapa' as TabId,

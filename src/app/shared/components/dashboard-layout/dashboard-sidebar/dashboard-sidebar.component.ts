@@ -77,8 +77,7 @@ export class DashboardSidebarComponent {
         if (role === 'ACOPIADOR') {
             return [
                 { icon: 'chart-bar', label: 'Dashboard', route: '/dashboard/acopiador' },
-                { icon: 'bee', label: 'Mis Apicultores', route: '/acopiador/mis-apicultores' },
-                // { icon: 'link', label: 'Vincular Apicultor', route: '/acopiador/vincular' },
+                { icon: 'bee', label: 'Apicultores', route: '/acopiador/apicultores' },
                 { icon: 'map-pin', label: 'Ver Apiarios', route: '/acopiador/apiarios' },
                 { icon: 'shopping-bag', label: 'Entradas de Miel', route: '/acopiador/entradas-miel' },
                 { icon: 'folder', label: 'Salidas de Miel', route: '/acopiador/salidas-miel' },

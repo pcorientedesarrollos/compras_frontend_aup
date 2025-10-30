@@ -14,6 +14,7 @@ export class BeeLoaderComponent implements OnInit {
     @Input() animation: AnimationType = 'load-hive';
     @Input() message: string = 'Cargando...';
     @Input() showMessage: boolean = true;
+    @Input() fullscreen: boolean = true; // ✅ Controla si ocupa toda la pantalla o solo el contenedor
 
     // ✅ Declarar options como propiedad
     options!: AnimationOptions;
