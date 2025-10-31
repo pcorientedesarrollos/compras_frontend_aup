@@ -134,15 +134,8 @@ export class ApicultoresListComponent implements OnInit {
             width: '180px'
         },
         {
-            key: 'rfc',
-            label: 'RFC',
-            type: 'text',
-            width: '140px',
-            formatter: (value: string | null) => value || 'Sin RFC'
-        },
-        {
             key: 'estadoCodigo',
-            label: 'Estado',
+            label: 'Entidad',
             type: 'text',
             width: '150px',
             align: 'center',
@@ -150,38 +143,6 @@ export class ApicultoresListComponent implements OnInit {
                 if (!value) return 'N/A';
                 return this.estadosMap().get(value) || value;
             }
-        },
-        {
-            key: 'idRasmiel',
-            label: 'ID-RASMIEL',
-            type: 'badge',
-            width: '120px',
-            align: 'center',
-            badgeConfig: {
-                'SI': { label: '✓ Sí', variant: 'success' },
-                'NO': { label: '✗ No', variant: 'danger' }
-            },
-            formatter: (value: string | null) => value ? 'SI' : 'NO'
-        },
-        {
-            key: 'uppSiniiga',
-            label: 'UPPSINIIGA',
-            type: 'badge',
-            width: '120px',
-            align: 'center',
-            badgeConfig: {
-                'SI': { label: '✓ Sí', variant: 'success' },
-                'NO': { label: '✗ No', variant: 'danger' }
-            },
-            formatter: (value: string | null) => value ? 'SI' : 'NO'
-        },
-        {
-            key: 'cantidadApiarios',
-            label: 'Apiarios',
-            type: 'number',
-            sortable: true,
-            width: '100px',
-            align: 'center'
         },
         {
             key: 'totalColmenas',
@@ -192,25 +153,16 @@ export class ApicultoresListComponent implements OnInit {
             align: 'center'
         },
         {
-            key: 'totalKilosEntregados',
-            label: 'Kilos Entregados',
-            type: 'number',
-            sortable: true,
-            width: '150px',
-            align: 'right',
-            formatter: (value: number) => value?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'
-        },
-        {
             key: 'totalEntregas',
-            label: 'Total Entregas',
+            label: 'Entradas de Miel',
             type: 'number',
             sortable: true,
-            width: '120px',
+            width: '140px',
             align: 'center'
         },
         {
             key: 'estatus',
-            label: 'Estado',
+            label: 'Estatus',
             type: 'badge',
             sortable: true,
             width: '100px',
@@ -274,35 +226,35 @@ export class ApicultoresListComponent implements OnInit {
     }));
 
     /**
-     * ✅ Configuración de filtros
+     * ✅ Configuración de filtros v2.0
      */
     filterConfig = computed<FilterConfig[]>(() => [
         {
             key: 'nombre',
             label: 'Búsqueda',
             type: 'text',
-            placeholder: 'Buscar por nombre, código, CURP, RFC...'
+            placeholder: 'Buscar por nombre, código, CURP...'
         },
         {
             key: 'estadoCodigo',
-            label: 'Estado',
+            label: 'Entidad',
             type: 'select',
-            placeholder: 'Todos',
+            placeholder: 'Yucatán',
             options: [
                 { value: '', label: 'Todos' },
-                { value: '20', label: 'Oaxaca (20)' }
-                // TODO: Agregar más estados si es necesario
+                { value: '31', label: 'Yucatán' },
+                { value: '20', label: 'Oaxaca' }
             ]
         },
         {
             key: 'estatus',
-            label: 'Estatus',
+            label: 'Status',
             type: 'select',
-            placeholder: 'Todos',
+            placeholder: 'Activos',
             options: [
                 { value: '', label: 'Todos' },
-                { value: 'ACTIVO', label: 'Activo' },
-                { value: 'INACTIVO', label: 'Inactivo' }
+                { value: 'ACTIVO', label: 'Activos' },
+                { value: 'INACTIVO', label: 'Inactivos' }
             ]
         },
         {
@@ -327,6 +279,20 @@ export class ApicultoresListComponent implements OnInit {
     ngOnInit(): void {
         this.loadCatalogos();
         this.loadApicultores();
+    }
+
+    /**
+     * ✅ Hook después de cargar datos (para aplicar filtros por defecto)
+     */
+    private applyDefaultFilters(): void {
+        // ✅ Establecer filtros por defecto DESPUÉS de cargar los datos
+        this.filterState.set({
+            estadoCodigo: '31',  // Yucatán por defecto
+            estatus: 'ACTIVO'    // Activos por defecto
+        });
+
+        // Aplicar filtros inmediatamente
+        this.applyFiltersAndPagination();
     }
 
     // ============================================================================
@@ -404,7 +370,7 @@ export class ApicultoresListComponent implements OnInit {
                             ap.cantidadProveedores > 0 // Tiene al menos un proveedor vinculado
                         );
                         this.allApicultores.set(filtered);
-                        this.applyFiltersAndPagination();
+                        this.applyDefaultFilters(); // ✅ Aplicar filtros por defecto
                         this.isLoading.set(false);
                     },
                     error: (error) => {
@@ -420,7 +386,7 @@ export class ApicultoresListComponent implements OnInit {
                 .subscribe({
                     next: (apicultores) => {
                         this.allApicultores.set(apicultores);
-                        this.applyFiltersAndPagination();
+                        this.applyDefaultFilters(); // ✅ Aplicar filtros por defecto
                         this.isLoading.set(false);
                     },
                     error: (error) => {

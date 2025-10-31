@@ -28,6 +28,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { Observable } from 'rxjs';
 
 // Componentes reutilizables
 import { IconComponent } from '../../../../shared/components/ui/icon/icon.component';
@@ -391,33 +392,52 @@ export class ApicultorDetailComponent implements OnInit {
         this.isSaving.set(true);
 
         const formValue = this.apicultorForm.getRawValue();
-        const request: CreateApicultorRequest = {
-            nombre: formValue.nombre,
-            apellidoPaterno: formValue.apellidoPaterno,
-            apellidoMaterno: formValue.apellidoMaterno || undefined,
-            curp: formValue.curp,
-            rfc: formValue.rfc || undefined,
-            estadoCodigo: formValue.estadoCodigo,
-            municipioCodigo: formValue.municipioCodigo,
-            direccion: formValue.direccion || undefined,
-            idRasmiel: formValue.idRasmiel || undefined,
-            uppSiniiga: formValue.uppSiniiga || undefined,
-            estatus: formValue.estatus,
-            proveedorIds: this.selectedProveedorIds().length > 0
-                ? this.selectedProveedorIds()
-                : undefined
-        };
 
-        this.apicultorService
-            .createApicultor(request)
+        // ✅ VALIDAR DUPLICADOS: CURP + Nombre Completo
+        this.validateDuplicates(formValue.curp, formValue.nombre, formValue.apellidoPaterno, formValue.apellidoMaterno)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
-                next: (apicultor) => {
-                    this.router.navigate(['/admin/apicultores']);
-                    this.isSaving.set(false);
+                next: (isDuplicate) => {
+                    if (isDuplicate) {
+                        alert('Ya existe un apicultor con el mismo CURP o nombre completo.');
+                        this.isSaving.set(false);
+                        return;
+                    }
+
+                    // No hay duplicados, proceder con la creación
+                    const request: CreateApicultorRequest = {
+                        nombre: formValue.nombre,
+                        apellidoPaterno: formValue.apellidoPaterno,
+                        apellidoMaterno: formValue.apellidoMaterno || undefined,
+                        curp: formValue.curp,
+                        rfc: formValue.rfc || undefined,
+                        estadoCodigo: formValue.estadoCodigo,
+                        municipioCodigo: formValue.municipioCodigo,
+                        direccion: formValue.direccion || undefined,
+                        idRasmiel: formValue.idRasmiel || undefined,
+                        uppSiniiga: formValue.uppSiniiga || undefined,
+                        estatus: formValue.estatus,
+                        proveedorIds: this.selectedProveedorIds().length > 0
+                            ? this.selectedProveedorIds()
+                            : undefined
+                    };
+
+                    this.apicultorService
+                        .createApicultor(request)
+                        .pipe(takeUntilDestroyed(this.destroyRef))
+                        .subscribe({
+                            next: (apicultor) => {
+                                this.router.navigate(['/admin/apicultores']);
+                                this.isSaving.set(false);
+                            },
+                            error: (error) => {
+                                console.error('Error al crear apicultor:', error);
+                                this.isSaving.set(false);
+                            }
+                        });
                 },
                 error: (error) => {
-                    console.error('Error al crear apicultor:', error);
+                    console.error('Error al validar duplicados:', error);
                     this.isSaving.set(false);
                 }
             });
@@ -433,33 +453,116 @@ export class ApicultorDetailComponent implements OnInit {
         this.isSaving.set(true);
 
         const formValue = this.apicultorForm.getRawValue();
-        const request: UpdateApicultorRequest = {
-            nombre: formValue.nombre,
-            apellidoPaterno: formValue.apellidoPaterno,
-            apellidoMaterno: formValue.apellidoMaterno || undefined,
-            rfc: formValue.rfc || undefined,
-            estadoCodigo: formValue.estadoCodigo,
-            municipioCodigo: formValue.municipioCodigo,
-            direccion: formValue.direccion || undefined,
-            idRasmiel: formValue.idRasmiel || undefined,
-            uppSiniiga: formValue.uppSiniiga || undefined,
-            estatus: formValue.estatus,
-            proveedorIds: this.selectedProveedorIds() // Siempre enviamos para gestionar vínculos
-        };
 
-        this.apicultorService
-            .updateApicultor(this.apicultorId()!, request)
+        // ✅ VALIDAR DUPLICADOS: Solo Nombre Completo (CURP no se puede cambiar en edición)
+        this.validateDuplicates(
+            this.currentApicultor()?.curp || '', // CURP original (no cambia)
+            formValue.nombre,
+            formValue.apellidoPaterno,
+            formValue.apellidoMaterno,
+            this.apicultorId()! // Excluir el ID actual de la validación
+        )
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
-                next: (apicultor) => {
-                    this.router.navigate(['/admin/apicultores']);
-                    this.isSaving.set(false);
+                next: (isDuplicate) => {
+                    if (isDuplicate) {
+                        alert('Ya existe otro apicultor con el mismo nombre completo.');
+                        this.isSaving.set(false);
+                        return;
+                    }
+
+                    // No hay duplicados, proceder con la actualización
+                    const request: UpdateApicultorRequest = {
+                        nombre: formValue.nombre,
+                        apellidoPaterno: formValue.apellidoPaterno,
+                        apellidoMaterno: formValue.apellidoMaterno || undefined,
+                        rfc: formValue.rfc || undefined,
+                        estadoCodigo: formValue.estadoCodigo,
+                        municipioCodigo: formValue.municipioCodigo,
+                        direccion: formValue.direccion || undefined,
+                        idRasmiel: formValue.idRasmiel || undefined,
+                        uppSiniiga: formValue.uppSiniiga || undefined,
+                        estatus: formValue.estatus,
+                        proveedorIds: this.selectedProveedorIds() // Siempre enviamos para gestionar vínculos
+                    };
+
+                    this.apicultorService
+                        .updateApicultor(this.apicultorId()!, request)
+                        .pipe(takeUntilDestroyed(this.destroyRef))
+                        .subscribe({
+                            next: (apicultor) => {
+                                this.router.navigate(['/admin/apicultores']);
+                                this.isSaving.set(false);
+                            },
+                            error: (error) => {
+                                console.error('Error al actualizar apicultor:', error);
+                                this.isSaving.set(false);
+                            }
+                        });
                 },
                 error: (error) => {
-                    console.error('Error al actualizar apicultor:', error);
+                    console.error('Error al validar duplicados:', error);
                     this.isSaving.set(false);
                 }
             });
+    }
+
+    // ============================================================================
+    // VALIDACIÓN DE DUPLICADOS
+    // ============================================================================
+
+    /**
+     * ✅ Validar duplicados por CURP + Nombre Completo
+     *
+     * @param curp CURP a validar
+     * @param nombre Primer nombre
+     * @param apellidoPaterno Apellido paterno
+     * @param apellidoMaterno Apellido materno (opcional)
+     * @param excludeId ID a excluir de la validación (en modo edición)
+     * @returns Observable<boolean> true si existe duplicado, false si no
+     */
+    private validateDuplicates(
+        curp: string,
+        nombre: string,
+        apellidoPaterno: string,
+        apellidoMaterno: string | null,
+        excludeId?: string
+    ): Observable<boolean> {
+        return new Observable<boolean>(observer => {
+            // Obtener todos los apicultores
+            this.apicultorService
+                .getAllApicultores()
+                .pipe(takeUntilDestroyed(this.destroyRef))
+                .subscribe({
+                    next: (apicultores) => {
+                        // Construir nombre completo a validar
+                        const nombreCompletoNuevo = `${nombre} ${apellidoPaterno} ${apellidoMaterno || ''}`.trim().toLowerCase();
+
+                        // Buscar duplicados
+                        const duplicado = apicultores.find(ap => {
+                            // Excluir el apicultor actual en modo edición
+                            if (excludeId && ap.id === excludeId) {
+                                return false;
+                            }
+
+                            // Validar por CURP (solo en modo crear, ya que en editar el CURP está deshabilitado)
+                            if (!excludeId && ap.curp.toLowerCase() === curp.toLowerCase()) {
+                                return true;
+                            }
+
+                            // Validar por nombre completo (siempre)
+                            const nombreCompletoExistente = ap.nombreCompleto.trim().toLowerCase();
+                            return nombreCompletoExistente === nombreCompletoNuevo;
+                        });
+
+                        observer.next(!!duplicado);
+                        observer.complete();
+                    },
+                    error: (error) => {
+                        observer.error(error);
+                    }
+                });
+        });
     }
 
     // ============================================================================
