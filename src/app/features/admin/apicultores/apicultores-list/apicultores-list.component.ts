@@ -108,6 +108,66 @@ export class ApicultoresListComponent implements OnInit {
     /** ✅ Total páginas */
     totalPages = computed(() => Math.ceil(this.totalItems() / this.pageSize()));
 
+    /** ✅ Total de apiarios de apicultores filtrados y ACTIVOS */
+    totalApiarios = computed(() => {
+        const apicultoresFiltrados = this.filteredApicultores();
+
+        // Filtrar solo los ACTIVOS de los apicultores ya filtrados
+        const apicultoresActivosFiltrados = apicultoresFiltrados.filter(
+            apicultor => apicultor.estatus === 'ACTIVO'
+        );
+
+        // Sumar los apiarios
+        const total = apicultoresActivosFiltrados.reduce(
+            (sum, apicultor) => sum + apicultor.cantidadApiarios,
+            0
+        );
+
+        console.log('📊 Total de apiarios (filtrados + activos):', total);
+
+        return total;
+    });
+
+    /** ✅ Total de colmenas de apicultores filtrados y ACTIVOS */
+    totalColmenas = computed(() => {
+        const apicultoresFiltrados = this.filteredApicultores();
+
+        // Filtrar solo los ACTIVOS de los apicultores ya filtrados
+        const apicultoresActivosFiltrados = apicultoresFiltrados.filter(
+            apicultor => apicultor.estatus === 'ACTIVO'
+        );
+
+        // Sumar las colmenas
+        const total = apicultoresActivosFiltrados.reduce(
+            (sum, apicultor) => sum + apicultor.totalColmenas,
+            0
+        );
+
+        console.log('📊 Total de colmenas (filtrados + activos):', total);
+
+        return total;
+    });
+
+    /** ✅ Total de kilos entregados de apicultores filtrados y ACTIVOS */
+    totalKilos = computed(() => {
+        const apicultoresFiltrados = this.filteredApicultores();
+
+        // Filtrar solo los ACTIVOS de los apicultores ya filtrados
+        const apicultoresActivosFiltrados = apicultoresFiltrados.filter(
+            apicultor => apicultor.estatus === 'ACTIVO'
+        );
+
+        // Sumar los kilos entregados
+        const total = apicultoresActivosFiltrados.reduce(
+            (sum, apicultor) => sum + apicultor.totalKilosEntregados,
+            0
+        );
+
+        console.log('📊 Total de kilos (filtrados + activos):', total);
+
+        return total;
+    });
+
     /**
      * ✅ Columnas de la tabla
      */
@@ -127,13 +187,6 @@ export class ApicultoresListComponent implements OnInit {
             width: '250px'
         },
         {
-            key: 'curp',
-            label: 'CURP',
-            type: 'text',
-            sortable: true,
-            width: '180px'
-        },
-        {
             key: 'estadoCodigo',
             label: 'Entidad',
             type: 'text',
@@ -143,6 +196,14 @@ export class ApicultoresListComponent implements OnInit {
                 if (!value) return 'N/A';
                 return this.estadosMap().get(value) || value;
             }
+        },
+        {
+            key: 'cantidadApiarios',
+            label: 'Apiarios',
+            type: 'number',
+            sortable: true,
+            width: '100px',
+            align: 'center'
         },
         {
             key: 'totalColmenas',
@@ -159,6 +220,17 @@ export class ApicultoresListComponent implements OnInit {
             sortable: true,
             width: '140px',
             align: 'center'
+        },
+        {
+            key: 'totalKilosEntregados',
+            label: 'KGS',
+            type: 'number',
+            sortable: true,
+            width: '120px',
+            align: 'center',
+            formatter: (value: number) => {
+                return value ? value.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00';
+            }
         },
         {
             key: 'estatus',
@@ -258,16 +330,37 @@ export class ApicultoresListComponent implements OnInit {
             ]
         },
         {
-            key: 'certificaciones',
-            label: 'Certificaciones',
+            key: 'anio',
+            label: 'Año',
             type: 'select',
-            placeholder: 'Todas',
+            placeholder: '2025',
             options: [
-                { value: '', label: 'Todas' },
-                { value: 'senasica', label: 'Con SENASICA' },
-                { value: 'ipp', label: 'Con IPP/SINIGA' },
-                { value: 'ambas', label: 'Con ambas' },
-                { value: 'ninguna', label: 'Sin certificaciones' }
+                { value: '', label: 'Todos' },
+                { value: '2025', label: '2025' },
+                { value: '2024', label: '2024' },
+                { value: '2023', label: '2023' },
+                { value: '2022', label: '2022' }
+            ]
+        },
+        {
+            key: 'mes',
+            label: 'Mes',
+            type: 'select',
+            placeholder: 'Todos',
+            options: [
+                { value: '', label: 'Todos' },
+                { value: '01', label: 'Enero' },
+                { value: '02', label: 'Febrero' },
+                { value: '03', label: 'Marzo' },
+                { value: '04', label: 'Abril' },
+                { value: '05', label: 'Mayo' },
+                { value: '06', label: 'Junio' },
+                { value: '07', label: 'Julio' },
+                { value: '08', label: 'Agosto' },
+                { value: '09', label: 'Septiembre' },
+                { value: '10', label: 'Octubre' },
+                { value: '11', label: 'Noviembre' },
+                { value: '12', label: 'Diciembre' }
             ]
         }
     ]);
@@ -286,9 +379,15 @@ export class ApicultoresListComponent implements OnInit {
      */
     private applyDefaultFilters(): void {
         // ✅ Establecer filtros por defecto DESPUÉS de cargar los datos
+        const now = new Date();
+        const currentYear = now.getFullYear().toString();
+        const currentMonth = (now.getMonth() + 1).toString().padStart(2, '0');
+
         this.filterState.set({
             estadoCodigo: '31',  // Yucatán por defecto
-            estatus: 'ACTIVO'    // Activos por defecto
+            estatus: 'ACTIVO',   // Activos por defecto
+            anio: currentYear,   // Año actual por defecto
+            mes: currentMonth    // Mes actual por defecto
         });
 
         // Aplicar filtros inmediatamente
@@ -432,18 +531,20 @@ export class ApicultoresListComponent implements OnInit {
             filtered = filtered.filter(a => a.estatus === state['estatus']);
         }
 
-        // ✅ FILTRO 4: Certificaciones (v2.0: senasica → idRasmiel, ippSiniga → uppSiniiga)
-        if (state['certificaciones'] && state['certificaciones'] !== '') {
-            const certFilter = state['certificaciones'];
+        // ✅ FILTRO 4: Año (fecha de alta)
+        if (state['anio'] && state['anio'] !== '') {
             filtered = filtered.filter(a => {
-                const hasRasmiel = a.idRasmiel !== null && a.idRasmiel.trim() !== '';
-                const hasUPP = a.uppSiniiga !== null && a.uppSiniiga.trim() !== '';
+                const fechaAlta = new Date(a.fechaAlta);
+                return fechaAlta.getFullYear().toString() === state['anio'];
+            });
+        }
 
-                if (certFilter === 'senasica') return hasRasmiel; // Mantener nombre de filtro por compatibilidad
-                if (certFilter === 'ipp') return hasUPP;
-                if (certFilter === 'ambas') return hasRasmiel && hasUPP;
-                if (certFilter === 'ninguna') return !hasRasmiel && !hasUPP;
-                return true;
+        // ✅ FILTRO 5: Mes (fecha de alta)
+        if (state['mes'] && state['mes'] !== '') {
+            filtered = filtered.filter(a => {
+                const fechaAlta = new Date(a.fechaAlta);
+                const mes = (fechaAlta.getMonth() + 1).toString().padStart(2, '0');
+                return mes === state['mes'];
             });
         }
 

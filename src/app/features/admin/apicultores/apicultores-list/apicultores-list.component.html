@@ -19,15 +19,48 @@
                         <app-icon name="chart-bar" size="md" color="text-blue-600" />
                     </div>
                     <div class="stat-content">
-                        <p class="stat-label">Total Apicultores</p>
+                        <p class="stat-label">Apicultores</p>
                         <p class="stat-value">{{ totalItems() }}</p>
+                    </div>
+                </div>
+
+                <!-- Estadística de Apiarios -->
+                <div class="stat-card">
+                    <div class="stat-icon bg-green-100">
+                        <app-icon name="map-pin" size="md" color="text-green-600" />
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Apiarios</p>
+                        <p class="stat-value">{{ totalApiarios() }}</p>
+                    </div>
+                </div>
+
+                <!-- Estadística de Colmenas -->
+                <div class="stat-card">
+                    <div class="stat-icon bg-amber-100">
+                        <app-icon name="hashtag" size="md" color="text-amber-600" />
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">Colmenas</p>
+                        <p class="stat-value">{{ totalColmenas() }}</p>
+                    </div>
+                </div>
+
+                <!-- Estadística de Kilos -->
+                <div class="stat-card">
+                    <div class="stat-icon bg-orange-100">
+                        <app-icon name="scale" size="md" color="text-orange-600" />
+                    </div>
+                    <div class="stat-content">
+                        <p class="stat-label">KGS</p>
+                        <p class="stat-value">{{ totalKilos().toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</p>
                     </div>
                 </div>
 
                 <!-- Botón crear -->
                 <button class="btn-create" (click)="createApicultor()">
                     <app-icon name="plus" size="sm" color="text-white" />
-                    <span>Nuevo Apicultor</span>
+                    <span>Nuevo</span>
                 </button>
             </div>
         </div>
