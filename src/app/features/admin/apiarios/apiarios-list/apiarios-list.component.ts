@@ -21,12 +21,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HoneyTableComponent } from '../../../../shared/components/data/honey-table/honey-table.component';
 import { TableFiltersComponent } from '../../../../shared/components/data/table-filters/table-filters.component';
 import { IconComponent } from '../../../../shared/components/ui/icon/icon.component';
+import { BeeLoaderComponent } from '../../../../shared/components/bee-loader/bee-loader.component';
+import { ApiarioDetailModalComponent } from '../apiario-detail-modal/apiario-detail-modal.component';
 
 // Tipos y modelos
 import { TableColumn, TableConfig } from '../../../../shared/components/data/honey-table/types/table.types';
 import { FilterConfig, FilterState } from '../../../../shared/components/data/honey-table/types/filter.types';
 import { ActionMenuConfig } from '../../../../shared/components/data/honey-table/types/action.types';
-import { ApiarioAPI } from '../../../../core/models/index';
+import { ApiarioAPI, ApiarioDetailAPI } from '../../../../core/models/index';
 
 // Servicios
 import { ApiarioService } from '../../../../core/services/apiario.service';
@@ -38,7 +40,9 @@ import { ApiarioService } from '../../../../core/services/apiario.service';
         CommonModule,
         HoneyTableComponent,
         TableFiltersComponent,
-        IconComponent
+        IconComponent,
+        BeeLoaderComponent,
+        ApiarioDetailModalComponent
     ],
     templateUrl: './apiarios-list.component.html',
     styleUrl: './apiarios-list.component.css'
@@ -86,6 +90,12 @@ export class ApiariosListComponent implements OnInit {
     pageSize = signal<number>(20);
 
     /**
+     * ✅ Modal de detalle
+     */
+    isModalOpen = signal<boolean>(false);
+    selectedApiario = signal<ApiarioDetailAPI | null>(null);
+
+    /**
      * Total de items (después de filtros)
      */
     totalItems = computed(() => this.filteredApiarios().length);
@@ -109,13 +119,6 @@ export class ApiariosListComponent implements OnInit {
      */
     columns = computed(() => [
         {
-            key: 'nombre',
-            label: 'Nombre del Apiario',
-            type: 'text',
-            sortable: true,
-            width: '200px'
-        },
-        {
             key: 'apicultorCodigo',
             label: 'Código',
             type: 'text',
@@ -130,36 +133,29 @@ export class ApiariosListComponent implements OnInit {
             width: '200px'
         },
         {
+            key: 'nombre',
+            label: 'Nombre del Apiario',
+            type: 'text',
+            sortable: true,
+            width: '200px'
+        },
+        {
             key: 'colmenas',
             label: 'Colmenas',
             type: 'badge',
             sortable: true,
-            width: '100px',
+            width: '60px',
             align: 'center',
             badgeVariant: 'warning'
         },
+        ,
         {
-            key: 'latitud',
-            label: 'Latitud',
+            key: 'produccion',
+            label: 'Producción',
             type: 'text',
-            sortable: false,
-            width: '110px',
-            format: (value: number) => value.toFixed(6)
-        },
-        {
-            key: 'longitud',
-            label: 'Longitud',
-            type: 'text',
-            sortable: false,
-            width: '110px',
-            format: (value: number) => value.toFixed(6)
-        },
-        {
-            key: 'fechaAlta',
-            label: 'Fecha Alta',
-            type: 'date',
             sortable: true,
-            width: '120px'
+            width: '60px',
+            align: 'center'
         }
     ] as TableColumn[]);
 
@@ -216,22 +212,23 @@ export class ApiariosListComponent implements OnInit {
             key: 'nombre',
             label: 'Búsqueda',
             type: 'text',
-            placeholder: 'Buscar por nombre, código de apicultor...'
+            placeholder: 'Buscar por nombre, código de apicultor...',
+            width: '300px'
         },
-        {
-            key: 'colmenasRango',
-            label: 'Rango de Colmenas',
-            type: 'select',
-            placeholder: 'Todas',
-            options: [
-                { value: '', label: 'Todas' },
-                { value: '1-50', label: '1-50 colmenas' },
-                { value: '51-100', label: '51-100 colmenas' },
-                { value: '101-200', label: '101-200 colmenas' },
-                { value: '201-500', label: '201-500 colmenas' },
-                { value: '500+', label: 'Más de 500' }
-            ]
-        }
+        // {
+        //     key: 'colmenasRango',
+        //     label: 'Rango de Colmenas',
+        //     type: 'select',
+        //     placeholder: 'Todas',
+        //     options: [
+        //         { value: '', label: 'Todas' },
+        //         { value: '1-50', label: '1-50 colmenas' },
+        //         { value: '51-100', label: '51-100 colmenas' },
+        //         { value: '101-200', label: '101-200 colmenas' },
+        //         { value: '201-500', label: '201-500 colmenas' },
+        //         { value: '500+', label: 'Más de 500' }
+        //     ]
+        // }
     ]);
 
     // ============================================================================
@@ -417,10 +414,30 @@ export class ApiariosListComponent implements OnInit {
     }
 
     /**
-     * Ver detalle del apiario
+     * ✅ Ver detalle del apiario (abre modal)
      */
     private viewApiarioDetail(apiario: ApiarioAPI): void {
-        alert(`Detalle de ${apiario.nombre}\n\nApicultor: ${apiario.apicultor.nombre}\nColmenas: ${apiario.colmenas}\nUbicación: ${apiario.latitud.toFixed(6)}, ${apiario.longitud.toFixed(6)}`);
+        // Cargar detalle completo del apiario
+        this.apiarioService
+            .getApiarioById(apiario.id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (apiarioDetalle) => {
+                    this.selectedApiario.set(apiarioDetalle);
+                    this.isModalOpen.set(true);
+                },
+                error: (error) => {
+                    console.error('Error al cargar detalle del apiario:', error);
+                }
+            });
+    }
+
+    /**
+     * ✅ Cerrar modal de detalle
+     */
+    closeModal(): void {
+        this.isModalOpen.set(false);
+        this.selectedApiario.set(null);
     }
 
     private editApiario(apiario: ApiarioAPI): void {

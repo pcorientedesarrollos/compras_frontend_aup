@@ -1,0 +1,134 @@
+<!-- ============================================================================
+     🏠 APIARIO DETAIL MODAL - TEMPLATE
+     ============================================================================ -->
+
+<!-- Overlay -->
+@if (isOpen && apiario) {
+<div class="modal-overlay" (click)="onClose()">
+    <div class="modal-container" (click)="onModalContentClick($event)">
+        <!-- Header -->
+        <div class="modal-header">
+            <div class="flex items-center space-x-3">
+                <div class="icon-wrapper-modal">
+                    <app-icon name="home" size="xl" color="text-honey-primary" />
+                </div>
+                <div>
+                    <h2 class="modal-title">Detalle del Apiario</h2>
+                    <p class="modal-subtitle">{{ apiario.nombre }}</p>
+                </div>
+            </div>
+
+            <button type="button" class="close-button" (click)="onClose()">
+                <app-icon name="x-mark" size="lg" />
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="modal-content">
+            <!-- Sección: Información General -->
+            <div class="detail-section">
+                <h3 class="section-title">
+                    <app-icon name="information-circle" size="md" color="text-honey-primary" />
+                    <span>Información General</span>
+                </h3>
+
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Nombre del Apiario</span>
+                        <span class="detail-value">{{ apiario.nombre }}</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Número de Colmenas</span>
+                        <span class="detail-value">{{ apiario.colmenas | number }}</span>
+                    </div>
+
+                    @if (apiario.produccion != null) {
+                    <div class="detail-item">
+                        <span class="detail-label">Producción</span>
+                        <span class="detail-value">{{ formatNumber(apiario.produccion, 2) }} kg</span>
+                    </div>
+                    }
+
+                    <div class="detail-item">
+                        <span class="detail-label">Fecha de Alta</span>
+                        <span class="detail-value">{{ formatDate(apiario.fechaAlta) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Apicultor -->
+            <div class="detail-section">
+                <h3 class="section-title">
+                    <app-icon name="user" size="md" color="text-honey-primary" />
+                    <span>Apicultor</span>
+                </h3>
+
+                <div class="detail-grid">
+                    <div class="detail-item col-span-2">
+                        <span class="detail-label">Nombre Completo</span>
+                        <span class="detail-value">{{ apicultorNombreCompleto() }}</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">CURP</span>
+                        <span class="detail-value">{{ apiario.apicultor.curp }}</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Estado del Apicultor</span>
+                        <span class="badge"
+                              [class.badge-success]="apiario.apicultor.estatus === 'ACTIVO'"
+                              [class.badge-danger]="apiario.apicultor.estatus === 'INACTIVO'">
+                            {{ apiario.apicultor.estatus }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Ubicación GPS -->
+            <div class="detail-section">
+                <h3 class="section-title">
+                    <app-icon name="map-pin" size="md" color="text-honey-primary" />
+                    <span>Ubicación GPS</span>
+                </h3>
+
+                @if (hasValidCoordinates()) {
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Latitud</span>
+                        <span class="detail-value">{{ formatNumber(apiario.latitud, 6) }}</span>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Longitud</span>
+                        <span class="detail-value">{{ formatNumber(apiario.longitud, 6) }}</span>
+                    </div>
+
+                    <div class="detail-item col-span-2">
+                        <a [href]="googleMapsUrl()" target="_blank" class="map-link">
+                            <app-icon name="map" size="sm" />
+                            <span>Ver en Google Maps</span>
+                            <app-icon name="arrow-up-tray" size="sm" />
+                        </a>
+                    </div>
+                </div>
+                } @else {
+                <div class="no-data-message">
+                    <app-icon name="information-circle" size="md" color="text-gray-400" />
+                    <p>No se han registrado coordenadas GPS para este apiario</p>
+                </div>
+                }
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+            <button type="button" class="btn-close" (click)="onClose()">
+                <app-icon name="x-mark" size="sm" />
+                <span>Cerrar</span>
+            </button>
+        </div>
+    </div>
+</div>
+}

@@ -24,6 +24,7 @@ export interface Apiario {
     apicultorId: string;            // FK a compras_apicultores
     nombre: string;                 // Nombre descriptivo del apiario
     colmenas: number;               // Cantidad de colmenas activas
+    produccion?: number;            // ✅ NUEVO: Producción de miel (kg)
     latitud: number;                // Coordenada GPS (-90 a 90)
     longitud: number;               // Coordenada GPS (-180 a 180)
     fechaAlta: string;              // ISO 8601
@@ -39,6 +40,7 @@ export interface ApiarioAPI {
     apicultorId: string;
     nombre: string;
     colmenas: number;
+    produccion?: number;            // ✅ NUEVO: Producción de miel (kg)
     latitud: number;
     longitud: number;
     fechaAlta: string;
@@ -95,6 +97,7 @@ export interface CreateApiarioRequest {
     apicultorId: string;            // Requerido: ID del apicultor
     nombre: string;                 // Requerido: 3-255 caracteres
     colmenas: number;               // Requerido: 1-9999
+    produccion?: number;            // ✅ NUEVO: Producción de miel (kg)
     latitud: number;                // Requerido: -90 a 90
     longitud: number;               // Requerido: -180 a 180
 }
@@ -106,6 +109,7 @@ export interface CreateApiarioRequest {
 export interface UpdateApiarioRequest {
     nombre?: string;                // Opcional: 3-255 caracteres
     colmenas?: number;              // Opcional: 1-9999
+    produccion?: number;            // ✅ NUEVO: Producción de miel (kg)
     latitud?: number;               // Opcional: -90 a 90
     longitud?: number;              // Opcional: -180 a 180
 }

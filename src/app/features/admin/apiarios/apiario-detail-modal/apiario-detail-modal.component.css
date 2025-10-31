@@ -1,0 +1,162 @@
+/**
+ * ============================================================================
+ * 🏠 APIARIO DETAIL MODAL - STYLES
+ * ============================================================================
+ */
+
+/* Overlay */
+.modal-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center;
+    @apply bg-black bg-opacity-50 backdrop-blur-sm;
+    @apply p-4;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Container */
+.modal-container {
+    @apply bg-white rounded-xl shadow-2xl;
+    @apply w-full max-w-3xl max-h-[90vh];
+    @apply flex flex-col;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Header */
+.modal-header {
+    @apply flex items-center justify-between;
+    @apply px-6 py-5 border-b border-gray-200;
+    @apply bg-gradient-to-r from-amber-50 to-orange-50;
+}
+
+.icon-wrapper-modal {
+    @apply w-12 h-12 rounded-full;
+    @apply bg-white shadow-md;
+    @apply flex items-center justify-center;
+}
+
+.modal-title {
+    @apply text-2xl font-bold text-gray-900;
+}
+
+.modal-subtitle {
+    @apply text-sm text-gray-600 mt-1;
+}
+
+.close-button {
+    @apply w-10 h-10 rounded-full;
+    @apply hover:bg-gray-200 transition-colors;
+    @apply flex items-center justify-center;
+    @apply text-gray-500 hover:text-gray-700;
+}
+
+/* Content */
+.modal-content {
+    @apply flex-1 overflow-y-auto;
+    @apply px-6 py-5 space-y-6;
+}
+
+/* Sections */
+.detail-section {
+    @apply bg-gray-50 rounded-lg p-5;
+    @apply border border-gray-200;
+}
+
+.section-title {
+    @apply flex items-center space-x-2;
+    @apply text-lg font-semibold text-gray-800 mb-4;
+}
+
+/* Grid */
+.detail-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+.detail-item {
+    @apply flex flex-col space-y-1;
+}
+
+.detail-item.col-span-2 {
+    grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+    .detail-item.col-span-2 {
+        grid-column: span 2;
+    }
+}
+
+.detail-label {
+    @apply text-sm font-medium text-gray-500;
+}
+
+.detail-value {
+    @apply text-base font-semibold text-gray-900;
+}
+
+/* Badge */
+.badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+    @apply w-fit;
+}
+
+.badge-success {
+    @apply bg-green-100 text-green-800;
+}
+
+.badge-danger {
+    @apply bg-red-100 text-red-800;
+}
+
+/* Map Link */
+.map-link {
+    @apply inline-flex items-center space-x-2;
+    @apply px-4 py-2 rounded-lg;
+    @apply bg-blue-600 hover:bg-blue-700;
+    @apply text-white font-medium;
+    @apply transition-colors;
+    @apply w-fit;
+}
+
+/* No Data Message */
+.no-data-message {
+    @apply flex flex-col items-center justify-center;
+    @apply py-8 text-gray-500;
+}
+
+.no-data-message p {
+    @apply mt-2 text-sm;
+}
+
+/* Footer */
+.modal-footer {
+    @apply flex justify-end items-center space-x-3;
+    @apply px-6 py-4 border-t border-gray-200;
+    @apply bg-gray-50;
+}
+
+.btn-close {
+    @apply inline-flex items-center space-x-2;
+    @apply px-4 py-2 rounded-lg;
+    @apply bg-gray-600 hover:bg-gray-700;
+    @apply text-white font-medium;
+    @apply transition-colors;
+}

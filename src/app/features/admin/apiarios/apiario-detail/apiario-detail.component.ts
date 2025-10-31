@@ -37,6 +37,7 @@ import {
 // Servicios
 import { ApiarioService } from '../../../../core/services/apiario.service';
 import { ApicultorService } from '../../../../core/services/apicultor.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 type FormMode = 'create' | 'edit';
 
@@ -56,6 +57,7 @@ export class ApiarioDetailComponent implements OnInit {
     private fb = inject(FormBuilder);
     private apiarioService = inject(ApiarioService);
     private apicultorService = inject(ApicultorService);
+    private authService = inject(AuthService);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
     private destroyRef = inject(DestroyRef);
@@ -138,15 +140,17 @@ export class ApiarioDetailComponent implements OnInit {
     // ============================================================================
 
     /**
-     * Inicializar formulario reactivo
+     * Inicializar formulario reactivo v2.0
+     * ✅ CAMBIOS: Agregado campo 'produccion', latitud/longitud opcionales
      */
     private initForm(): void {
         this.apiarioForm = this.fb.group({
             apicultorId: ['', Validators.required],
             nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(255)]],
             colmenas: [1, [Validators.required, Validators.min(1), Validators.max(9999)]],
-            latitud: ['', [Validators.required, Validators.min(-90), Validators.max(90)]],
-            longitud: ['', [Validators.required, Validators.min(-180), Validators.max(180)]]
+            produccion: [null, [Validators.min(0)]], // ✅ NUEVO: Producción (opcional)
+            latitud: [null, [Validators.min(-90), Validators.max(90)]],  // Opcional
+            longitud: [null, [Validators.min(-180), Validators.max(180)]]  // Opcional
         });
     }
 
@@ -232,16 +236,25 @@ export class ApiarioDetailComponent implements OnInit {
     }
 
     /**
-     * Rellenar formulario con datos del apiario
+     * Rellenar formulario con datos del apiario v2.0
+     * ✅ Ahora también carga el nombre del apicultor para mostrar en UI
      */
     private patchFormValues(apiario: ApiarioDetailAPI): void {
         this.apiarioForm.patchValue({
             apicultorId: apiario.apicultorId,
             nombre: apiario.nombre,
             colmenas: apiario.colmenas,
-            latitud: apiario.latitud,
-            longitud: apiario.longitud
+            produccion: apiario.produccion || null, // ✅ NUEVO
+            latitud: apiario.latitud || null,
+            longitud: apiario.longitud || null
         });
+
+        // ✅ Guardar nombre del apicultor para mostrar en modo edición
+        if (apiario.apicultorNombre) {
+            this.apicultorPreseleccionadoNombre.set(
+                `${apiario.apicultorCodigo} - ${apiario.apicultorNombre}`
+            );
+        }
 
         // Deshabilitar apicultorId en modo edición (no se puede cambiar)
         this.apiarioForm.get('apicultorId')?.disable();
@@ -268,6 +281,18 @@ export class ApiarioDetailComponent implements OnInit {
                 this.apicultorPreseleccionadoNombre.set(apicultor.nombreCompleto);
             }
         }, 100);
+    }
+
+    // ============================================================================
+    // HELPERS
+    // ============================================================================
+
+    /**
+     * ✅ Obtener ruta base según el rol del usuario
+     */
+    private getBaseRoute(): string {
+        const currentUser = this.authService.getCurrentUser();
+        return currentUser?.role === 'ACOPIADOR' ? '/acopiador' : '/admin';
     }
 
     // ============================================================================
@@ -343,7 +368,8 @@ export class ApiarioDetailComponent implements OnInit {
     }
 
     /**
-     * Crear nuevo apiario
+     * Crear nuevo apiario v2.0
+     * ✅ Incluye campo produccion
      */
     private createApiario(): void {
         this.isSaving.set(true);
@@ -353,8 +379,9 @@ export class ApiarioDetailComponent implements OnInit {
             apicultorId: formValue.apicultorId,
             nombre: formValue.nombre,
             colmenas: formValue.colmenas,
-            latitud: parseFloat(formValue.latitud),
-            longitud: parseFloat(formValue.longitud)
+            produccion: formValue.produccion != null ? formValue.produccion : undefined, // ✅ Envía 0 si es válido
+            latitud: formValue.latitud ? parseFloat(formValue.latitud) : 0,
+            longitud: formValue.longitud ? parseFloat(formValue.longitud) : 0
         };
 
         this.apiarioService
@@ -362,7 +389,8 @@ export class ApiarioDetailComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (apiario) => {
-                    this.router.navigate(['/admin/apiarios']);
+                    const baseRoute = this.getBaseRoute();
+                    this.router.navigate([`${baseRoute}/apiarios`]);
                     this.isSaving.set(false);
                 },
                 error: (error) => {
@@ -374,7 +402,8 @@ export class ApiarioDetailComponent implements OnInit {
     }
 
     /**
-     * Actualizar apiario existente
+     * Actualizar apiario existente v2.0
+     * ✅ Incluye campo produccion
      */
     private updateApiario(): void {
         if (!this.apiarioId()) return;
@@ -385,8 +414,9 @@ export class ApiarioDetailComponent implements OnInit {
         const request: UpdateApiarioRequest = {
             nombre: formValue.nombre,
             colmenas: formValue.colmenas,
-            latitud: parseFloat(formValue.latitud),
-            longitud: parseFloat(formValue.longitud)
+            produccion: formValue.produccion != null ? formValue.produccion : undefined, // ✅ Envía 0 si es válido
+            latitud: formValue.latitud ? parseFloat(formValue.latitud) : undefined,
+            longitud: formValue.longitud ? parseFloat(formValue.longitud) : undefined
         };
 
         this.apiarioService
@@ -394,7 +424,8 @@ export class ApiarioDetailComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (apiario) => {
-                    this.router.navigate(['/admin/apiarios']);
+                    const baseRoute = this.getBaseRoute();
+                    this.router.navigate([`${baseRoute}/apiarios`]);
                     this.isSaving.set(false);
                 },
                 error: (error) => {
