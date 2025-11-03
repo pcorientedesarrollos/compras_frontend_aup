@@ -2,18 +2,20 @@
  * ============================================================================
  * 📦 ENTRADA MIEL SERVICE - SISTEMA OAXACA MIEL
  * ============================================================================
- * 
+ *
  * Servicio para consumir las APIs de Entradas de Miel del backend
- * 
+ *
  * ENDPOINTS:
- * - POST   /api/entradas-miel                      → Crear entrada
- * - GET    /api/entradas-miel                      → Listar con filtros y paginación
- * - GET    /api/entradas-miel/estadisticas         → Estadísticas
- * - GET    /api/entradas-miel/disponibles/pool     → Pool de miel disponible
- * - GET    /api/entradas-miel/folio/:folio         → Buscar por folio
- * - GET    /api/entradas-miel/:id                  → Detalle por ID
- * - PATCH  /api/entradas-miel/:id/cancelar         → Cancelar entrada
- * 
+ * - POST   /api/entradas-miel                              → Crear entrada
+ * - GET    /api/entradas-miel                              → Listar con filtros y paginación
+ * - GET    /api/entradas-miel/estadisticas                 → Estadísticas
+ * - GET    /api/entradas-miel/disponibles/pool             → Pool de miel disponible
+ * - GET    /api/entradas-miel/folio/:folio                 → Buscar por folio
+ * - GET    /api/entradas-miel/:id                          → Detalle por ID
+ * - PUT    /api/entradas-miel/:id                          → Actualizar entrada
+ * - PATCH  /api/entradas-miel/:id/cancelar                 → Cancelar entrada
+ * - PATCH  /api/entradas-miel/detalles/:detalleId/cancelar → Cancelar detalle individual
+ *
  * ============================================================================
  */
 
@@ -24,17 +26,22 @@ import { HttpService } from './http.service';
 import {
     EntradaMielAPI,
     EntradaMielDetailAPI,
+    EntradaMielDetalleAPI,
     LoteMielDisponible,
     CreateEntradaMielRequest,
+    UpdateEntradaMielRequest,
     CancelarEntradaMielRequest,
+    CancelarDetalleRequest,
     EntradaMielFilterParams,
     EntradaMielEstadisticasParams,
     PoolDisponiblesParams,
     CreateEntradaMielResponse,
+    UpdateEntradaMielResponse,
     EntradasMielPaginatedResponse,
     EntradaMielDetailResponse,
     EntradaMielByFolioResponse,
     CancelarEntradaMielResponse,
+    CancelarDetalleResponse,
     PoolDisponiblesResponse,
     EntradaMielEstadisticas,
     EntradaMielEstadisticasResponse,
@@ -206,7 +213,34 @@ export class EntradaMielService {
     }
 
     // ============================================================================
-    // API 7: PATCH /api/entradas-miel/:id/cancelar
+    // API 7: PUT /api/entradas-miel/:id
+    // ============================================================================
+
+    /**
+     * Actualizar una entrada de miel completa (encabezado y detalles)
+     * Permite agregar, modificar o eliminar detalles
+     *
+     * REGLAS:
+     * - Solo se puede actualizar si estado = ACTIVO
+     * - Solo se puede actualizar si todos los detalles tienen estadoUso = DISPONIBLE
+     * - Detalles CON id: se actualizan
+     * - Detalles SIN id: se crean nuevos
+     * - Detalles omitidos: se eliminan
+     *
+     * @param id ID de la entrada a actualizar
+     * @param data Datos de la entrada actualizada
+     * @returns Observable con la entrada actualizada
+     */
+    updateEntrada(id: string, data: UpdateEntradaMielRequest): Observable<EntradaMielDetailAPI> {
+        return this.httpService
+            .put<UpdateEntradaMielResponse>(`${this.BASE_PATH}/${id}`, data)
+            .pipe(
+                map(response => response.data)
+            );
+    }
+
+    // ============================================================================
+    // API 8: PATCH /api/entradas-miel/:id/cancelar
     // ============================================================================
 
     /**
@@ -221,6 +255,34 @@ export class EntradaMielService {
         return this.httpService
             .patch<CancelarEntradaMielResponse>(
                 `${this.BASE_PATH}/${id}/cancelar`,
+                { motivoCancelacion }
+            )
+            .pipe(
+                map(response => response.data)
+            );
+    }
+
+    // ============================================================================
+    // API 9: PATCH /api/entradas-miel/detalles/:detalleId/cancelar
+    // ============================================================================
+
+    /**
+     * Cancelar un detalle individual de entrada de miel
+     * Si se cancelan todos los detalles, la entrada completa se cancela automáticamente
+     *
+     * REGLAS:
+     * - Solo se puede cancelar si estadoUso = DISPONIBLE
+     * - No se puede cancelar si estadoUso = USADO (ya en tambores/salidas)
+     * - No se puede cancelar detalles de entrada con estado = CANCELADO
+     *
+     * @param detalleId ID del detalle a cancelar
+     * @param motivoCancelacion Motivo (mínimo 10, máximo 500 caracteres)
+     * @returns Observable con el detalle cancelado
+     */
+    cancelarDetalle(detalleId: string, motivoCancelacion: string): Observable<EntradaMielDetalleAPI> {
+        return this.httpService
+            .patch<CancelarDetalleResponse>(
+                `${this.BASE_PATH}/detalles/${detalleId}/cancelar`,
                 { motivoCancelacion }
             )
             .pipe(

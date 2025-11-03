@@ -28,42 +28,46 @@
             Filtros
         </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+
+            <!-- Búsqueda -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Búsqueda</label>
+                <input type="text" [(ngModel)]="searchTerm" (input)="applyFilters()"
+                    placeholder="Buscar por folio o apicultor..."
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-honey-primary" />
+            </div>
 
             <!-- Fecha Inicio -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Fecha Inicio</label>
-                <input type="date" [(ngModel)]="filterFechaInicio"
+                <input type="date" [(ngModel)]="filterFechaInicio" (change)="applyFilters()"
                     class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-honey-primary" />
             </div>
 
             <!-- Fecha Fin -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Fecha Fin</label>
-                <input type="date" [(ngModel)]="filterFechaFin"
+                <input type="date" [(ngModel)]="filterFechaFin" (change)="applyFilters()"
                     class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-honey-primary" />
             </div>
 
             <!-- Estado -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Estado</label>
-                <select [(ngModel)]="filterEstado"
+                <select [(ngModel)]="filterEstado" (change)="applyFilters()"
                     class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-honey-primary">
-                    <option value="">Todos</option>
                     <option [value]="EstadoEntrada.ACTIVO">Activos</option>
-                    <option [value]="EstadoEntrada.CANCELADO">Cancelados</option>
+                    <option [value]="EstadoEntrada.CANCELADO">Inactivos</option>
                 </select>
             </div>
 
-            <!-- Botones -->
-            <div class="flex items-end gap-2">
-                <button type="button" (click)="applyFilters()"
-                    class="flex-1 px-4 py-2.5 bg-honey-primary hover:bg-honey-dark text-white rounded-lg transition-colors font-semibold">
-                    Aplicar
-                </button>
+            <!-- Botón Limpiar -->
+            <div class="flex items-end">
                 <button type="button" (click)="clearFilters()"
-                    class="px-4 py-2.5 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors">
+                    class="w-full px-4 py-2.5 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors font-semibold flex items-center justify-center gap-2">
                     <app-icon name="x-mark" size="sm" />
+                    Limpiar
                 </button>
             </div>
 
@@ -75,22 +79,44 @@
 
         <!-- Loading State -->
         @if (loading()) {
-        <div class="flex items-center justify-center py-12">
-            <app-icon name="arrow-path" size="xl" color="text-honey-primary" class="animate-spin" />
-            <span class="ml-3 text-gray-600">Cargando entradas...</span>
+        <div class="relative min-h-[400px] bg-white rounded-lg border border-gray-200">
+            <app-bee-loader
+                [message]="'Cargando entradas de miel...'"
+                [animation]="'load-hive'"
+                [fullscreen]="false">
+            </app-bee-loader>
         </div>
         }
 
         <!-- Empty State -->
-        @else if (entradas().length === 0) {
+        @else if (entradasPaginadas().length === 0) {
         <div class="text-center py-12">
             <app-icon name="inbox" size="xl" color="text-gray-400" class="mx-auto mb-4" />
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">No hay entradas registradas</h3>
-            <p class="text-gray-600 mb-4">Comienza registrando tu primera entrada de miel</p>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                @if (entradas().length === 0) {
+                    No hay entradas registradas
+                } @else {
+                    No se encontraron resultados
+                }
+            </h3>
+            <p class="text-gray-600 mb-4">
+                @if (entradas().length === 0) {
+                    Comienza registrando tu primera entrada de miel
+                } @else {
+                    Intenta ajustar los filtros de búsqueda
+                }
+            </p>
+            @if (entradas().length === 0) {
             <button (click)="crearNuevaEntrada()"
                 class="px-6 py-3 bg-honey-primary hover:bg-honey-dark text-white rounded-lg transition-colors font-semibold">
                 Crear Primera Entrada
             </button>
+            } @else {
+            <button (click)="clearFilters()"
+                class="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors font-semibold">
+                Limpiar Filtros
+            </button>
+            }
         </div>
         }
 
@@ -103,14 +129,14 @@
                         <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Folio</th>
                         <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Fecha</th>
                         <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Apicultor</th>
+                        <th class="px-6 py-4 text-center text-sm font-semibold text-gray-900">No. Registros</th>
                         <th class="px-6 py-4 text-right text-sm font-semibold text-gray-900">Kilos</th>
                         <th class="px-6 py-4 text-right text-sm font-semibold text-gray-900">Total Compra</th>
-                        <th class="px-6 py-4 text-center text-sm font-semibold text-gray-900">Estado</th>
                         <th class="px-6 py-4 text-center text-sm font-semibold text-gray-900">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                    @for (entrada of entradas(); track entrada.id) {
+                    @for (entrada of entradasPaginadas(); track entrada.id) {
                     <tr class="hover:bg-gray-50 transition-colors">
 
                         <!-- Folio -->
@@ -130,6 +156,13 @@
                             {{ entrada.apicultorNombre }}
                         </td>
 
+                        <!-- No. Registros -->
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-honey-primary/10 text-honey-dark font-bold text-sm">
+                                {{ entrada.cantidadDetalles }}
+                            </span>
+                        </td>
+
                         <!-- Kilos -->
                         <td class="px-6 py-4 text-right text-sm font-semibold text-gray-900">
                             {{ entrada.kilosTotales.toFixed(2) }} kg
@@ -138,14 +171,6 @@
                         <!-- Total Compra -->
                         <td class="px-6 py-4 text-right text-sm font-bold text-green-700">
                             {{ formatCurrency(entrada.totalCompra) }}
-                        </td>
-
-                        <!-- Estado -->
-                        <td class="px-6 py-4 text-center">
-                            <span
-                                [class]="'px-2.5 py-1 rounded-full text-xs font-medium ' + getEstadoBadgeClass(entrada.estado)">
-                                {{ entrada.estado }}
-                            </span>
                         </td>
 
                         <!-- Acciones -->
@@ -159,14 +184,14 @@
                                     <app-icon name="eye" size="sm" />
                                 </button>
 
-                                <!-- Cancelar (solo si está ACTIVO)
+                                <!-- Editar (solo si está ACTIVO) -->
                                 @if (entrada.estado === EstadoEntrada.ACTIVO) {
-                                <button (click)="cancelarEntrada(entrada)"
-                                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                    title="Cancelar entrada">
-                                    <app-icon name="x-circle" size="sm" />
+                                <button (click)="editarEntrada(entrada.id)"
+                                    class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                                    title="Editar entrada">
+                                    <app-icon name="pencil" size="sm" />
                                 </button>
-                                } -->
+                                }
 
                             </div>
                         </td>
@@ -296,13 +321,14 @@
                                     <th class="px-3 py-2 text-left font-semibold text-gray-700">Tipo</th>
                                     <th class="px-3 py-2 text-left font-semibold text-gray-700">Floración</th>
                                     <th class="px-3 py-2 text-left font-semibold text-gray-700">Color</th>
+                                    <th class="px-3 py-2 text-right font-semibold text-gray-700">Humedad %</th>
+                                    <th class="px-3 py-2 text-center font-semibold text-gray-700">Clasificación</th>
                                     <th class="px-3 py-2 text-right font-semibold text-gray-700">PB (kg)</th>
                                     <th class="px-3 py-2 text-right font-semibold text-gray-700">T (kg)</th>
                                     <th class="px-3 py-2 text-right font-semibold text-gray-700">PN (kg)</th>
-                                    <th class="px-3 py-2 text-right font-semibold text-gray-700">Humedad %</th>
-                                    <th class="px-3 py-2 text-center font-semibold text-gray-700">Clasificación</th>
                                     <th class="px-3 py-2 text-right font-semibold text-gray-700">Precio/kg</th>
                                     <th class="px-3 py-2 text-right font-semibold text-gray-700">Costo Total</th>
+                                    <th class="px-3 py-2 text-center font-semibold text-gray-700">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
@@ -312,9 +338,6 @@
                                     <td class="px-3 py-2 text-gray-900">{{ detalle.tipoMielNombre }}</td>
                                     <td class="px-3 py-2 text-gray-700">{{ detalle.floracionNombre || '-' }}</td>
                                     <td class="px-3 py-2 text-gray-700">{{ detalle.colorNombre || '-' }}</td>
-                                    <td class="px-3 py-2 text-right text-gray-900">{{ detalle.bruto?.toFixed(2) || '-' }}</td>
-                                    <td class="px-3 py-2 text-right text-gray-900">{{ detalle.tara?.toFixed(2) || '-' }}</td>
-                                    <td class="px-3 py-2 text-right font-semibold text-gray-900">{{ detalle.kilos.toFixed(2) }}</td>
                                     <td class="px-3 py-2 text-right text-gray-900">{{ detalle.humedad.toFixed(1) }}%</td>
                                     <td class="px-3 py-2 text-center">
                                         <span [class]="detalle.clasificacion === 'EXPORTACION'
@@ -323,21 +346,39 @@
                                             {{ detalle.clasificacion }}
                                         </span>
                                     </td>
+                                    <td class="px-3 py-2 text-right text-gray-900">{{ detalle.bruto?.toFixed(2) || '-' }}</td>
+                                    <td class="px-3 py-2 text-right text-gray-900">{{ detalle.tara?.toFixed(2) || '-' }}</td>
+                                    <td class="px-3 py-2 text-right font-semibold text-gray-900">{{ detalle.kilos.toFixed(2) }}</td>
                                     <td class="px-3 py-2 text-right text-gray-900">${{ detalle.precio.toFixed(2) }}</td>
                                     <td class="px-3 py-2 text-right font-bold text-green-700">${{ detalle.costoTotal.toFixed(2) }}</td>
+                                    <td class="px-3 py-2 text-center">
+                                        <!-- Botón Cancelar Detalle (solo si estadoUso = DISPONIBLE) -->
+                                        @if (detalle.estadoUso === 'DISPONIBLE' && entradaDetalle()!.estado === EstadoEntrada.ACTIVO) {
+                                        <button (click)="cancelarDetalleIndividual(detalle)"
+                                            class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                            title="Cancelar este detalle">
+                                            <app-icon name="x-circle" size="sm" />
+                                        </button>
+                                        } @else if (detalle.estadoUso === 'CANCELADO') {
+                                        <span class="text-xs text-red-600 font-semibold">CANCELADO</span>
+                                        } @else if (detalle.estadoUso === 'USADO') {
+                                        <span class="text-xs text-gray-500">USADO</span>
+                                        }
+                                    </td>
                                 </tr>
                                 }
                             </tbody>
                             <tfoot class="bg-gray-50 border-t-2 border-gray-300">
                                 <tr class="font-bold">
-                                    <td colspan="6" class="px-3 py-3 text-right text-gray-900">TOTALES:</td>
+                                    <td colspan="8" class="px-3 py-3 text-right text-gray-900">TOTALES:</td>
                                     <td class="px-3 py-3 text-right text-gray-900">
                                         {{ getTotalKilos(entradaDetalle()!).toFixed(2) }} kg
                                     </td>
-                                    <td colspan="3"></td>
+                                    <td></td>
                                     <td class="px-3 py-3 text-right text-green-700 text-lg">
                                         {{ formatCurrency(entradaDetalle()!.totalCompra) }}
                                     </td>
+                                    <td></td> <!-- Empty cell for Acciones column -->
                                 </tr>
                             </tfoot>
                         </table>
@@ -357,12 +398,150 @@
 
             <!-- Footer del Modal -->
             <div class="border-t border-gray-200 px-6 py-4 bg-gray-50">
-                <div class="flex justify-end">
+                <div class="flex justify-between items-center">
+                    <!-- Botón Eliminar (solo si está ACTIVO) -->
+                    <div>
+                        @if (entradaDetalle()!.estado === EstadoEntrada.ACTIVO) {
+                        <button (click)="eliminarEntrada(entradaDetalle()!)"
+                            class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-semibold flex items-center gap-2">
+                            <app-icon name="trash" size="sm" color="text-white" />
+                            Eliminar Entrada
+                        </button>
+                        }
+                    </div>
+
+                    <!-- Botón Cerrar -->
                     <button (click)="cerrarDetalle()"
                         class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors font-semibold">
                         Cerrar
                     </button>
                 </div>
+            </div>
+
+        </div>
+    </div>
+    }
+
+    <!-- ================================================================
+         MODAL DE CONFIRMACIÓN PARA ELIMINAR
+         ================================================================ -->
+    @if (showDeleteModal()) {
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        (click)="cancelarEliminacion()">
+        <div class="bg-white rounded-lg shadow-2xl max-w-md w-full" (click)="$event.stopPropagation()">
+
+            <!-- Header -->
+            <div class="bg-red-600 text-white px-6 py-4 rounded-t-lg">
+                <div class="flex items-center gap-3">
+                    <app-icon name="exclamation-triangle" size="lg" color="text-white" />
+                    <h2 class="text-xl font-bold">Confirmar Eliminación</h2>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 space-y-4">
+                <p class="text-gray-700">
+                    ¿Está seguro que desea eliminar la entrada <strong>{{ entradaParaEliminar()!.folio }}</strong>?
+                </p>
+                <p class="text-sm text-gray-600">
+                    Esta acción cancelará la entrada y no se podrá revertir.
+                </p>
+
+                <!-- Campo de motivo -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Motivo de eliminación <span class="text-red-500">*</span>
+                    </label>
+                    <textarea [(ngModel)]="motivoEliminacion" rows="3"
+                        placeholder="Ingrese el motivo (mínimo 10 caracteres)..."
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none">
+                    </textarea>
+                    @if (motivoEliminacion().length > 0 && motivoEliminacion().length < 10) {
+                    <p class="text-xs text-red-600 mt-1">
+                        El motivo debe tener al menos 10 caracteres ({{ motivoEliminacion().length }}/10)
+                    </p>
+                    }
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="border-t border-gray-200 px-6 py-4 bg-gray-50 rounded-b-lg flex justify-end gap-3">
+                <button (click)="cancelarEliminacion()"
+                    class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors font-semibold">
+                    Cancelar
+                </button>
+                <button (click)="confirmarEliminacion()" [disabled]="motivoEliminacion().trim().length < 10"
+                    class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                    <app-icon name="trash" size="sm" color="text-white" />
+                    Eliminar
+                </button>
+            </div>
+
+        </div>
+    </div>
+    }
+
+    <!-- ================================================================
+         MODAL DE CONFIRMACIÓN PARA CANCELAR DETALLE INDIVIDUAL
+         ================================================================ -->
+    @if (showCancelDetalleModal()) {
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4"
+        (click)="cancelarOperacionDetalle()">
+        <div class="bg-white rounded-lg shadow-2xl max-w-md w-full" (click)="$event.stopPropagation()">
+
+            <!-- Header -->
+            <div class="bg-amber-600 text-white px-6 py-4 rounded-t-lg">
+                <div class="flex items-center gap-3">
+                    <app-icon name="exclamation-triangle" size="lg" color="text-white" />
+                    <h2 class="text-xl font-bold">Cancelar Detalle</h2>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 space-y-4">
+                <p class="text-gray-700">
+                    ¿Está seguro que desea cancelar este detalle?
+                </p>
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-3 rounded">
+                    <p class="text-sm text-amber-800">
+                        <strong>Kilos:</strong> {{ detalleParaCancelar()?.kilos.toFixed(2) }} kg
+                    </p>
+                    <p class="text-sm text-amber-800">
+                        <strong>Tipo:</strong> {{ detalleParaCancelar()?.tipoMielNombre }}
+                    </p>
+                </div>
+                <p class="text-sm text-gray-600">
+                    Esta acción marcará el detalle como CANCELADO y no se podrá revertir.
+                </p>
+
+                <!-- Campo de motivo -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Motivo de cancelación <span class="text-red-500">*</span>
+                    </label>
+                    <textarea [(ngModel)]="motivoCancelacionDetalle" rows="3"
+                        placeholder="Ingrese el motivo (mínimo 10 caracteres)..."
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 resize-none">
+                    </textarea>
+                    @if (motivoCancelacionDetalle().length > 0 && motivoCancelacionDetalle().length < 10) {
+                    <p class="text-xs text-red-600 mt-1">
+                        El motivo debe tener al menos 10 caracteres ({{ motivoCancelacionDetalle().length }}/10)
+                    </p>
+                    }
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="border-t border-gray-200 px-6 py-4 bg-gray-50 rounded-b-lg flex justify-end gap-3">
+                <button (click)="cancelarOperacionDetalle()"
+                    class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors font-semibold">
+                    Cancelar
+                </button>
+                <button (click)="confirmarCancelacionDetalle()" [disabled]="motivoCancelacionDetalle().trim().length < 10"
+                    class="px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                    <app-icon name="x-circle" size="sm" color="text-white" />
+                    Cancelar Detalle
+                </button>
             </div>
 
         </div>

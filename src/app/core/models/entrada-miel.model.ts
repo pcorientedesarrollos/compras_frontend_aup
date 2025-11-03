@@ -116,12 +116,21 @@ export interface EntradaMielAPI {
     id: string;
     folio: string;
     fecha: string;
+    proveedorId: number;
     proveedorNombre: string;
+    apicultorId: string;
     apicultorNombre: string;
+    apicultorCodigo: string;
     totalCompra: number;
     estado: EstadoEntrada;
+    observaciones?: string | null;
+    usuarioCreadorId: string;
+    usuarioCreadorNombre: string;
+    fechaCreacion: string;
+    fechaCancelacion?: string | null;
+    motivoCancelacion?: string | null;
+    cantidadDetalles: number;
     kilosTotales: number;
-    detallesCount: number;
 }
 
 /**
@@ -181,6 +190,44 @@ export interface CreateEntradaMielRequest {
  */
 export interface CancelarEntradaMielRequest {
     motivoCancelacion: string;  // Mínimo 10 caracteres
+}
+
+/**
+ * DTO para actualizar detalle de entrada
+ */
+export interface UpdateEntradaMielDetalleRequest {
+    id?: string;  // Si tiene ID: ACTUALIZA. Si NO tiene ID: CREA nuevo
+    tipoMielId: number;
+    floracionId?: number;
+    colorId?: number;
+    kilos: number;
+    humedad: number;
+    precio: number;
+    autorizado?: boolean;
+    zona?: string;
+    trazabilidad?: string;
+    pesoLista?: number;
+    bruto?: number;
+    tara?: number;
+    referencia?: string;
+    observaciones?: string;
+}
+
+/**
+ * DTO para actualizar entrada de miel completa
+ */
+export interface UpdateEntradaMielRequest {
+    fecha: string;  // YYYY-MM-DD
+    apicultorId: string;
+    observaciones?: string;
+    detalles: UpdateEntradaMielDetalleRequest[];
+}
+
+/**
+ * DTO para cancelar detalle individual
+ */
+export interface CancelarDetalleRequest {
+    motivoCancelacion: string;  // Mínimo 10, máximo 500 caracteres
 }
 
 /**
@@ -285,6 +332,24 @@ export interface CancelarEntradaMielResponse {
         apicultorNombre: string;
         totalCompra: number;
     };
+}
+
+/**
+ * Respuesta de PUT /api/entradas-miel/:id
+ */
+export interface UpdateEntradaMielResponse {
+    success: boolean;
+    message: string;
+    data: EntradaMielDetailAPI;
+}
+
+/**
+ * Respuesta de PATCH /api/entradas-miel/detalles/:detalleId/cancelar
+ */
+export interface CancelarDetalleResponse {
+    success: boolean;
+    message: string;
+    data: EntradaMielDetalleAPI;
 }
 
 /**

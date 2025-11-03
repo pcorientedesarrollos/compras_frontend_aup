@@ -12,7 +12,7 @@
  * ============================================================================
  */
 
-import { Component, signal, inject, DestroyRef, OnInit } from '@angular/core';
+import { Component, signal, computed, inject, DestroyRef, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -20,6 +20,7 @@ import { FormsModule } from '@angular/forms';
 
 // Componentes reutilizables
 import { IconComponent } from '../../../../shared/components/ui/icon/icon.component';
+import { BeeLoaderComponent } from '../../../../shared/components/bee-loader/bee-loader.component';
 
 // Modelos
 import {
@@ -38,7 +39,8 @@ import { EntradaMielService } from '../../../../core/services/entrada-miel.servi
     imports: [
         CommonModule,
         FormsModule,
-        IconComponent
+        IconComponent,
+        BeeLoaderComponent
     ],
     templateUrl: './entradas-miel-list.component.html',
     styleUrl: './entradas-miel-list.component.css'
@@ -52,8 +54,47 @@ export class EntradasMielListComponent implements OnInit {
     // STATE - SIGNALS
     // ============================================================================
 
-    /** Lista de entradas */
-    entradas = signal<EntradaMielAPI[]>([]);
+    /** Lista completa de entradas (sin filtrar) */
+    entradasCompletas = signal<EntradaMielAPI[]>([]);
+
+    /** Lista de entradas filtradas (computed) */
+    entradas = computed(() => {
+        let filtered = this.entradasCompletas();
+
+        // Filtro por búsqueda (folio o apicultor)
+        const search = this.searchTerm().toLowerCase().trim();
+        if (search) {
+            filtered = filtered.filter(e =>
+                e.folio.toLowerCase().includes(search) ||
+                e.apicultorNombre.toLowerCase().includes(search)
+            );
+        }
+
+        // Filtro por estado
+        if (this.filterEstado()) {
+            filtered = filtered.filter(e => e.estado === this.filterEstado());
+        }
+
+        // Filtro por fecha inicio
+        if (this.filterFechaInicio()) {
+            filtered = filtered.filter(e => {
+                const fechaEntrada = new Date(e.fecha);
+                const fechaInicio = new Date(this.filterFechaInicio());
+                return fechaEntrada >= fechaInicio;
+            });
+        }
+
+        // Filtro por fecha fin
+        if (this.filterFechaFin()) {
+            filtered = filtered.filter(e => {
+                const fechaEntrada = new Date(e.fecha);
+                const fechaFin = new Date(this.filterFechaFin());
+                return fechaEntrada <= fechaFin;
+            });
+        }
+
+        return filtered;
+    });
 
     /** Estado de carga */
     loading = signal(false);
@@ -61,18 +102,28 @@ export class EntradasMielListComponent implements OnInit {
     /** Paginación */
     currentPage = signal(1);
     pageSize = signal(10);
-    totalItems = signal(0);
-    totalPages = signal(0);
+    totalItems = computed(() => this.entradas().length);
+    totalPages = computed(() => Math.ceil(this.entradas().length / this.pageSize()));
 
     /** Filtros */
     searchTerm = signal('');
-    filterEstado = signal<EstadoEntrada | ''>('');
+    filterEstado = signal<EstadoEntrada>(EstadoEntrada.ACTIVO);
     filterFechaInicio = signal('');
     filterFechaFin = signal('');
 
     /** Detalle seleccionado (para modal) */
     entradaDetalle = signal<EntradaMielDetailAPI | null>(null);
     loadingDetalle = signal(false);
+
+    /** Modal de confirmación para eliminar entrada */
+    showDeleteModal = signal(false);
+    entradaParaEliminar = signal<EntradaMielDetailAPI | null>(null);
+    motivoEliminacion = signal('');
+
+    /** Modal de confirmación para cancelar detalle individual */
+    showCancelDetalleModal = signal(false);
+    detalleParaCancelar = signal<any | null>(null);
+    motivoCancelacionDetalle = signal('');
 
     /**
     * Math para template
@@ -85,6 +136,14 @@ export class EntradasMielListComponent implements OnInit {
 
     /** Enum para template */
     readonly EstadoEntrada = EstadoEntrada;
+
+    /** Entradas paginadas (para mostrar en tabla) */
+    entradasPaginadas = computed(() => {
+        const filtered = this.entradas();
+        const start = (this.currentPage() - 1) * this.pageSize();
+        const end = start + this.pageSize();
+        return filtered.slice(start, end);
+    });
 
     // ============================================================================
     // LIFECYCLE
@@ -99,40 +158,24 @@ export class EntradasMielListComponent implements OnInit {
     // ============================================================================
 
     /**
-     * Cargar entradas con filtros y paginación
+     * Cargar TODAS las entradas (sin paginación backend)
+     * El filtrado y paginación se hace en frontend
      */
     loadEntradas(): void {
         this.loading.set(true);
 
         const params: EntradaMielFilterParams = {
-            page: this.currentPage(),
-            limit: this.pageSize()
+            page: 1,
+            limit: 9999, // Traer todas
+            sortBy: 'fecha',
+            sortOrder: 'desc'
         };
-
-        // Aplicar filtros
-        if (this.filterEstado()) {
-            params.estado = this.filterEstado() as EstadoEntrada;
-        }
-
-        if (this.filterFechaInicio()) {
-            params.fechaInicio = this.filterFechaInicio();
-        }
-
-        if (this.filterFechaFin()) {
-            params.fechaFin = this.filterFechaFin();
-        }
-
-        // Ordenar por fecha descendente (más recientes primero)
-        params.sortBy = 'fecha';
-        params.sortOrder = 'desc';
 
         this.entradaMielService.getEntradas(params)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (response) => {
-                    this.entradas.set(response.data);
-                    this.totalItems.set(response.pagination.total);
-                    this.totalPages.set(response.pagination.totalPages);
+                    this.entradasCompletas.set(response.data);
                     this.loading.set(false);
                 },
                 error: () => {
@@ -147,22 +190,22 @@ export class EntradasMielListComponent implements OnInit {
     // ============================================================================
 
     /**
-     * Aplicar filtros
+     * Aplicar filtros (automático con computed)
+     * Solo resetea la página actual
      */
     applyFilters(): void {
         this.currentPage.set(1); // Reset a página 1
-        this.loadEntradas();
     }
 
     /**
      * Limpiar filtros
      */
     clearFilters(): void {
-        this.filterEstado.set('');
+        this.searchTerm.set('');
+        this.filterEstado.set(EstadoEntrada.ACTIVO); // Default: ACTIVO
         this.filterFechaInicio.set('');
         this.filterFechaFin.set('');
         this.currentPage.set(1);
-        this.loadEntradas();
     }
 
     /**
@@ -203,6 +246,13 @@ export class EntradasMielListComponent implements OnInit {
     }
 
     /**
+     * Navegar a editar entrada existente
+     */
+    editarEntrada(id: string): void {
+        this.router.navigate(['/acopiador/entradas-miel/editar', id]);
+    }
+
+    /**
      * Ver detalle de una entrada
      */
     verDetalle(id: string): void {
@@ -231,36 +281,111 @@ export class EntradasMielListComponent implements OnInit {
     }
 
     /**
-     * Cancelar una entrada
+     * Abrir modal de confirmación para eliminar entrada
      */
-    cancelarEntrada(entrada: EntradaMielAPI): void {
+    eliminarEntrada(entrada: EntradaMielDetailAPI): void {
         if (entrada.estado === EstadoEntrada.CANCELADO) {
-            alert('Esta entrada ya está cancelada');
             return;
         }
 
-        const motivo = prompt('Ingrese el motivo de cancelación (mínimo 10 caracteres):');
+        this.entradaParaEliminar.set(entrada);
+        this.motivoEliminacion.set('');
+        this.showDeleteModal.set(true);
+    }
 
-        if (!motivo || motivo.length < 10) {
-            alert('Debe ingresar un motivo válido de al menos 10 caracteres');
-            return;
+    /**
+     * Confirmar eliminación de entrada
+     */
+    confirmarEliminacion(): void {
+        const entrada = this.entradaParaEliminar();
+        const motivo = this.motivoEliminacion().trim();
+
+        if (!entrada) return;
+
+        if (motivo.length < 10) {
+            return; // Validación en template
         }
 
-        if (!confirm(`¿Está seguro de cancelar la entrada ${entrada.folio}?`)) {
-            return;
-        }
+        this.loading.set(true);
 
         this.entradaMielService.cancelarEntrada(entrada.id, motivo)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: () => {
-                    alert('Entrada cancelada exitosamente');
+                    this.showDeleteModal.set(false);
+                    this.cerrarDetalle();
                     this.loadEntradas();
+                    this.loading.set(false);
                 },
                 error: () => {
-                    alert('Error al cancelar la entrada');
+                    this.loading.set(false);
                 }
             });
+    }
+
+    /**
+     * Cancelar eliminación
+     */
+    cancelarEliminacion(): void {
+        this.showDeleteModal.set(false);
+        this.entradaParaEliminar.set(null);
+        this.motivoEliminacion.set('');
+    }
+
+    /**
+     * Abrir modal para cancelar detalle individual
+     */
+    cancelarDetalleIndividual(detalle: any): void {
+        this.detalleParaCancelar.set(detalle);
+        this.motivoCancelacionDetalle.set('');
+        this.showCancelDetalleModal.set(true);
+    }
+
+    /**
+     * Confirmar cancelación de detalle individual
+     */
+    confirmarCancelacionDetalle(): void {
+        const detalle = this.detalleParaCancelar();
+        const motivo = this.motivoCancelacionDetalle().trim();
+
+        if (!detalle) return;
+
+        if (motivo.length < 10) {
+            return; // Validación en template
+        }
+
+        this.loading.set(true);
+
+        this.entradaMielService.cancelarDetalle(detalle.id, motivo)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: () => {
+                    this.showCancelDetalleModal.set(false);
+                    this.detalleParaCancelar.set(null);
+                    this.motivoCancelacionDetalle.set('');
+
+                    // Recargar el detalle actualizado
+                    if (this.entradaDetalle()) {
+                        this.verDetalle(this.entradaDetalle()!.id);
+                    }
+
+                    // Recargar lista de entradas
+                    this.loadEntradas();
+                    this.loading.set(false);
+                },
+                error: () => {
+                    this.loading.set(false);
+                }
+            });
+    }
+
+    /**
+     * Cancelar operación de cancelar detalle
+     */
+    cancelarOperacionDetalle(): void {
+        this.showCancelDetalleModal.set(false);
+        this.detalleParaCancelar.set(null);
+        this.motivoCancelacionDetalle.set('');
     }
 
     // ============================================================================

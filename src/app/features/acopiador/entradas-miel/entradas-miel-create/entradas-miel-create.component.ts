@@ -20,7 +20,7 @@ import { Component, computed, signal, inject, DestroyRef, OnInit } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 
 // Componentes reutilizables
 import { IconComponent } from '../../../../shared/components/ui/icon/icon.component';
@@ -30,6 +30,9 @@ import { AutocompleteSelectComponent } from '../../../../shared/components/ui/au
 import {
     CreateEntradaMielRequest,
     CreateEntradaMielDetalleRequest,
+    UpdateEntradaMielRequest,
+    UpdateEntradaMielDetalleRequest,
+    EntradaMielDetailAPI,
     ApicultorOption,
     TipoMielOption,
     ClasificacionMiel,
@@ -62,6 +65,7 @@ export class EntradasMielCreateComponent implements OnInit {
     private proveedorService = inject(ProveedorService);
     private authService = inject(AuthService);
     private router = inject(Router);
+    private route = inject(ActivatedRoute);
     private destroyRef = inject(DestroyRef);
 
     // ============================================================================
@@ -98,6 +102,15 @@ export class EntradasMielCreateComponent implements OnInit {
     /** Importe total calculado */
     importeTotal = signal(0);
 
+    /** Modo edición (true si estamos editando una entrada existente) */
+    isEditMode = signal(false);
+
+    /** ID de la entrada en modo edición */
+    entradaId = signal<string | null>(null);
+
+    /** Entrada original (para modo edición) */
+    entradaOriginal = signal<EntradaMielDetailAPI | null>(null);
+
     // ============================================================================
     // FORM
     // ============================================================================
@@ -107,7 +120,6 @@ export class EntradasMielCreateComponent implements OnInit {
         apicultorId: [null, Validators.required],
         tipoMielId: [null, Validators.required],
         numeroTambores: [null, [Validators.required, Validators.min(1), Validators.max(100)]],
-        precioPromedio: [null, [Validators.required, Validators.min(0.01)]],
         observaciones: [''],
         tambores: this.fb.array([])
     });
@@ -117,11 +129,23 @@ export class EntradasMielCreateComponent implements OnInit {
     // ============================================================================
 
     ngOnInit(): void {
+        // Detectar modo edición desde la ruta
+        const id = this.route.snapshot.paramMap.get('id');
+        if (id) {
+            this.isEditMode.set(true);
+            this.entradaId.set(id);
+        }
+
         this.loadProveedorId();
         this.loadTiposMiel();
         this.loadFloraciones();
         this.loadColores();
         this.setupNumeroTamboresWatcher();
+
+        // Si estamos en modo edición, cargar datos existentes
+        if (this.isEditMode()) {
+            this.loadEntradaData();
+        }
     }
 
     // ============================================================================
@@ -224,6 +248,78 @@ export class EntradasMielCreateComponent implements OnInit {
     }
 
     /**
+     * Cargar datos de entrada existente (modo edición)
+     */
+    private loadEntradaData(): void {
+        const id = this.entradaId();
+        if (!id) return;
+
+        this.loading.set(true);
+
+        this.entradaMielService.getEntradaById(id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (entrada) => {
+                    this.entradaOriginal.set(entrada);
+                    this.populateFormWithEntrada(entrada);
+                    this.loading.set(false);
+                },
+                error: () => {
+                    this.loading.set(false);
+                    alert('Error al cargar la entrada. Redirigiendo al listado...');
+                    this.router.navigate(['/acopiador/entradas-miel']);
+                }
+            });
+    }
+
+    /**
+     * Poblar el formulario con datos de entrada existente
+     */
+    private populateFormWithEntrada(entrada: EntradaMielDetailAPI): void {
+        // Establecer valores del formulario
+        this.form.patchValue({
+            fecha: entrada.fecha.split('T')[0], // Convertir ISO a YYYY-MM-DD
+            apicultorId: entrada.apicultorId,
+            tipoMielId: entrada.detalles[0]?.tipoMielId || null,
+            numeroTambores: entrada.detalles.length,
+            observaciones: entrada.observaciones || ''
+        });
+
+        // Generar tambores con datos existentes
+        this.generarTamboresConDatos(entrada.detalles);
+    }
+
+    /**
+     * Generar tambores FormArray con datos existentes
+     */
+    private generarTamboresConDatos(detalles: any[]): void {
+        this.tamboresArray.clear();
+
+        detalles.forEach(detalle => {
+            const tamborGroup = this.fb.group({
+                id: [detalle.id], // Guardar ID para actualización
+                bruto: [detalle.bruto || 0, [Validators.required, Validators.min(0.01)]],
+                tara: [detalle.tara || 0, [Validators.required, Validators.min(0)]],
+                floracionId: [detalle.floracionId],
+                humedad: [detalle.humedad, [Validators.required, Validators.min(0), Validators.max(100)]],
+                colorId: [detalle.colorId],
+                precio: [detalle.precio, [Validators.required, Validators.min(0.01)]]
+            });
+
+            // Subscribirse a cambios para recalcular totales
+            tamborGroup.valueChanges
+                .pipe(takeUntilDestroyed(this.destroyRef))
+                .subscribe(() => {
+                    this.recalcularTotales();
+                });
+
+            this.tamboresArray.push(tamborGroup);
+        });
+
+        this.recalcularTotales();
+    }
+
+    /**
      * Configurar watcher para generar tambores dinámicamente
      */
     private setupNumeroTamboresWatcher(): void {
@@ -243,11 +339,6 @@ export class EntradasMielCreateComponent implements OnInit {
             });
 
         // Watcher para recalcular importe cuando cambie el precio promedio
-        this.form.get('precioPromedio')?.valueChanges
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(() => {
-                this.recalcularTotales();
-            });
     }
 
     /**
@@ -257,21 +348,24 @@ export class EntradasMielCreateComponent implements OnInit {
         let sumaPB = 0;
         let sumaTara = 0;
         let sumaPN = 0;
+        let sumaImporte = 0;
 
-        this.tamboresArray.controls.forEach(control => {
+        this.tamboresArray.controls.forEach((control, index) => {
             const bruto = control.get('bruto')?.value || 0;
             const tara = control.get('tara')?.value || 0;
+            const pesoNeto = bruto - tara;
             sumaPB += bruto;
             sumaTara += tara;
-            sumaPN += (bruto - tara);
+            sumaPN += pesoNeto;
+
+            // Sumar costo total de cada tambor
+            sumaImporte += this.calcularCostoTotal(index);
         });
 
         this.totalPB.set(sumaPB);
         this.totalTara.set(sumaTara);
         this.totalPN.set(sumaPN);
-
-        const precioPromedio = this.form.get('precioPromedio')?.value || 0;
-        this.importeTotal.set(sumaPN * precioPromedio);
+        this.importeTotal.set(sumaImporte);
     }
 
     // ============================================================================
@@ -294,7 +388,8 @@ export class EntradasMielCreateComponent implements OnInit {
                 tara: [null, [Validators.required, Validators.min(0)]],
                 floracionId: [null],
                 humedad: [null, [Validators.required, Validators.min(0), Validators.max(100)]],
-                colorId: [null]
+                colorId: [null],
+                precio: [null, [Validators.required, Validators.min(0.01)]]
             });
 
             this.tamboresArray.push(tamborGroup);
@@ -309,6 +404,16 @@ export class EntradasMielCreateComponent implements OnInit {
         const bruto = tambor.get('bruto')?.value || 0;
         const tara = tambor.get('tara')?.value || 0;
         return bruto - tara;
+    }
+
+    /**
+     * Calcular Costo Total de un tambor (PN × Precio)
+     */
+    calcularCostoTotal(index: number): number {
+        const pesoNeto = this.calcularPesoNeto(index);
+        const tambor = this.tamboresArray.at(index);
+        const precio = tambor.get('precio')?.value || 0;
+        return pesoNeto * precio;
     }
 
     /**
@@ -386,7 +491,7 @@ export class EntradasMielCreateComponent implements OnInit {
             return;
         }
 
-        if (!this.proveedorId()) {
+        if (!this.proveedorId() && !this.isEditMode()) {
             alert('Error: No se encontró el proveedor del usuario');
             return;
         }
@@ -404,10 +509,20 @@ export class EntradasMielCreateComponent implements OnInit {
             }
         }
 
+        if (this.isEditMode()) {
+            this.updateEntrada();
+        } else {
+            this.createEntrada();
+        }
+    }
+
+    /**
+     * Crear nueva entrada
+     */
+    private createEntrada(): void {
         this.loading.set(true);
 
         const formValue = this.form.value;
-        const precioPromedio = formValue.precioPromedio;
         const tipoMielId = formValue.tipoMielId;
 
         // Construir request con todos los tambores
@@ -420,7 +535,7 @@ export class EntradasMielCreateComponent implements OnInit {
                     tipoMielId: tipoMielId,
                     kilos: Number((tambor.bruto - tambor.tara).toFixed(2)),  // PN = PB - T
                     humedad: Number(tambor.humedad),
-                    precio: Number(precioPromedio),
+                    precio: Number(tambor.precio), // Precio individual por tambor
                     bruto: Number(tambor.bruto),
                     tara: Number(tambor.tara),
                     autorizado: true
@@ -452,6 +567,73 @@ export class EntradasMielCreateComponent implements OnInit {
                     this.loading.set(false);
                     console.error('Error al crear entrada:', error);
                     alert('Error al crear la entrada de miel');
+                }
+            });
+    }
+
+    /**
+     * Actualizar entrada existente
+     */
+    private updateEntrada(): void {
+        this.loading.set(true);
+
+        const id = this.entradaId();
+        if (!id) {
+            this.loading.set(false);
+            alert('Error: ID de entrada no encontrado');
+            return;
+        }
+
+        const formValue = this.form.value;
+        const tipoMielId = formValue.tipoMielId;
+
+        // Construir request con todos los tambores (incluir IDs para actualizar)
+        const request: UpdateEntradaMielRequest = {
+            fecha: formValue.fecha,
+            apicultorId: formValue.apicultorId,
+            ...(formValue.observaciones && { observaciones: formValue.observaciones }),
+            detalles: formValue.tambores.map((tambor: any) => {
+                const detalle: any = {
+                    tipoMielId: tipoMielId,
+                    kilos: Number((tambor.bruto - tambor.tara).toFixed(2)),  // PN = PB - T
+                    humedad: Number(tambor.humedad),
+                    precio: Number(tambor.precio), // Precio individual por tambor
+                    bruto: Number(tambor.bruto),
+                    tara: Number(tambor.tara),
+                    autorizado: true
+                };
+
+                // Incluir ID si existe (para actualizar)
+                if (tambor.id) {
+                    detalle.id = tambor.id;
+                }
+
+                // Solo agregar floracionId si tiene valor
+                if (tambor.floracionId) {
+                    detalle.floracionId = Number(tambor.floracionId);
+                }
+
+                // Solo agregar colorId si tiene valor
+                if (tambor.colorId) {
+                    detalle.colorId = Number(tambor.colorId);
+                }
+
+                return detalle;
+            })
+        };
+
+        // Enviar al backend
+        this.entradaMielService.updateEntrada(id, request)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (response) => {
+                    alert(`Entrada actualizada exitosamente. Folio: ${response.folio}`);
+                    this.router.navigate(['/acopiador/entradas-miel']);
+                },
+                error: (error) => {
+                    this.loading.set(false);
+                    console.error('Error al actualizar entrada:', error);
+                    alert('Error al actualizar la entrada de miel');
                 }
             });
     }

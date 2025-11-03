@@ -181,6 +181,13 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/acopiador/entradas-miel/entradas-miel-create/entradas-miel-create.component')
                     .then(m => m.EntradasMielCreateComponent)
             },
+
+            // Entradas de Miel - Editar
+            {
+                path: 'entradas-miel/editar/:id',
+                loadComponent: () => import('./features/acopiador/entradas-miel/entradas-miel-create/entradas-miel-create.component')
+                    .then(m => m.EntradasMielCreateComponent)
+            },
             // Salidas de Miel - Listado
             {
                 path: 'salidas-miel',
