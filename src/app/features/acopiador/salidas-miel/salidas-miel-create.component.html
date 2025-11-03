@@ -6,20 +6,48 @@
 <div class="p-6 max-w-7xl mx-auto">
     <!-- HEADER -->
     <div class="mb-6">
-        <div class="flex items-center gap-3 mb-2">
-            <button (click)="cancelar()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <app-icon name="arrow-left" size="md" class="text-gray-600" />
-            </button>
-            <h1 class="text-2xl font-bold text-gray-900">
-                @if (isEditMode()) {
-                Editar Salida de Miel
-                } @else {
-                Nueva Salida de Miel
-                }
-            </h1>
+        <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-3">
+                <button (click)="cancelar()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <app-icon name="arrow-left" size="md" class="text-gray-600" />
+                </button>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">
+                        @if (isEditMode()) {
+                        @if (salidaCargada()) {
+                        {{ salidaCargada().folio }}
+                        } @else {
+                        Editar Salida de Miel
+                        }
+                        } @else {
+                        Nueva Salida de Miel
+                        }
+                    </h1>
+                    @if (isEditMode() && salidaCargada()) {
+                    <p class="text-sm text-gray-600 mt-1">
+                        Estado:
+                        <span class="px-2 py-0.5 rounded-full text-xs font-medium"
+                            [class]="salidaCargada().estado === 'EN_PROCESO' ? 'bg-yellow-100 text-yellow-800' : salidaCargada().estado === 'FINALIZADA' ? 'bg-blue-100 text-blue-800' : salidaCargada().estado === 'EN_TRANSITO' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'">
+                            {{ salidaCargada().estado === 'EN_PROCESO' ? 'En Proceso' : salidaCargada().estado === 'FINALIZADA' ? 'Finalizada' : salidaCargada().estado === 'EN_TRANSITO' ? 'En Tránsito' : 'Verificada' }}
+                        </span>
+                    </p>
+                    }
+                </div>
+            </div>
+
+            @if (isEditMode() && !puedeEditar()) {
+            <div class="bg-red-50 border border-red-200 rounded-lg px-4 py-2 flex items-center gap-2">
+                <app-icon name="lock-closed" size="sm" class="text-red-600" />
+                <span class="text-sm font-medium text-red-700">Solo lectura</span>
+            </div>
+            }
         </div>
         <p class="text-sm text-gray-600 ml-12">
+            @if (isEditMode() && !puedeEditar()) {
+            Esta salida no se puede editar porque ya está en tránsito o verificada
+            } @else {
             Complete la información y seleccione los tambores para la salida
+            }
         </p>
     </div>
 
@@ -93,12 +121,123 @@
             </div>
         </div>
 
+        <!-- TAMBORES ACTUALES DE LA SALIDA (MODO EDICIÓN) -->
+        @if (isEditMode() && tamboresActuales().length > 0) {
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <app-icon name="shopping-bag" size="md" class="text-blue-600" />
+                Tambores en esta Salida
+                <span class="text-sm font-normal text-gray-600 ml-2">
+                    ({{ tamboresActuales().length }} tambores)
+                </span>
+            </h2>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CÓDIGO</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">TIPO MIEL</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">CLASIFICACIÓN</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">KILOS</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">HUMEDAD %</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">COSTO</th>
+                            @if (puedeEditar()) {
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">ACCIONES</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @for (detalle of tamboresActuales(); track detalle.id) {
+                        <tr class="hover:bg-gray-50">
+                            <!-- Código -->
+                            <td class="px-4 py-3 text-sm font-mono font-semibold text-gray-900">
+                                {{ detalle.tamborId }}
+                            </td>
+
+                            <!-- Tipo Miel -->
+                            <td class="px-4 py-3 text-sm text-gray-900">{{ detalle.tipoMielNombre }}</td>
+
+                            <!-- Clasificación -->
+                            <td class="px-4 py-3 text-sm text-center">
+                                <span
+                                    [class]="detalle.clasificacion === 'EXPORTACION' ? 'text-green-700 bg-green-100' : 'text-blue-700 bg-blue-100'"
+                                    class="px-2 py-1 rounded text-xs font-medium">
+                                    {{ detalle.clasificacion }}
+                                </span>
+                            </td>
+
+                            <!-- Kilos -->
+                            <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900">
+                                {{ detalle.kilosDeclarados.toFixed(2) }}
+                                @if (excedeLimite(detalle.kilosDeclarados)) {
+                                <span class="ml-1 text-yellow-600" title="Excede límite recomendado de 300kg">⚠️</span>
+                                }
+                            </td>
+
+                            <!-- Humedad -->
+                            <td class="px-4 py-3 text-sm text-right text-gray-700">
+                                @if (detalle.humedadPromedio !== null) {
+                                {{ detalle.humedadPromedio.toFixed(1) }}
+                                } @else {
+                                -
+                                }
+                            </td>
+
+                            <!-- Costo -->
+                            <td class="px-4 py-3 text-sm text-right font-semibold text-green-700">
+                                {{ formatCurrency(detalle.costoTotal) }}
+                            </td>
+
+                            <!-- Acciones -->
+                            @if (puedeEditar()) {
+                            <td class="px-4 py-3 text-center">
+                                <button type="button" (click)="eliminarTamborActual(detalle)"
+                                    class="text-red-600 hover:bg-red-50 p-1.5 rounded transition-colors"
+                                    title="Eliminar tambor">
+                                    <app-icon name="trash" size="sm" />
+                                </button>
+                            </td>
+                            }
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Totales de tambores actuales -->
+            <div class="mt-4 bg-blue-50 rounded-lg p-4 grid grid-cols-3 gap-4">
+                <div>
+                    <p class="text-xs font-medium text-gray-600 uppercase">Total Tambores</p>
+                    <p class="text-xl font-bold text-gray-900 mt-1">{{ tamboresActuales().length }}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-600 uppercase">Total Kilos</p>
+                    <p class="text-xl font-bold text-gray-900 mt-1">
+                        {{ getTotalKilosTamboresActuales().toFixed(2) }} kg
+                    </p>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-gray-600 uppercase">Total Costo</p>
+                    <p class="text-xl font-bold text-gray-900 mt-1">
+                        {{ formatCurrency(getTotalCostoTamboresActuales()) }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        }
+
         <!-- TABLA DE TAMBORES DISPONIBLES -->
+        @if (!isEditMode() || puedeEditar()) {
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
                     <app-icon name="shopping-bag" size="md" class="text-honey-primary" />
+                    @if (isEditMode()) {
+                    Añadir Más Tambores
+                    } @else {
                     Tambores Disponibles
+                    }
                 </h2>
 
                 <!-- Filtros -->
@@ -207,6 +346,9 @@
                             <!-- Kilos Brutos -->
                             <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900">
                                 {{ tambor.totalKilos.toFixed(2) }}
+                                @if (excedeLimite(tambor.totalKilos)) {
+                                <span class="ml-1 text-yellow-600" title="Excede límite recomendado de 300kg">⚠️</span>
+                                }
                             </td>
 
                             <!-- Tara -->
@@ -244,6 +386,7 @@
             </div>
             }
         </div>
+        }
 
         <!-- RESUMEN -->
         @if (tamboresSeleccionados.length > 0) {
@@ -286,9 +429,14 @@
             <button type="button" (click)="cancelar()"
                 class="px-6 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                 [disabled]="loading()">
+                @if (isEditMode() && !puedeEditar()) {
+                Volver
+                } @else {
                 Cancelar
+                }
             </button>
 
+            @if (!isEditMode() || puedeEditar()) {
             <button type="submit"
                 class="bg-honey-primary hover:bg-honey-dark text-white px-6 py-2.5 rounded-lg transition-colors font-medium flex items-center gap-2"
                 [disabled]="loading() || tamboresSeleccionados.length === 0"
@@ -299,9 +447,14 @@
                 <span>Guardando...</span>
                 } @else {
                 <app-icon name="check-circle" size="sm" />
+                @if (isEditMode()) {
+                <span>Añadir Tambores</span>
+                } @else {
                 <span>Crear y Finalizar Salida</span>
                 }
+                }
             </button>
+            }
         </div>
 
         <!-- Advertencia si no hay tambores seleccionados -->

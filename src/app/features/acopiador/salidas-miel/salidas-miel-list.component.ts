@@ -71,6 +71,7 @@ export class SalidasMielListComponent implements OnInit {
     totalPages = signal(0);
 
     /** Filtros */
+    filterBusqueda = signal(''); // Búsqueda por folio
     filterEstado = signal<EstadoSalida | ''>('');
     filterFechaInicio = signal('');
     filterFechaFin = signal('');
@@ -104,6 +105,10 @@ export class SalidasMielListComponent implements OnInit {
         };
 
         // Aplicar filtros
+        if (this.filterBusqueda()) {
+            params.folio = this.filterBusqueda();
+        }
+
         if (this.filterEstado()) {
             params.estado = this.filterEstado() as EstadoSalida;
         }
@@ -145,6 +150,7 @@ export class SalidasMielListComponent implements OnInit {
     }
 
     clearFilters(): void {
+        this.filterBusqueda.set('');
         this.filterEstado.set('');
         this.filterFechaInicio.set('');
         this.filterFechaFin.set('');
@@ -197,15 +203,11 @@ export class SalidasMielListComponent implements OnInit {
     }
 
     /**
-     * Ver detalle de salida (por ahora redirige a editar)
+     * Ver detalle de salida
+     * Redirige a la página de edición/visualización
      */
     verDetalle(salida: SalidaMielListItem): void {
-        // Por ahora solo permite ver salidas EN_PROCESO (editar)
-        if (salida.estado === 'EN_PROCESO') {
-            this.editarSalida(salida);
-        } else {
-            this.notificationService.info('Ver Detalle', `Salida ${salida.folio} - Estado: ${this.getEstadoLabel(salida.estado)}`);
-        }
+        this.router.navigate(['/acopiador/salidas-miel', salida.id]);
     }
 
     /**

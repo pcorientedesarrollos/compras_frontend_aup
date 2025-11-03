@@ -77,11 +77,17 @@ export class SalidasMielCreateComponent implements OnInit {
     /** Modo edición */
     isEditMode = signal(false);
 
+    /** Salida cargada (para edición) */
+    salidaCargada = signal<any>(null);
+
     /** Choferes activos */
     choferes = signal<ChoferSelectOption[]>([]);
 
     /** Tambores disponibles con estado de selección */
     tambores = signal<TamborEnTabla[]>([]);
+
+    /** Tambores actuales de la salida (en modo edición) */
+    tamboresActuales = signal<any[]>([]);
 
     /** Filtros */
     filtroTipoMiel = signal<number | ''>('');
@@ -91,6 +97,7 @@ export class SalidasMielCreateComponent implements OnInit {
     loading = signal(false);
     loadingChoferes = signal(false);
     loadingTambores = signal(false);
+    loadingSalida = signal(false);
 
     // ============================================================================
     // LIFECYCLE
@@ -170,10 +177,45 @@ export class SalidasMielCreateComponent implements OnInit {
     }
 
     loadSalida(id: string): void {
-        // TODO: Implementar carga de salida existente para edición
-        // Por ahora, modo edición no soportado
-        this.notificationService.warning('Modo edición no disponible', 'Por favor use el listado para gestionar salidas existentes');
-        this.router.navigate(['/acopiador/salidas-miel']);
+        this.loadingSalida.set(true);
+        this.salidaMielService.getSalidaById(id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (salida) => {
+                    this.salidaCargada.set(salida);
+
+                    // Verificar si se puede editar
+                    if (salida.estado === 'EN_TRANSITO' || salida.estado === 'VERIFICADA') {
+                        this.notificationService.warning(
+                            'Solo lectura',
+                            'Esta salida no se puede editar porque ya está en tránsito o verificada'
+                        );
+                    }
+
+                    // Cargar datos del formulario
+                    this.salidaForm.patchValue({
+                        fecha: salida.fecha,
+                        choferId: salida.chofer.id,
+                        observaciones: salida.observaciones || '',
+                        observacionesChofer: salida.observacionesChofer || ''
+                    });
+
+                    // Deshabilitar campos si no es editable
+                    if (!this.puedeEditar()) {
+                        this.salidaForm.disable();
+                    }
+
+                    // Cargar tambores actuales
+                    this.tamboresActuales.set(salida.detalles || []);
+
+                    this.loadingSalida.set(false);
+                },
+                error: (error) => {
+                    this.loadingSalida.set(false);
+                    this.notificationService.error('Error al cargar salida', error.error?.message || 'No se pudo obtener la salida');
+                    this.router.navigate(['/acopiador/salidas-miel']);
+                }
+            });
     }
 
     // ============================================================================
@@ -384,8 +426,85 @@ export class SalidasMielCreateComponent implements OnInit {
     }
 
     // ============================================================================
+    // EDICIÓN - ELIMINAR TAMBORES
+    // ============================================================================
+
+    /**
+     * Eliminar tambor de la salida (solo en modo edición)
+     */
+    eliminarTamborActual(detalle: any): void {
+        if (!this.puedeEditar()) {
+            this.notificationService.warning(
+                'No se puede eliminar',
+                'Esta salida no se puede editar en su estado actual'
+            );
+            return;
+        }
+
+        if (!confirm(`¿Está seguro de eliminar el tambor ${detalle.tamborId}?\n\nEl tambor volverá a estar ACTIVO y disponible.`)) {
+            return;
+        }
+
+        const salidaId = this.salidaId();
+        if (!salidaId) return;
+
+        this.loading.set(true);
+
+        this.salidaMielService.removeTambor(salidaId, detalle.id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (salidaActualizada) => {
+                    this.loading.set(false);
+                    this.notificationService.success('Tambor eliminado', 'El tambor ha sido removido de la salida');
+
+                    // Actualizar tambores actuales
+                    this.tamboresActuales.set(salidaActualizada.detalles || []);
+
+                    // Recargar tambores disponibles
+                    this.loadTamboresDisponibles();
+                },
+                error: (error) => {
+                    this.loading.set(false);
+                    this.notificationService.error('Error al eliminar', error.error?.message || 'No se pudo eliminar el tambor');
+                }
+            });
+    }
+
+    // ============================================================================
     // HELPER METHODS
     // ============================================================================
+
+    /**
+     * Verificar si la salida se puede editar
+     */
+    puedeEditar(): boolean {
+        const salida = this.salidaCargada();
+        if (!salida) return true; // Modo crear
+
+        // No se puede editar si está EN_TRANSITO o VERIFICADA
+        return salida.estado !== 'EN_TRANSITO' && salida.estado !== 'VERIFICADA';
+    }
+
+    /**
+     * Verificar si un tambor excede el límite recomendado (300kg)
+     */
+    excedeLimite(kilos: number): boolean {
+        return kilos > 300;
+    }
+
+    /**
+     * Calcular total de kilos de tambores actuales
+     */
+    getTotalKilosTamboresActuales(): number {
+        return this.tamboresActuales().reduce((sum, t) => sum + t.kilosDeclarados, 0);
+    }
+
+    /**
+     * Calcular total de costo de tambores actuales
+     */
+    getTotalCostoTamboresActuales(): number {
+        return this.tamboresActuales().reduce((sum, t) => sum + t.costoTotal, 0);
+    }
 
     formatCurrency(value: number): string {
         return this.salidaMielService.formatCurrency(value);

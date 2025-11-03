@@ -28,11 +28,12 @@ import {
 } from '../../../core/models/verificador.model';
 import { Floracion, ColorMiel } from '../../../core/models/entrada-miel.model';
 import { IconComponent } from '../../../shared/components/ui/icon/icon.component';
+import { BeeLoaderComponent } from '../../../shared/components/bee-loader/bee-loader.component';
 
 @Component({
   selector: 'app-detalle-llegada',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, IconComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, IconComponent, BeeLoaderComponent],
   template: `
     <div class="p-6">
       <!-- Header con botón volver -->
@@ -47,7 +48,7 @@ import { IconComponent } from '../../../shared/components/ui/icon/icon.component
         @if (llegada()) {
           <div class="bg-white rounded-lg shadow-md p-6">
             <div class="flex items-center justify-between">
-              <div>
+              <div class="flex-1">
                 <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
                   <app-icon name="user" size="xl" className="text-honey-primary" />
                   {{ llegada()!.choferNombre }}
@@ -60,6 +61,22 @@ import { IconComponent } from '../../../shared/components/ui/icon/icon.component
                   Llegada: {{ llegada()!.fechaLlegada | date: 'dd/MM/yyyy HH:mm' }}
                 </div>
               </div>
+
+              <!-- 🚀 Botón Finalizar Todo -->
+              @if (salidasListasParaFinalizar().length > 0) {
+                <div class="mr-4">
+                  <button
+                    (click)="abrirModalFinalizarTodo()"
+                    [disabled]="finalizandoTodo()"
+                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 shadow-lg">
+                    <app-icon name="shield-check" size="lg" />
+                    <div class="text-left">
+                      <div class="text-sm font-bold">Finalizar Todas</div>
+                      <div class="text-xs opacity-90">{{ salidasListasParaFinalizar().length }} salidas listas</div>
+                    </div>
+                  </button>
+                </div>
+              }
 
               <!-- Resumen General -->
               <div class="flex gap-4">
@@ -91,12 +108,10 @@ import { IconComponent } from '../../../shared/components/ui/icon/icon.component
 
       <!-- Loading State -->
       @if (loading()) {
-        <div class="flex items-center justify-center py-12">
-          <div class="text-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-honey-primary mx-auto mb-4"></div>
-            <p class="text-gray-600">Cargando detalle de llegada...</p>
-          </div>
-        </div>
+        <app-bee-loader
+          [fullscreen]="false"
+          [message]="'Cargando detalle de llegada...'"
+          [animation]="'bee-lieve'" />
       }
 
       <!-- Proveedores (Jerárquico) -->
@@ -147,10 +162,15 @@ import { IconComponent } from '../../../shared/components/ui/icon/icon.component
                           @if (todosTamboresVerificados(salida)) {
                             <button
                               (click)="finalizarSalida(salida.salidaId)"
-                              [disabled]="procesando()"
-                              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2">
-                              <app-icon name="check-circle" size="sm" />
-                              <span>Finalizar Salida</span>
+                              [disabled]="finalizandoSalidaId() === salida.salidaId"
+                              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                              @if (finalizandoSalidaId() === salida.salidaId) {
+                                <app-icon name="arrow-path" size="sm" className="animate-spin" />
+                                <span>Finalizando...</span>
+                              } @else {
+                                <app-icon name="check-circle" size="sm" />
+                                <span>Finalizar Salida</span>
+                              }
                             </button>
                           }
                           <button
@@ -431,6 +451,97 @@ import { IconComponent } from '../../../shared/components/ui/icon/icon.component
           </div>
         </div>
       }
+
+      <!-- 🚀 Modal Finalizar Todo -->
+      @if (modalFinalizarTodo()) {
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div class="bg-white rounded-lg shadow-xl max-w-lg w-full">
+            <div class="bg-green-600 p-4 flex items-center justify-between">
+              <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <app-icon name="shield-check" size="lg" className="text-white" />
+                Finalizar Todas las Salidas
+              </h3>
+              @if (!finalizandoTodo()) {
+                <button
+                  (click)="cerrarModalFinalizarTodo()"
+                  class="text-white hover:text-gray-200 transition-colors">
+                  <app-icon name="x-mark" size="lg" />
+                </button>
+              }
+            </div>
+
+            <div class="p-6 space-y-4">
+              @if (!finalizandoTodo()) {
+                <!-- Confirmación -->
+                <div class="text-center">
+                  <div class="bg-green-50 rounded-lg p-4 mb-4">
+                    <p class="text-lg font-semibold text-gray-800 mb-2">
+                      ¿Deseas finalizar todas las salidas verificadas?
+                    </p>
+                    <p class="text-gray-600">
+                      Se procesarán <span class="font-bold text-green-600">{{ salidasListasParaFinalizar().length }}</span> salidas
+                    </p>
+                  </div>
+
+                  <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                    <div class="flex items-start gap-2">
+                      <app-icon name="exclamation-triangle" size="md" className="text-amber-600 mt-0.5" />
+                      <p class="text-sm text-amber-800 text-left">
+                        Esta acción marcará todas las salidas como <strong>VERIFICADAS</strong> y no se podrá deshacer.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex gap-3 justify-end">
+                  <button
+                    type="button"
+                    (click)="cerrarModalFinalizarTodo()"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    (click)="finalizarTodasLasSalidas()"
+                    class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2">
+                    <app-icon name="check-circle" size="md" />
+                    <span>Confirmar y Finalizar</span>
+                  </button>
+                </div>
+              } @else {
+                <!-- Progress Bar -->
+                <div class="text-center">
+                  <div class="mb-4">
+                    <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-green-600 mx-auto mb-4"></div>
+                    <p class="text-lg font-semibold text-gray-800 mb-1">
+                      Finalizando salidas...
+                    </p>
+                    <p class="text-gray-600">
+                      {{ progresoFinalizacion().actual }} de {{ progresoFinalizacion().total }}
+                    </p>
+                  </div>
+
+                  <!-- Barra de progreso -->
+                  <div class="w-full bg-gray-200 rounded-full h-4 mb-2">
+                    <div
+                      class="bg-green-600 rounded-full h-4 transition-all duration-300 flex items-center justify-center"
+                      [style.width.%]="(progresoFinalizacion().actual / progresoFinalizacion().total) * 100">
+                      <span class="text-xs text-white font-semibold">
+                        {{ ((progresoFinalizacion().actual / progresoFinalizacion().total) * 100).toFixed(0) }}%
+                      </span>
+                    </div>
+                  </div>
+
+                  <p class="text-sm text-gray-500 mt-4">
+                    Por favor, no cierres esta ventana...
+                  </p>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
     </div>
   `
 })
@@ -447,12 +558,34 @@ export class DetalleLlegadaComponent implements OnInit {
   llegada = signal<DetalleLlegadaParaVerificar | null>(null);
   loading = signal(false);
   procesando = signal(false);
+  finalizandoSalidaId = signal<string | null>(null); // 🎯 Para feedback individual
   modalVerificacion = signal(false);
   tamborSeleccionado = signal<TamborParaVerificar | null>(null);
   salidaSeleccionadaId = signal<string>('');
 
+  // 🚀 Signals para "Finalizar Todo"
+  modalFinalizarTodo = signal(false);
+  finalizandoTodo = signal(false);
+  progresoFinalizacion = signal({ actual: 0, total: 0 });
+
   floraciones = signal<Floracion[]>([]);
   colores = signal<ColorMiel[]>([]);
+
+  // 🎯 Computed: Obtener salidas listas para finalizar
+  salidasListasParaFinalizar = computed(() => {
+    const llegada = this.llegada();
+    if (!llegada) return [];
+
+    const salidas: SalidaConTambores[] = [];
+    llegada.proveedores.forEach(proveedor => {
+      proveedor.salidas.forEach(salida => {
+        if (this.todosTamboresVerificados(salida)) {
+          salidas.push(salida);
+        }
+      });
+    });
+    return salidas;
+  });
 
   // Control de expansión
   private proveedoresExpandidos = signal<Set<number>>(new Set());
@@ -648,14 +781,14 @@ export class DetalleLlegadaComponent implements OnInit {
    * Finalizar verificación de una salida
    */
   finalizarSalida(salidaId: string): void {
-    this.procesando.set(true);
+    this.finalizandoSalidaId.set(salidaId); // 🎯 Marcar esta salida como procesando
 
     this.verificacionService.finalizarVerificacionSalida(salidaId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (resumen) => {
           this.notificationService.showSuccess(`Salida ${resumen.folio} finalizada exitosamente`);
-          this.procesando.set(false);
+          this.finalizandoSalidaId.set(null);
           // Recargar llegada
           const choferId = this.route.snapshot.paramMap.get('choferId');
           if (choferId) this.cargarDetalleLlegada(choferId);
@@ -663,7 +796,7 @@ export class DetalleLlegadaComponent implements OnInit {
         error: (error) => {
           console.error('Error al finalizar salida:', error);
           this.notificationService.showError('Error al finalizar la salida');
-          this.procesando.set(false);
+          this.finalizandoSalidaId.set(null);
         }
       });
   }
@@ -673,5 +806,96 @@ export class DetalleLlegadaComponent implements OnInit {
    */
   volver(): void {
     this.router.navigate(['/verificador/en-transito']);
+  }
+
+  // ============================================================================
+  // 🚀 FINALIZAR TODO - PROCESO EN LOTE
+  // ============================================================================
+
+  /**
+   * Abrir modal de confirmación para finalizar todas las salidas
+   */
+  abrirModalFinalizarTodo(): void {
+    this.modalFinalizarTodo.set(true);
+  }
+
+  /**
+   * Cerrar modal de finalizar todo
+   */
+  cerrarModalFinalizarTodo(): void {
+    if (!this.finalizandoTodo()) {
+      this.modalFinalizarTodo.set(false);
+      this.progresoFinalizacion.set({ actual: 0, total: 0 });
+    }
+  }
+
+  /**
+   * Finalizar todas las salidas listas (con todos los tambores verificados)
+   * Procesa de forma secuencial para mantener control del progreso
+   */
+  async finalizarTodasLasSalidas(): Promise<void> {
+    const salidas = this.salidasListasParaFinalizar();
+    if (salidas.length === 0) return;
+
+    this.finalizandoTodo.set(true);
+    this.progresoFinalizacion.set({ actual: 0, total: salidas.length });
+
+    const resultados = {
+      exitosas: 0,
+      fallidas: 0,
+      errores: [] as string[]
+    };
+
+    // Procesar salidas secuencialmente
+    for (let i = 0; i < salidas.length; i++) {
+      const salida = salidas[i];
+
+      try {
+        await this.finalizarSalidaPromise(salida.salidaId);
+        resultados.exitosas++;
+      } catch (error: any) {
+        resultados.fallidas++;
+        resultados.errores.push(`${salida.folio}: ${error.message || 'Error desconocido'}`);
+        console.error(`Error al finalizar salida ${salida.folio}:`, error);
+      }
+
+      // Actualizar progreso
+      this.progresoFinalizacion.set({ actual: i + 1, total: salidas.length });
+    }
+
+    // Finalizar proceso
+    this.finalizandoTodo.set(false);
+    this.modalFinalizarTodo.set(false);
+
+    // Mostrar resumen
+    if (resultados.fallidas === 0) {
+      this.notificationService.showSuccess(
+        `✅ Todas las salidas finalizadas exitosamente (${resultados.exitosas}/${salidas.length})`
+      );
+    } else {
+      this.notificationService.showWarning(
+        `⚠️ Proceso completado: ${resultados.exitosas} exitosas, ${resultados.fallidas} fallidas`
+      );
+      // Mostrar errores en consola
+      console.error('Errores al finalizar salidas:', resultados.errores);
+    }
+
+    // Recargar llegada
+    const choferId = this.route.snapshot.paramMap.get('choferId');
+    if (choferId) this.cargarDetalleLlegada(choferId);
+  }
+
+  /**
+   * Convertir Observable a Promise para uso secuencial
+   */
+  private finalizarSalidaPromise(salidaId: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.verificacionService.finalizarVerificacionSalida(salidaId)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (resumen) => resolve(resumen),
+          error: (error) => reject(error)
+        });
+    });
   }
 }

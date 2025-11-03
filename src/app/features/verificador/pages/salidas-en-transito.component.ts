@@ -19,11 +19,12 @@ import { VerificacionService } from '../../../core/services/verificacion.service
 import { NotificationService } from '../../../core/services/notification.service';
 import { LlegadaChoferResponse, EstadoLlegada } from '../../../core/models/verificador.model';
 import { IconComponent } from '../../../shared/components/ui/icon/icon.component';
+import { BeeLoaderComponent } from '../../../shared/components/bee-loader/bee-loader.component';
 
 @Component({
   selector: 'app-salidas-en-transito',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, IconComponent],
+  imports: [CommonModule, RouterModule, FormsModule, IconComponent, BeeLoaderComponent],
   template: `
     <div class="p-6">
       <!-- Header -->
@@ -70,12 +71,10 @@ import { IconComponent } from '../../../shared/components/ui/icon/icon.component
 
       <!-- Grid de Llegadas -->
       @if (loading()) {
-        <div class="flex items-center justify-center py-12">
-          <div class="text-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-honey-primary mx-auto mb-4"></div>
-            <p class="text-gray-600">Cargando llegadas...</p>
-          </div>
-        </div>
+        <app-bee-loader
+          [fullscreen]="false"
+          [message]="'Cargando llegadas en tránsito...'"
+          [animation]="'bee-looking'" />
       } @else if (llegadasFiltradas().length === 0) {
         <div class="bg-white rounded-lg shadow-md">
           <div class="text-center py-12">
