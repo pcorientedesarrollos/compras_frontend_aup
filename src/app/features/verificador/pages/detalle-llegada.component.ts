@@ -62,8 +62,8 @@ import { BeeLoaderComponent } from '../../../shared/components/bee-loader/bee-lo
                 </div>
               </div>
 
-              <!-- 🚀 Botón Finalizar Todo -->
-              @if (salidasListasParaFinalizar().length > 0) {
+              <!-- 🚀 Botón Finalizar Todo - DESHABILITADO TEMPORALMENTE POR PROBLEMAS DE UX -->
+              <!-- @if (salidasListasParaFinalizar().length > 0) {
                 <div class="mr-4">
                   <button
                     (click)="abrirModalFinalizarTodo()"
@@ -76,7 +76,7 @@ import { BeeLoaderComponent } from '../../../shared/components/bee-loader/bee-lo
                     </div>
                   </button>
                 </div>
-              }
+              } -->
 
               <!-- Resumen General -->
               <div class="flex gap-4">
@@ -382,6 +382,17 @@ import { BeeLoaderComponent } from '../../../shared/components/bee-loader/bee-lo
                       [placeholder]="(tamborSeleccionado()?.kilosDeclarados || 0).toString()">
                   </div>
 
+                  <!-- Tara Verificada -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tara Verificada (kg)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      formControlName="taraVerificada"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-transparent"
+                      placeholder="0.00">
+                  </div>
+
                   <!-- Humedad Verificada -->
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Humedad Verificada (%)</label>
@@ -594,6 +605,7 @@ export class DetalleLlegadaComponent implements OnInit {
   // Formulario de verificación
   formVerificacion: FormGroup = this.fb.group({
     kilosVerificados: [null, [Validators.min(0)]],
+    taraVerificada: [null, [Validators.min(0)]], // ← NUEVO: Campo para capturar tara
     humedadVerificada: [null, [Validators.min(0), Validators.max(100)]],
     floracionVerificadaId: [null],
     colorVerificadoId: [null],
@@ -740,6 +752,7 @@ export class DetalleLlegadaComponent implements OnInit {
     const data: VerificarTamborDTO = {
       verificado: true,
       kilosVerificados: formValue.kilosVerificados || undefined,
+      taraVerificada: formValue.taraVerificada || undefined, // ← NUEVO: Enviar tara verificada
       humedadVerificada: formValue.humedadVerificada || undefined,
       floracionVerificadaId: formValue.floracionVerificadaId || undefined,
       colorVerificadoId: formValue.colorVerificadoId || undefined,
@@ -787,11 +800,19 @@ export class DetalleLlegadaComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (resumen) => {
-          this.notificationService.showSuccess(`Salida ${resumen.folio} finalizada exitosamente`);
+          // ✅ No depender del folio en la respuesta (backend solo envía success/message)
+          const mensaje = resumen?.folio
+            ? `Salida ${resumen.folio} finalizada exitosamente`
+            : 'Salida finalizada exitosamente';
+
+          this.notificationService.showSuccess(mensaje);
           this.finalizandoSalidaId.set(null);
-          // Recargar llegada
+
+          // Recargar llegada para mostrar estado actualizado
           const choferId = this.route.snapshot.paramMap.get('choferId');
-          if (choferId) this.cargarDetalleLlegada(choferId);
+          if (choferId) {
+            this.cargarDetalleLlegada(choferId);
+          }
         },
         error: (error) => {
           console.error('Error al finalizar salida:', error);

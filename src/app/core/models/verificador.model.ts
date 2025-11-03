@@ -225,6 +225,7 @@ export interface DetalleLlegadaParaVerificar {
 export interface VerificarTamborDTO {
   verificado: boolean;
   kilosVerificados?: number;
+  taraVerificada?: number; // ← NUEVO: Tara verificada por el verificador
   humedadVerificada?: number;
   floracionVerificadaId?: number;
   colorVerificadoId?: number;
