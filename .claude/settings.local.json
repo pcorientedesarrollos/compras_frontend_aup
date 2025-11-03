@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npm install:*)",
-      "Bash(ng generate:*)"
+      "Bash(ng generate:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

@@ -392,8 +392,18 @@ export class EntradasMielCreateComponent implements OnInit {
                 precio: [null, [Validators.required, Validators.min(0.01)]]
             });
 
+            // CRÍTICO: Subscribirse a cambios de cada tambor para recalcular en tiempo real
+            tamborGroup.valueChanges
+                .pipe(takeUntilDestroyed(this.destroyRef))
+                .subscribe(() => {
+                    this.recalcularTotales();
+                });
+
             this.tamboresArray.push(tamborGroup);
         }
+
+        // Recalcular totales después de generar tambores
+        this.recalcularTotales();
     }
 
     /**

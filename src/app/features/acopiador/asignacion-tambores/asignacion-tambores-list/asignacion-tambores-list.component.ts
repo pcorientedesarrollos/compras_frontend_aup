@@ -156,6 +156,42 @@ export class AsignacionTamboresListComponent implements OnInit {
     /** Contador de tambores */
     contadorTambores = computed(() => this.tamboresBorrador().length);
 
+    /**
+     * Determina si un detalle es compatible con la selección actual
+     * Retorna una función que valida compatibilidad basada en:
+     * - Mismo tipo de miel
+     * - Mismo rango de humedad (≤20% o >20%)
+     * - Misma clasificación (EXPORTACION/NACIONAL)
+     */
+    detalleEsCompatible = computed(() => {
+        const seleccionados = this.detallesSeleccionados();
+
+        // Si no hay selección, todos son compatibles
+        if (seleccionados.length === 0) {
+            return (_detalle: DetalleDisponibleParaTambor) => true;
+        }
+
+        // Obtener el primer detalle seleccionado como referencia
+        const primerSeleccionado = this.detallesDisponibles()
+            .find(d => d.id === seleccionados[0]);
+
+        if (!primerSeleccionado) {
+            return (_detalle: DetalleDisponibleParaTambor) => true;
+        }
+
+        // Determinar rango de humedad del primer seleccionado
+        const rangoHumedadReferencia = primerSeleccionado.humedad <= 20 ? 'BAJO' : 'ALTO';
+
+        // Retornar función que valida compatibilidad
+        return (detalle: DetalleDisponibleParaTambor) => {
+            const rangoHumedadDetalle = detalle.humedad <= 20 ? 'BAJO' : 'ALTO';
+
+            return detalle.tipoMielId === primerSeleccionado.tipoMielId &&
+                   rangoHumedadDetalle === rangoHumedadReferencia &&
+                   detalle.clasificacion === primerSeleccionado.clasificacion;
+        };
+    });
+
     // ============================================================================
     // CONSTRUCTOR - EFFECTS
     // ============================================================================
@@ -339,15 +375,19 @@ export class AsignacionTamboresListComponent implements OnInit {
         const detallesSeleccionados = this.detallesDisponibles()
             .filter(d => idsSeleccionados.includes(d.id));
 
-        // Validar homogeneidad (mismo tipo y clasificación)
+        // Validar homogeneidad (mismo tipo, clasificación Y rango de humedad)
         const primerDetalle = detallesSeleccionados[0];
-        const todosIguales = detallesSeleccionados.every(d =>
-            d.tipoMielId === primerDetalle.tipoMielId &&
-            d.clasificacion === primerDetalle.clasificacion
-        );
+        const rangoHumedadReferencia = primerDetalle.humedad <= 20 ? 'BAJO' : 'ALTO';
+
+        const todosIguales = detallesSeleccionados.every(d => {
+            const rangoHumedadDetalle = d.humedad <= 20 ? 'BAJO' : 'ALTO';
+            return d.tipoMielId === primerDetalle.tipoMielId &&
+                   d.clasificacion === primerDetalle.clasificacion &&
+                   rangoHumedadDetalle === rangoHumedadReferencia;
+        });
 
         if (!todosIguales) {
-            alert('Todos los detalles deben ser del mismo tipo de miel y clasificación');
+            alert('Todos los detalles deben ser del mismo tipo de miel, clasificación Y rango de humedad (≤20% o >20%)');
             return;
         }
 

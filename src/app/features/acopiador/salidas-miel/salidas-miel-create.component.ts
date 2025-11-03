@@ -252,8 +252,8 @@ export class SalidasMielCreateComponent implements OnInit {
 
     get totalKilos(): number {
         return this.tamboresSeleccionados.reduce((sum, t) => {
-            const kilosNetos = Math.max(0, t.totalKilos - t.taraCapturada);
-            return sum + kilosNetos;
+            const kilosBrutos = t.totalKilos + t.taraCapturada; // En SALIDAS: PN + Tara = PB
+            return sum + kilosBrutos;
         }, 0);
     }
 
@@ -262,7 +262,7 @@ export class SalidasMielCreateComponent implements OnInit {
     }
 
     calcularKilosNetos(tambor: TamborEnTabla): number {
-        return Math.max(0, tambor.totalKilos - tambor.taraCapturada);
+        return tambor.totalKilos + tambor.taraCapturada; // En SALIDAS: PN + Tara = PB
     }
 
     /**
@@ -339,6 +339,16 @@ export class SalidasMielCreateComponent implements OnInit {
         // Validar que haya tambores seleccionados
         if (this.tamboresSeleccionados.length === 0) {
             this.notificationService.warning('Sin tambores', 'Debe seleccionar al menos un tambor');
+            return;
+        }
+
+        // Validar que TODOS los tambores tengan tara capturada
+        const tamboresSinTara = this.tamboresSeleccionados.filter(t => !t.taraCapturada || t.taraCapturada <= 0);
+        if (tamboresSinTara.length > 0) {
+            this.notificationService.warning(
+                'Tara incompleta',
+                `Debe capturar la tara de todos los tambores seleccionados (${tamboresSinTara.length} pendiente${tamboresSinTara.length > 1 ? 's' : ''})`
+            );
             return;
         }
 
