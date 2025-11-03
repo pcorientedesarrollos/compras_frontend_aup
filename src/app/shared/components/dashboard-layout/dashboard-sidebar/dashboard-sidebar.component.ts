@@ -80,8 +80,8 @@ export class DashboardSidebarComponent {
                 { icon: 'bee', label: 'Apicultores', route: '/acopiador/apicultores' },
                 { icon: 'map-pin', label: 'Ver Apiarios', route: '/acopiador/apiarios' },
                 { icon: 'shopping-bag', label: 'Entradas de Miel', route: '/acopiador/entradas-miel' },
-                { icon: 'folder', label: 'Salidas de Miel', route: '/acopiador/salidas-miel' },
                 { icon: 'tag', label: 'Asignación Tambores', route: '/acopiador/asignacion-tambores' },
+                { icon: 'folder', label: 'Salidas de Miel', route: '/acopiador/salidas-miel' },
                 // { icon: 'shopping-bag', label: 'Compras de Miel', route: '/acopiador/compras' }
             ];
         }

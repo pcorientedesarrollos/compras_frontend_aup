@@ -77,10 +77,11 @@ export class AsignacionTamboresListComponent implements OnInit {
     /** Tipos de miel disponibles (catálogo) */
     tiposMiel = signal<TipoMielOption[]>([]);
 
-    // Filtros
-    filterClasificacion = signal<ClasificacionMiel | ''>(ClasificacionMiel.EXPORTACION);
+    // Filtros (reordenados según especificación)
+    filterApicultor = signal(''); // Incluye búsqueda por nombre o folio
     filterTipoMielId = signal<number | null>(null);
-    filterApicultor = signal('');
+    filterHumedad = signal<number | null>(null); // NUEVO: filtro por humedad
+    filterClasificacion = signal<ClasificacionMiel | ''>(''); // Default: TODAS (vacío)
 
     // Modal cancelar tambor
     tamborACancelar = signal<TamborBorrador | null>(null);
@@ -122,12 +123,31 @@ export class AsignacionTamboresListComponent implements OnInit {
             .flatMap(t => t.detalles.map(d => d.id));
         detalles = detalles.filter(d => !idsEnTambores.includes(d.id));
 
-        // Filtro por apicultor
+        // Filtro por apicultor o folio (búsqueda combinada)
         const searchTerm = this.filterApicultor().toLowerCase();
         if (searchTerm) {
             detalles = detalles.filter(d =>
-                d.apicultorNombre.toLowerCase().includes(searchTerm)
+                d.apicultorNombre.toLowerCase().includes(searchTerm) ||
+                d.entradaFolio.toLowerCase().includes(searchTerm)
             );
+        }
+
+        // Filtro por tipo de miel
+        const tipoMielId = this.filterTipoMielId();
+        if (tipoMielId) {
+            detalles = detalles.filter(d => d.tipoMielId === tipoMielId);
+        }
+
+        // Filtro por humedad (exacta o rango - por ahora exacta)
+        const humedad = this.filterHumedad();
+        if (humedad !== null) {
+            detalles = detalles.filter(d => d.humedad <= humedad);
+        }
+
+        // Filtro por clasificación
+        const clasificacion = this.filterClasificacion();
+        if (clasificacion) {
+            detalles = detalles.filter(d => d.clasificacion === clasificacion);
         }
 
         return detalles;
@@ -244,9 +264,10 @@ export class AsignacionTamboresListComponent implements OnInit {
      * Limpiar filtros
      */
     clearFilters(): void {
-        this.filterClasificacion.set(ClasificacionMiel.EXPORTACION);
-        this.filterTipoMielId.set(null);
         this.filterApicultor.set('');
+        this.filterTipoMielId.set(null);
+        this.filterHumedad.set(null);
+        this.filterClasificacion.set(''); // TODAS
         this.deseleccionarTodos();
         this.loadDetallesDisponibles();
     }
@@ -333,6 +354,14 @@ export class AsignacionTamboresListComponent implements OnInit {
         // Calcular totales
         const totalKilos = detallesSeleccionados.reduce((sum, d) => sum + d.kilos, 0);
         const totalCosto = detallesSeleccionados.reduce((sum, d) => sum + d.costoTotal, 0);
+
+        // VALIDACIÓN: No exceder kilos máximos de un tambor (350kg recomendado)
+        const MAX_KILOS_TAMBOR = 350;
+        if (totalKilos > MAX_KILOS_TAMBOR) {
+            if (!confirm(`⚠️ ADVERTENCIA: El tambor tendrá ${totalKilos.toFixed(2)} kg, excediendo el límite recomendado de ${MAX_KILOS_TAMBOR} kg.\n\n¿Desea continuar de todos modos?`)) {
+                return;
+            }
+        }
 
         // Crear tambor borrador
         const nuevoTambor: TamborBorrador = {
