@@ -1,11 +1,20 @@
+<!-- 🔄 Loader mientras carga datos -->
+@if (loading()) {
+<app-bee-loader
+    [fullscreen]="false"
+    [message]="'Cargando dashboard...'"
+    [animation]="'bee-lieve'" />
+} @else {
+
 <div class="space-y-6">
 
     <!-- Header con saludo -->
     <div class="bg-gradient-to-r from-honey-primary to-amber-600 rounded-xl shadow-lg p-6 text-white">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-2xl md:text-3xl font-bold mb-2">
-                    ¡Bienvenido, {{ currentUser()?.nombre }}! 👑
+                <h1 class="text-2xl md:text-3xl font-bold mb-2 flex items-center gap-2">
+                    ¡Bienvenido, {{ currentUser()?.nombre }}!
+                    <app-icon name="crown" size="xl" className="text-white" />
                 </h1>
                 <p class="text-amber-100">
                     Panel de Administración · Sistema de Trazabilidad Oaxaca Miel
@@ -13,15 +22,15 @@
             </div>
             <div class="hidden md:block">
                 <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                    <span class="text-4xl">🍯</span>
+                    <app-icon name="honey" size="2xl" className="text-white" />
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Métricas Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        @for (metric of metrics; track metric.title) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (metric of metrics(); track metric.title) {
         <div class="bg-white rounded-lg shadow-md p-5 hover:shadow-lg transition-shadow">
             <div class="flex items-start justify-between">
                 <div class="flex-1">
@@ -30,9 +39,9 @@
 
                     @if (metric.change) {
                     <div class="flex items-center mt-2">
-                        <span [class]="'text-xs font-semibold px-2 py-0.5 rounded-full ' + 
-                    (metric.changeType === 'positive' 
-                      ? 'bg-green-100 text-green-800' 
+                        <span [class]="'text-xs font-semibold px-2 py-0.5 rounded-full ' +
+                    (metric.changeType === 'positive'
+                      ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800')">
                             {{ metric.change }}
                         </span>
@@ -41,8 +50,9 @@
                     }
                 </div>
 
+                <!-- ✅ Icono SVG en lugar de emoji -->
                 <div [class]="'w-12 h-12 rounded-lg flex items-center justify-center ' + metric.bgColor">
-                    <span class="text-2xl">{{ metric.icon }}</span>
+                    <app-icon [name]="metric.icon" size="lg" [className]="metric.color" />
                 </div>
             </div>
         </div>
@@ -51,8 +61,8 @@
 
     <!-- Acciones Rápidas -->
     <div>
-        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-            <span class="mr-2">⚡</span>
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <app-icon name="bolt" size="lg" className="text-honey-primary" />
             Acciones Rápidas
         </h2>
 
@@ -60,7 +70,10 @@
             @for (action of quickActions; track action.route) {
             <a [routerLink]="action.route"
                 [class]="'block p-5 rounded-lg text-white shadow-md hover:shadow-xl transition-all transform hover:scale-105 ' + action.color">
-                <div class="text-3xl mb-3">{{ action.icon }}</div>
+                <!-- ✅ Icono SVG -->
+                <div class="mb-3">
+                    <app-icon [name]="action.icon" size="2xl" className="text-white" />
+                </div>
                 <h3 class="text-lg font-bold mb-1">{{ action.title }}</h3>
                 <p class="text-sm text-white/80">{{ action.description }}</p>
             </a>
@@ -70,8 +83,8 @@
 
     <!-- Actividad Reciente (placeholder) -->
     <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-            <span class="mr-2">📋</span>
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <app-icon name="document-text" size="lg" className="text-gray-700" />
             Actividad Reciente
         </h2>
 
@@ -79,7 +92,8 @@
             @for (i of [1,2,3,4]; track i) {
             <div class="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
                 <div class="w-10 h-10 bg-honey-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span class="text-lg">🔔</span>
+                    <!-- ✅ Icono SVG -->
+                    <app-icon name="bell" size="md" className="text-honey-primary" />
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-gray-800 truncate">
@@ -89,21 +103,20 @@
                         Hace {{ i }} hora(s)
                     </p>
                 </div>
-                <button class="text-gray-400 hover:text-honey-primary transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
+                <app-icon name="chevron-right" size="md" className="text-gray-400 hover:text-honey-primary transition-colors" />
             </div>
             }
         </div>
 
         <div class="mt-4 text-center">
             <a routerLink="/admin/reportes"
-                class="text-sm text-honey-primary hover:text-honey-dark font-medium transition-colors">
-                Ver toda la actividad →
+                class="text-sm text-honey-primary hover:text-honey-dark font-medium transition-colors inline-flex items-center gap-1">
+                Ver toda la actividad
+                <app-icon name="arrow-right" size="sm" />
             </a>
         </div>
     </div>
 
 </div>
+
+}

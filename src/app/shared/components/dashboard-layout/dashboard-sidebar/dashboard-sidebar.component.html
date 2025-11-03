@@ -15,12 +15,19 @@
             (isCollapsed() ? 'px-2' : 'px-4')
           ">
             <!-- Info del usuario -->
-            <div [class]="'flex items-center transition-all duration-300 ' + (isCollapsed() ? 'justify-center' : 'space-x-2')">
-                <div
-                    class="w-10 h-10 bg-gradient-to-br from-honey-primary to-amber-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <!-- Icono dinámico según rol -->
-                    <app-icon [name]="roleIcon()" size="lg" color="text-white" />
+            <div [class]="'flex items-center transition-all duration-300 ' + (isCollapsed() ? 'justify-center' : 'space-x-3')">
+                <!-- Avatar (placeholder para foto futura) -->
+                <div class="relative flex-shrink-0">
+                    <div class="w-10 h-10 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center">
+                        <!-- Icono de usuario (será reemplazado por foto) -->
+                        <app-icon name="user-circle" size="lg" color="text-white" />
+                    </div>
+                    <!-- Badge del rol (pequeño icono en esquina) -->
+                    <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-honey-primary rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                        <app-icon [name]="roleIcon()" size="xs" color="text-white" />
+                    </div>
                 </div>
+
                 @if (!isCollapsed()) {
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-semibold text-gray-800 truncate">
