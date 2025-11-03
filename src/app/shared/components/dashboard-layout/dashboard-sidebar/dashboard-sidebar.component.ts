@@ -2,6 +2,7 @@ import { Component, inject, computed, output, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
+import { SidebarService } from '../../../../core/services/sidebar.service';
 import { IconComponent } from '../../ui/icon/icon.component';
 import { IconName } from '../../ui/icon/types/icon.types';
 
@@ -28,9 +29,11 @@ interface MenuItem {
 export class DashboardSidebarComponent {
     private authService = inject(AuthService);
     private router = inject(Router);
+    private sidebarService = inject(SidebarService); // 🔄 Para el toggle collapse
 
     // Input para recibir estado del sidebar
     isOpen = input<boolean>(false);
+    isCollapsed = input<boolean>(false); // 🎯 Nuevo input para estado colapsado
 
     // Output para cerrar sidebar en mobile
     closeSidebarEvent = output<void>();
@@ -137,5 +140,12 @@ export class DashboardSidebarComponent {
      */
     onLogout(): void {
         this.authService.logout();
+    }
+
+    /**
+     * 🔄 Toggle collapse del sidebar (solo desktop)
+     */
+    toggleCollapse(): void {
+        this.sidebarService.toggleCollapse();
     }
 }

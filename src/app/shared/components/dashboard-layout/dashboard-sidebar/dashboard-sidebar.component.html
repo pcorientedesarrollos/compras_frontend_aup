@@ -1,92 +1,155 @@
 <aside [class]="
-    'fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] w-64 ' +
-    'transition-transform duration-300 ease-in-out ' +
+    'fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] ' +
+    'transition-all duration-300 ease-in-out ' +
     'bg-white border-r border-gray-200 overflow-y-auto ' +
     'lg:translate-x-0 ' +
+    (isCollapsed() ? 'w-16' : 'w-64') + ' ' +
     (isOpen() ? 'translate-x-0' : '-translate-x-full')
   ">
 
     <div class="flex flex-col h-full">
 
         <!-- Header del sidebar con info de rol -->
-        <div class="p-4 bg-gradient-to-r from-honey-primary/10 to-amber-100/50 border-b border-amber-200">
-            <div class="flex items-center space-x-2">
+        <div [class]="
+            'p-4 bg-gradient-to-r from-honey-primary/10 to-amber-100/50 border-b border-amber-200 transition-all duration-300 ' +
+            (isCollapsed() ? 'px-2' : 'px-4')
+          ">
+            <!-- Info del usuario -->
+            <div [class]="'flex items-center transition-all duration-300 ' + (isCollapsed() ? 'justify-center' : 'space-x-2')">
                 <div
-                    class="w-10 h-10 bg-gradient-to-br from-honey-primary to-amber-600 rounded-lg flex items-center justify-center">
+                    class="w-10 h-10 bg-gradient-to-br from-honey-primary to-amber-600 rounded-lg flex items-center justify-center flex-shrink-0">
                     <!-- Icono dinámico según rol -->
                     <app-icon [name]="roleIcon()" size="lg" color="text-white" />
                 </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-gray-800 truncate">
-                        {{ currentUser()?.nombre }}
-                    </p>
-                    <p class="text-xs text-gray-600">
-                        @switch (currentUser()?.role) {
-                        @case ('ADMINISTRADOR') {
-                        <span>Administrador</span>
-                        }
-                        @case ('ACOPIADOR') {
-                        <span>Acopiador</span>
-                        }
-                        @case ('APICULTOR') {
-                        <span>Apicultor</span>
-                        }
-                        @case ('MIELERA') {
-                        <span>Mielera</span>
-                        }
-                        @case ('VERIFICADOR') {
-                        <span>Verificador</span>
-                        }
-                        }
-                    </p>
-                </div>
+                @if (!isCollapsed()) {
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-gray-800 truncate">
+                            {{ currentUser()?.nombre }}
+                        </p>
+                        <p class="text-xs text-gray-600">
+                            @switch (currentUser()?.role) {
+                            @case ('ADMINISTRADOR') {
+                            <span>Administrador</span>
+                            }
+                            @case ('ACOPIADOR') {
+                            <span>Acopiador</span>
+                            }
+                            @case ('APICULTOR') {
+                            <span>Apicultor</span>
+                            }
+                            @case ('MIELERA') {
+                            <span>Mielera</span>
+                            }
+                            @case ('VERIFICADOR') {
+                            <span>Verificador</span>
+                            }
+                            }
+                        </p>
+                    </div>
+                }
             </div>
+
+            <!-- 🔄 Botón para colapsar/expandir (separado abajo) -->
+            <button
+                (click)="toggleCollapse()"
+                [class]="
+                    'hidden lg:flex items-center justify-center w-full mt-3 py-2 rounded-lg ' +
+                    'bg-white border border-honey-primary/30 hover:bg-honey-primary hover:text-white text-honey-dark ' +
+                    'transition-all duration-200 group shadow-sm hover:shadow-md ' +
+                    (isCollapsed() ? 'px-0' : 'px-3 space-x-2')
+                "
+                [title]="isCollapsed() ? 'Expandir menú' : 'Colapsar menú'">
+                <app-icon
+                    [name]="isCollapsed() ? 'chevron-right' : 'chevron-left'"
+                    size="md"
+                    class="group-hover:scale-110 transition-transform" />
+                @if (!isCollapsed()) {
+                    <span class="text-xs font-semibold"></span>
+                }
+            </button>
         </div>
 
         <!-- Menú de navegación -->
         <nav class="flex-1 p-3 space-y-1">
             @for (item of menuItems(); track item.route) {
-            <a [routerLink]="item.route" routerLinkActive="bg-honey-primary text-white shadow-md"
-                [routerLinkActiveOptions]="{ exact: true }" (click)="onMenuItemClick(item.route)"
-                class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-honey-primary/10 hover:text-honey-dark transition-all duration-200 group cursor-pointer">
+            <a
+                [routerLink]="item.route"
+                routerLinkActive="bg-honey-primary text-white shadow-md"
+                [routerLinkActiveOptions]="{ exact: true }"
+                (click)="onMenuItemClick(item.route)"
+                [class]="
+                    'flex items-center rounded-lg text-gray-700 hover:bg-honey-primary/10 hover:text-honey-dark ' +
+                    'transition-all duration-200 group cursor-pointer relative ' +
+                    (isCollapsed() ? 'justify-center px-0 py-3' : 'space-x-3 px-3 py-2.5')
+                "
+                [title]="isCollapsed() ? item.label : ''">
 
                 <!-- Icono con app-icon -->
-                <app-icon [name]="item.icon" size="md"
+                <app-icon
+                    [name]="item.icon"
+                    size="md"
                     class="group-hover:scale-110 transition-transform flex-shrink-0" />
 
-                <!-- Label -->
-                <span class="flex-1 text-sm font-medium">
-                    {{ item.label }}
-                </span>
+                <!-- Label (oculto cuando está colapsado) -->
+                @if (!isCollapsed()) {
+                    <span class="flex-1 text-sm font-medium">
+                        {{ item.label }}
+                    </span>
 
-                <!-- Badge (opcional) -->
-                @if (item.badge) {
-                <span
-                    [class]="'px-2 py-0.5 text-xs font-semibold rounded-full ' + (item.badgeClass || 'bg-red-100 text-red-800')">
-                    {{ item.badge }}
-                </span>
+                    <!-- Badge (opcional) -->
+                    @if (item.badge) {
+                    <span
+                        [class]="'px-2 py-0.5 text-xs font-semibold rounded-full ' + (item.badgeClass || 'bg-red-100 text-red-800')">
+                        {{ item.badge }}
+                    </span>
+                    }
+
+                    <!-- Icono de flecha al hover -->
+                    <app-icon name="chevron-right" size="sm" class="opacity-0 group-hover:opacity-100 transition-opacity" />
                 }
 
-                <!-- Icono de flecha al hover -->
-                <app-icon name="chevron-right" size="sm" class="opacity-0 group-hover:opacity-100 transition-opacity" />
+                <!-- Tooltip en modo colapsado (con CSS puro) -->
+                @if (isCollapsed()) {
+                    <span class="absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                        {{ item.label }}
+                        @if (item.badge) {
+                            <span class="ml-2 px-1.5 py-0.5 text-xs font-semibold rounded bg-red-500 text-white">
+                                {{ item.badge }}
+                            </span>
+                        }
+                    </span>
+                }
             </a>
             }
         </nav>
 
         <!-- Footer del sidebar -->
-        <div class="p-4 border-t border-gray-200 bg-gray-50 space-y-3">
+        <div [class]="
+            'p-4 border-t border-gray-200 bg-gray-50 space-y-3 transition-all duration-300 ' +
+            (isCollapsed() ? 'px-2' : 'px-4')
+          ">
             <!-- Botón de cerrar sesión -->
-            <button (click)="onLogout()"
-                class="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-lg text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition-all duration-200 group">
+            <button
+                (click)="onLogout()"
+                [class]="
+                    'w-full flex items-center rounded-lg text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 ' +
+                    'transition-all duration-200 group ' +
+                    (isCollapsed() ? 'justify-center px-0 py-3' : 'justify-center space-x-2 px-4 py-2.5')
+                "
+                [title]="isCollapsed() ? 'Cerrar Sesión' : ''">
                 <app-icon name="arrow-right" size="md" class="group-hover:scale-110 transition-transform" />
-                <span class="text-sm font-medium">Cerrar Sesión</span>
+                @if (!isCollapsed()) {
+                    <span class="text-sm font-medium">Cerrar Sesión</span>
+                }
             </button>
 
-            <!-- Info del sistema -->
-            <div class="flex items-center space-x-2 text-xs text-gray-500">
-                <app-icon name="information-circle" size="sm" color="text-gray-400" />
-                <span>Sistema de Trazabilidad</span>
-            </div>
+            <!-- Info del sistema (oculta cuando está colapsado) -->
+            @if (!isCollapsed()) {
+                <div class="flex items-center space-x-2 text-xs text-gray-500">
+                    <app-icon name="information-circle" size="sm" color="text-gray-400" />
+                    <span>Sistema de Trazabilidad</span>
+                </div>
+            }
         </div>
 
     </div>

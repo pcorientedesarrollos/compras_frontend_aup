@@ -24,6 +24,7 @@ export class DashboardLayoutComponent implements OnInit {
 
     // Exponer estado del sidebar al template
     sidebarOpen = this.sidebarService.isOpen;
+    sidebarCollapsed = this.sidebarService.isCollapsed; // 🔄 Estado colapsado
 
     ngOnInit(): void {
         // Inicializar estado del sidebar según tamaño de pantalla

@@ -11,11 +11,17 @@
     }
 
     <!-- SIDEBAR -->
-    <app-dashboard-sidebar [isOpen]="sidebarOpen()" (closeSidebarEvent)="closeSidebar()">
+    <app-dashboard-sidebar
+        [isOpen]="sidebarOpen()"
+        [isCollapsed]="sidebarCollapsed()"
+        (closeSidebarEvent)="closeSidebar()">
     </app-dashboard-sidebar>
 
-    <!-- MAIN CONTENT -->
-    <main class="pt-16 lg:ml-64 min-h-screen transition-all duration-300 ease-in-out flex flex-col">
+    <!-- MAIN CONTENT (margen ajustado según estado collapsed) -->
+    <main [class]="
+        'pt-16 min-h-screen transition-all duration-300 ease-in-out flex flex-col ' +
+        (sidebarCollapsed() ? 'lg:ml-16' : 'lg:ml-64')
+      ">
 
         <!-- Contenido dinámico (dashboards específicos) -->
         <div class="flex-1 p-4 sm:p-6 lg:p-8">
