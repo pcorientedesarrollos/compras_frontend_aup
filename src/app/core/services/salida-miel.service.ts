@@ -35,6 +35,7 @@ import {
     EstadoSalida,
     TamborDisponible
 } from '../models/salida-miel.model';
+import { CancelarTamborRequest, TamborDetalle } from '../models/tambor.model';
 
 @Injectable({
     providedIn: 'root'
@@ -319,6 +320,37 @@ export class SalidaMielService {
      */
     cancelarSalida(id: string): Observable<void> {
         return this.http.delete<void>(`${this.BASE_URL}/${id}`);
+    }
+
+    /**
+     * Cancelar tambor y liberar entradas
+     * PATCH /api/tambores/:id/cancelar
+     *
+     * ⚠️ VALIDACIONES:
+     * - El tambor debe estar en estado ACTIVO
+     * - ACOPIADOR solo puede cancelar sus propios tambores
+     * - Motivo obligatorio (10-1000 caracteres)
+     *
+     * EFECTOS:
+     * - Tambor: estado ACTIVO → CANCELADO
+     * - Entradas: estadoUso USADO → DISPONIBLE
+     * - Se registra en historial de auditoría
+     *
+     * @param tamborId - ID del tambor a cancelar
+     * @param data - Motivo de cancelación (min 10, max 1000 caracteres)
+     * @returns Observable con el tambor cancelado y sus detalles
+     *
+     * @example
+     * const request: CancelarTamborRequest = {
+     *   motivoCancelacion: 'Se confundieron al crear el tambor y usaron mal la miel de entrada'
+     * };
+     * this.salidaMielService.cancelarTambor('clxxx123', request).subscribe(...);
+     */
+    cancelarTambor(tamborId: string, data: CancelarTamborRequest): Observable<TamborDetalle> {
+        return this.http.patch<ApiResponse<TamborDetalle>>(`/tambores/${tamborId}/cancelar`, data)
+            .pipe(
+                map(response => response.data)
+            );
     }
 
     // ============================================================================

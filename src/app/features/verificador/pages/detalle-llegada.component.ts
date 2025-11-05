@@ -808,10 +808,20 @@ export class DetalleLlegadaComponent implements OnInit {
           this.notificationService.showSuccess(mensaje);
           this.finalizandoSalidaId.set(null);
 
-          // Recargar llegada para mostrar estado actualizado
-          const choferId = this.route.snapshot.paramMap.get('choferId');
-          if (choferId) {
-            this.cargarDetalleLlegada(choferId);
+          // 🎯 Verificar si esta era la última salida pendiente
+          const salidasRestantes = this.salidasListasParaFinalizar();
+          if (salidasRestantes.length === 1 && salidasRestantes[0].salidaId === salidaId) {
+            // Esta es la última salida, redirigir a verificaciones completadas
+            setTimeout(() => {
+              this.notificationService.showSuccess('¡Todas las verificaciones completadas! Redirigiendo...');
+              this.router.navigate(['/verificador/verificadas']);
+            }, 1000);
+          } else {
+            // Recargar llegada para mostrar estado actualizado
+            const choferId = this.route.snapshot.paramMap.get('choferId');
+            if (choferId) {
+              this.cargarDetalleLlegada(choferId);
+            }
           }
         },
         error: (error) => {
@@ -893,17 +903,23 @@ export class DetalleLlegadaComponent implements OnInit {
       this.notificationService.showSuccess(
         `✅ Todas las salidas finalizadas exitosamente (${resultados.exitosas}/${salidas.length})`
       );
+
+      // 🎯 Redirigir a verificaciones completadas después de finalizar todo
+      setTimeout(() => {
+        this.notificationService.showSuccess('¡Todas las verificaciones completadas! Redirigiendo...');
+        this.router.navigate(['/verificador/verificadas']);
+      }, 1500);
     } else {
       this.notificationService.showWarning(
         `⚠️ Proceso completado: ${resultados.exitosas} exitosas, ${resultados.fallidas} fallidas`
       );
       // Mostrar errores en consola
       console.error('Errores al finalizar salidas:', resultados.errores);
-    }
 
-    // Recargar llegada
-    const choferId = this.route.snapshot.paramMap.get('choferId');
-    if (choferId) this.cargarDetalleLlegada(choferId);
+      // Recargar llegada para mostrar salidas pendientes
+      const choferId = this.route.snapshot.paramMap.get('choferId');
+      if (choferId) this.cargarDetalleLlegada(choferId);
+    }
   }
 
   /**

@@ -84,6 +84,7 @@ export class DashboardSidebarComponent {
                 { icon: 'map-pin', label: 'Ver Apiarios', route: '/acopiador/apiarios' },
                 { icon: 'shopping-bag', label: 'Entradas de Miel', route: '/acopiador/entradas-miel' },
                 { icon: 'tag', label: 'Asignación Tambores', route: '/acopiador/asignacion-tambores' },
+                { icon: 'clipboard', label: 'Tambores Disponibles', route: '/acopiador/tambores-disponibles' },
                 { icon: 'folder', label: 'Salidas de Miel', route: '/acopiador/salidas-miel' },
                 // { icon: 'shopping-bag', label: 'Compras de Miel', route: '/acopiador/compras' }
             ];

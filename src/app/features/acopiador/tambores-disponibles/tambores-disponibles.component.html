@@ -1,0 +1,388 @@
+<!-- ============================================================================
+     📦 TAMBORES DISPONIBLES - ACOPIADOR
+     Listado completo con filtros y opción de cancelación
+     ============================================================================ -->
+
+<div class="p-6 max-w-7xl mx-auto">
+    <!-- HEADER -->
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+            <app-icon name="shopping-bag" size="lg" class="text-honey-primary" />
+            Tambores Disponibles
+        </h1>
+        <p class="text-sm text-gray-600 mt-1">
+            Visualice y gestione todos los tambores disponibles en su inventario
+        </p>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <app-icon name="funnel" size="md" class="text-honey-primary" />
+                Filtros
+            </h2>
+
+            @if (hayFiltrosActivos) {
+            <button type="button" (click)="limpiarFiltros()"
+                class="text-sm text-honey-primary hover:underline flex items-center gap-1">
+                <app-icon name="x-circle" size="sm" />
+                Limpiar filtros
+            </button>
+            }
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Filtro Tipo de Miel -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Tipo de Miel
+                </label>
+                <select [value]="filtroTipoMiel()" (change)="onFiltroTipoMielChange($any($event.target).value)"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-honey-primary">
+                    <option value="">Todos los tipos</option>
+                    @for (tipo of tiposMielDisponibles; track tipo.id) {
+                    <option [value]="tipo.id">{{ tipo.nombre }}</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Filtro Clasificación -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Clasificación
+                </label>
+                <select [value]="filtroClasificacion()" (change)="onFiltroClasificacionChange($any($event.target).value)"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-honey-primary">
+                    <option value="">Todas</option>
+                    <option value="EXPORTACION">Exportación</option>
+                    <option value="NACIONAL">Nacional</option>
+                </select>
+            </div>
+
+            <!-- Filtro Fecha Inicio -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Desde
+                </label>
+                <input type="date" [value]="filtroFechaInicio()" (change)="onFiltroFechaInicioChange($any($event.target).value)"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-honey-primary" />
+            </div>
+
+            <!-- Filtro Fecha Fin -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Hasta
+                </label>
+                <input type="date" [value]="filtroFechaFin()" (change)="onFiltroFechaFinChange($any($event.target).value)"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-honey-primary" />
+            </div>
+        </div>
+    </div>
+
+    <!-- ESTADÍSTICAS -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <!-- Total Tambores -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Tambores</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ tamboresFiltrados().length }}</p>
+                </div>
+                <div class="bg-honey-100 p-3 rounded-lg">
+                    <app-icon name="shopping-bag" size="lg" class="text-honey-primary" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Kilos -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Kilos</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ formatKilos(totalKilos) }}</p>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-lg">
+                    <app-icon name="scale" size="lg" class="text-blue-600" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Costo -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Total Costo</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ formatCurrency(totalCosto) }}</p>
+                </div>
+                <div class="bg-green-100 p-3 rounded-lg">
+                    <app-icon name="currency-dollar" size="lg" class="text-green-600" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA DE TAMBORES -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <app-icon name="table-cells" size="md" class="text-honey-primary" />
+                Listado de Tambores
+                @if (hayFiltrosActivos) {
+                <span class="text-sm font-normal text-gray-600">
+                    ({{ tamboresFiltrados().length }} de {{ tambores().length }})
+                </span>
+                }
+            </h2>
+
+            @if (loading()) {
+            <div class="text-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-honey-primary mx-auto"></div>
+                <p class="text-sm text-gray-600 mt-4">Cargando tambores...</p>
+            </div>
+            } @else if (tamboresFiltrados().length === 0) {
+            <div class="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
+                <app-icon name="inbox" size="2xl" class="text-gray-400 mx-auto mb-3" />
+                <p class="text-gray-600 font-medium">No hay tambores disponibles</p>
+                <p class="text-sm text-gray-500 mt-1">
+                    @if (hayFiltrosActivos) {
+                    Intente limpiar los filtros para ver todos los tambores
+                    } @else {
+                    No existen tambores en estado ACTIVO
+                    }
+                </p>
+            </div>
+            } @else {
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">CÓDIGO</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">TIPO MIEL</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">CLASIFICACIÓN</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">KILOS</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">HUMEDAD %</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">COSTO TOTAL</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">DETALLES</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">FECHA CREACIÓN</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @for (tambor of tamboresFiltrados(); track tambor.id) {
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <!-- Código -->
+                            <td class="px-4 py-3 text-sm font-mono font-semibold text-gray-900">
+                                {{ tambor.consecutivo }}
+                            </td>
+
+                            <!-- Tipo Miel -->
+                            <td class="px-4 py-3 text-sm text-gray-900">{{ tambor.tipoMielNombre }}</td>
+
+                            <!-- Clasificación -->
+                            <td class="px-4 py-3 text-sm text-center">
+                                <span
+                                    [class]="tambor.clasificacion === 'EXPORTACION' ? 'text-green-700 bg-green-100' : 'text-blue-700 bg-blue-100'"
+                                    class="px-2 py-1 rounded text-xs font-medium">
+                                    {{ tambor.clasificacion }}
+                                </span>
+                            </td>
+
+                            <!-- Kilos -->
+                            <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900">
+                                {{ tambor.totalKilos.toFixed(2) }}
+                                @if (excedeLimite(tambor.totalKilos)) {
+                                <span class="ml-1 text-yellow-600" title="Excede límite recomendado de 300kg">⚠️</span>
+                                }
+                            </td>
+
+                            <!-- Humedad -->
+                            <td class="px-4 py-3 text-sm text-right text-gray-700">
+                                {{ tambor.humedadPromedio.toFixed(1) }}
+                            </td>
+
+                            <!-- Costo Total -->
+                            <td class="px-4 py-3 text-sm text-right font-semibold text-green-700">
+                                {{ formatCurrency(tambor.totalCosto) }}
+                            </td>
+
+                            <!-- Cantidad Detalles -->
+                            <td class="px-4 py-3 text-sm text-center">
+                                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium">
+                                    {{ tambor.cantidadDetalles }} entradas
+                                </span>
+                            </td>
+
+                            <!-- Fecha Creación -->
+                            <td class="px-4 py-3 text-sm text-gray-700">
+                                {{ formatDate(tambor.fechaCreacion) }}
+                            </td>
+
+                            <!-- Acciones -->
+                            <td class="px-4 py-3 text-center">
+                                <button type="button" (click)="abrirModalCancelar(tambor)"
+                                    class="text-red-600 hover:bg-red-50 px-3 py-1.5 rounded transition-colors flex items-center gap-1 mx-auto"
+                                    title="Cancelar tambor">
+                                    <app-icon name="trash" size="sm" />
+                                    <span class="text-xs font-medium">Cancelar</span>
+                                </button>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Info de registros -->
+            <div class="mt-4 text-sm text-gray-600">
+                Mostrando {{ tamboresFiltrados().length }} tambores
+                @if (hayFiltrosActivos) {
+                de {{ tambores().length }} totales
+                }
+            </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================================
+     MODAL - CANCELAR TAMBOR
+     ============================================================================ -->
+@if (showCancelarModal()) {
+<div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" (click)="cerrarModalCancelar()"></div>
+
+    <!-- Modal Panel -->
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative bg-white rounded-lg shadow-xl max-w-2xl w-full" (click)="$event.stopPropagation()">
+            <!-- Header -->
+            <div class="bg-red-50 border-b border-red-200 px-6 py-4 rounded-t-lg">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-red-100 p-2 rounded-lg">
+                            <app-icon name="exclamation-triangle" size="lg" class="text-red-600" />
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">
+                                Cancelar Tambor
+                            </h3>
+                            <p class="text-sm text-gray-600 mt-0.5">
+                                Esta acción liberará las entradas de miel asociadas
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" (click)="cerrarModalCancelar()" class="text-gray-400 hover:text-gray-600">
+                        <app-icon name="x-mark" size="md" />
+                    </button>
+                </div>
+            </div>
+
+            @if (tamborACancelar(); as tambor) {
+            <!-- Body -->
+            <div class="px-6 py-4">
+                <!-- Información del tambor -->
+                <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                    <h4 class="text-sm font-semibold text-gray-900 mb-3">Información del Tambor</h4>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                            <span class="text-gray-600">Código:</span>
+                            <span class="ml-2 font-mono font-semibold text-gray-900">{{ tambor.consecutivo }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Tipo de Miel:</span>
+                            <span class="ml-2 font-semibold text-gray-900">{{ tambor.tipoMielNombre }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Clasificación:</span>
+                            <span class="ml-2 font-semibold"
+                                [class]="tambor.clasificacion === 'EXPORTACION' ? 'text-green-700' : 'text-blue-700'">
+                                {{ tambor.clasificacion }}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Total Kilos:</span>
+                            <span class="ml-2 font-semibold text-gray-900">{{ formatKilos(tambor.totalKilos) }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Costo Total:</span>
+                            <span class="ml-2 font-semibold text-green-700">{{ formatCurrency(tambor.totalCosto) }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Entradas:</span>
+                            <span class="ml-2 font-semibold text-gray-900">{{ tambor.cantidadDetalles }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advertencia -->
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                    <div class="flex items-start gap-3">
+                        <app-icon name="exclamation-circle" size="md" class="text-yellow-600 mt-0.5" />
+                        <div class="text-sm">
+                            <p class="font-semibold text-yellow-900">¿Está seguro de cancelar este tambor?</p>
+                            <ul class="mt-2 space-y-1 text-yellow-800">
+                                <li>• El tambor pasará a estado <strong>CANCELADO</strong></li>
+                                <li>• Las <strong>{{ tambor.cantidadDetalles }} entradas</strong> de miel quedarán <strong>DISPONIBLES</strong> nuevamente</li>
+                                <li>• Esta acción quedará registrada en el historial de auditoría</li>
+                                <li>• <strong>Esta acción es definitiva</strong> - No se puede reactivar un tambor cancelado</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulario de motivo -->
+                <form [formGroup]="cancelarForm">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            Motivo de Cancelación <span class="text-red-500">*</span>
+                        </label>
+                        <textarea formControlName="motivoCancelacion" rows="4"
+                            placeholder="Explique detalladamente el motivo de la cancelación (mínimo 10 caracteres)..."
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-honey-primary focus:border-honey-primary"
+                            [class.border-red-500]="cancelarForm.get('motivoCancelacion')?.invalid && cancelarForm.get('motivoCancelacion')?.touched"></textarea>
+
+                        @if (cancelarForm.get('motivoCancelacion')?.invalid && cancelarForm.get('motivoCancelacion')?.touched) {
+                        <p class="text-red-500 text-xs mt-1">
+                            @if (cancelarForm.get('motivoCancelacion')?.errors?.['required']) {
+                            El motivo es requerido
+                            } @else if (cancelarForm.get('motivoCancelacion')?.errors?.['minlength']) {
+                            El motivo debe tener al menos 10 caracteres
+                            }
+                        </p>
+                        }
+
+                        <p class="text-xs text-gray-500 mt-1">
+                            {{ cancelarForm.get('motivoCancelacion')?.value?.length || 0 }} / 1000 caracteres
+                        </p>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-lg flex items-center justify-end gap-3">
+                <button type="button" (click)="cerrarModalCancelar()"
+                    class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                    [disabled]="loadingCancelar()">
+                    Cancelar
+                </button>
+
+                <button type="button" (click)="confirmarCancelacion()"
+                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors font-medium flex items-center gap-2"
+                    [disabled]="loadingCancelar() || cancelarForm.invalid"
+                    [class.opacity-50]="loadingCancelar() || cancelarForm.invalid"
+                    [class.cursor-not-allowed]="loadingCancelar() || cancelarForm.invalid">
+                    @if (loadingCancelar()) {
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Cancelando...</span>
+                    } @else {
+                    <app-icon name="trash" size="sm" />
+                    <span>Confirmar Cancelación</span>
+                    }
+                </button>
+            </div>
+            }
+        </div>
+    </div>
+</div>
+}

@@ -53,7 +53,12 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
                     case 404:
                         // Recurso no encontrado
-                        if (error.error?.error?.details) {
+                        // 🎯 Para ciertos endpoints, el 404 es esperado (ej: no hay llegadas en tránsito)
+                        // No mostramos mensaje genérico para estos casos
+                        if (req.url.includes('/verificador/llegadas')) {
+                            // Dejar que el componente maneje el 404 sin mensaje genérico
+                            errorMessage = '';
+                        } else if (error.error?.error?.details) {
                             errorMessage = error.error.error.details;
                         } else {
                             errorMessage = 'Recurso no encontrado.';

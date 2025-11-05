@@ -216,6 +216,13 @@ export const routes: Routes = [
                     .then(m => m.AsignacionTamboresListComponent)
             },
 
+            // Tambores Disponibles
+            {
+                path: 'tambores-disponibles',
+                loadComponent: () => import('./features/acopiador/tambores-disponibles/tambores-disponibles.component')
+                    .then(m => m.TamboresDisponiblesComponent)
+            },
+
             // Redirección por defecto
             {
                 path: '',

@@ -237,8 +237,26 @@ export class SalidasEnTransitoComponent implements OnInit {
           this.loading.set(false);
         },
         error: (error) => {
-          console.error('Error al cargar llegadas:', error);
-          this.notificationService.showError('Error al cargar las llegadas en tránsito');
+          // 🎯 Manejo elegante del 404: No hay llegadas en tránsito
+          // Verificar tanto error.status como error.originalError?.status
+          const statusCode = error.status || error.originalError?.status;
+
+          console.log('🔍 DEBUG Error al cargar llegadas:', {
+            error,
+            statusCode,
+            'error.status': error.status,
+            'error.originalError?.status': error.originalError?.status,
+            'error.message': error.message
+          });
+
+          if (statusCode === 404) {
+            this.llegadas.set([]); // Mostrar estado vacío sin error (no mostrar toast)
+            console.log('✅ 404 detectado - No se muestra toast');
+          } else {
+            console.log('❌ NO es 404 - Se muestra toast de error');
+            this.notificationService.showError('Error al cargar las llegadas en tránsito');
+          }
+
           this.loading.set(false);
         }
       });
