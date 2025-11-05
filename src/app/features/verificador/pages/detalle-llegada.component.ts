@@ -196,6 +196,7 @@ import { BeeLoaderComponent } from '../../../shared/components/bee-loader/bee-lo
                                   <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Floración</th>
                                   <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Color</th>
                                   <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Kilos</th>
+                                  <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Tara (kg)</th>
                                   <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Humedad %</th>
                                   <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Clasificación</th>
                                   <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Estado</th>
@@ -218,8 +219,8 @@ import { BeeLoaderComponent } from '../../../shared/components/bee-loader/bee-lo
                                         <div class="text-sm text-gray-700">{{ tambor.floracionNombre || 'N/A' }}</div>
                                       } @else {
                                         <div class="text-xs">
-                                          <del class="text-gray-400">{{ tambor.floracionNombre }}</del>
-                                          <div class="font-semibold text-amber-700">{{ tambor.floracionVerificadaNombre }}</div>
+                                          <del class="text-gray-400">{{ tambor.floracionNombre || 'N/A' }}</del>
+                                          <div class="font-semibold text-amber-700">{{ tambor.floracionVerificadaNombre || tambor.floracionNombre || 'N/A' }}</div>
                                         </div>
                                       }
                                     </td>
@@ -228,8 +229,8 @@ import { BeeLoaderComponent } from '../../../shared/components/bee-loader/bee-lo
                                         <div class="text-sm text-gray-700">{{ tambor.colorNombre || 'N/A' }}</div>
                                       } @else {
                                         <div class="text-xs">
-                                          <del class="text-gray-400">{{ tambor.colorNombre }}</del>
-                                          <div class="font-semibold text-amber-700">{{ tambor.colorVerificadoNombre }}</div>
+                                          <del class="text-gray-400">{{ tambor.colorNombre || 'N/A' }}</del>
+                                          <div class="font-semibold text-amber-700">{{ tambor.colorVerificadoNombre || tambor.colorNombre || 'N/A' }}</div>
                                         </div>
                                       }
                                     </td>
@@ -245,11 +246,21 @@ import { BeeLoaderComponent } from '../../../shared/components/bee-loader/bee-lo
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-right">
                                       @if (!tambor.verificado || !tambor.tieneDiferencias) {
+                                        <div class="text-sm text-gray-900">{{ tambor.taraCapturada || 0 | number: '1.2-2' }}</div>
+                                      } @else {
+                                        <div class="text-xs">
+                                          <del class="text-gray-400">{{ tambor.taraCapturada || 0 | number: '1.2-2' }}</del>
+                                          <div class="font-semibold text-amber-700">{{ tambor.taraVerificada || tambor.taraCapturada || 0 | number: '1.2-2' }}</div>
+                                        </div>
+                                      }
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-right">
+                                      @if (!tambor.verificado || !tambor.tieneDiferencias) {
                                         <div class="text-sm text-gray-900">{{ tambor.humedadPromedio | number: '1.2-2' }}%</div>
                                       } @else {
                                         <div class="text-xs">
                                           <del class="text-gray-400">{{ tambor.humedadPromedio | number: '1.2-2' }}%</del>
-                                          <div class="font-semibold text-amber-700">{{ tambor.humedadVerificada | number: '1.2-2' }}%</div>
+                                          <div class="font-semibold text-amber-700">{{ tambor.humedadVerificada || tambor.humedadPromedio | number: '1.2-2' }}%</div>
                                         </div>
                                       }
                                     </td>

@@ -156,6 +156,7 @@ export interface TamborParaVerificar {
   // Datos verificados
   verificado: boolean;
   kilosVerificados: number | null;
+  taraVerificada: number | null; // ← NUEVO: Tara verificada
   humedadVerificada: number | null;
   floracionVerificadaId: number | null;
   floracionVerificadaNombre: string | null;
