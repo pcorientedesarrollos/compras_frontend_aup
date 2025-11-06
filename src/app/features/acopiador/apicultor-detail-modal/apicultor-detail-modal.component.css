@@ -131,7 +131,34 @@
    ============================================================================ */
 
 .apiarios-header {
-    @apply mb-4 pb-4 border-b border-gray-200;
+    @apply mb-4 pb-4 border-b border-gray-200 flex items-center justify-between;
+}
+
+/* Botón Nuevo Apiario */
+.btn-new-apiario {
+    background: linear-gradient(to right, #10B981, #059669);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.btn-new-apiario:hover {
+    background: linear-gradient(to right, #059669, #047857);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.btn-new-apiario:active {
+    transform: translateY(0);
 }
 
 /* ============================================================================

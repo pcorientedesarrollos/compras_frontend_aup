@@ -20,6 +20,7 @@
 import { Component, computed, signal, inject, DestroyRef, input, output, effect } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 // Componentes reutilizables
 import { IconComponent } from '../../../shared/components/ui/icon/icon.component';
@@ -37,6 +38,7 @@ import {
 // Servicios
 import { ApicultorService } from '../../../core/services/apicultor.service';
 import { ApiarioService } from '../../../core/services/apiario.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { IconName } from '../../../shared/components/ui/icon/types/icon.types';
 
 type TabId = 'general' | 'apiarios' | 'proveedores';
@@ -63,6 +65,8 @@ interface Tab {
 export class ApicultorDetailModalComponent {
     private apicultorService = inject(ApicultorService);
     private apiarioService = inject(ApiarioService);
+    private authService = inject(AuthService);
+    private router = inject(Router);
     private destroyRef = inject(DestroyRef);
 
     // ============================================================================
@@ -300,5 +304,29 @@ export class ApicultorDetailModalComponent {
         this.proveedores.set([]);
 
         this.close.emit();
+    }
+
+    /**
+     * Crear nuevo apiario (navega con apicultorId pre-seleccionado)
+     * ✅ Usa ruta dinámica según el rol del usuario
+     */
+    crearNuevoApiario(): void {
+        const apicultorId = this.apicultor().apicultorId;
+        const baseRoute = this.getBaseRoute();
+
+        // ✅ Navegar primero y luego cerrar modal cuando la navegación se complete
+        this.router.navigate([`${baseRoute}/apiarios/nuevo`], {
+            queryParams: { apicultorId }
+        }).then(() => {
+            this.closeModal(); // Cerrar modal DESPUÉS de navegar
+        });
+    }
+
+    /**
+     * ✅ Obtener ruta base según el rol del usuario
+     */
+    private getBaseRoute(): string {
+        const currentUser = this.authService.getCurrentUser();
+        return currentUser?.role === 'ACOPIADOR' ? '/acopiador' : '/admin';
     }
 }

@@ -34,6 +34,7 @@ import {
 
 // Servicios
 import { ApicultorService } from '../../../../core/services/apicultor.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { IconName } from '../../../../shared/components/ui/icon';
 
 type TabId = 'general' | 'proveedores' | 'apiarios' | 'mielPorTipo';
@@ -59,6 +60,7 @@ interface Tab {
 })
 export class ApicultorDetailModalComponent {
     private apicultorService = inject(ApicultorService);
+    private authService = inject(AuthService);
     private router = inject(Router);
     private destroyRef = inject(DestroyRef);
 
@@ -329,13 +331,26 @@ export class ApicultorDetailModalComponent {
 
     /**
      * Crear nuevo apiario (navega con apicultorId pre-seleccionado)
+     * ✅ Usa ruta dinámica según el rol del usuario
      */
     crearNuevoApiario(): void {
         const apicultorId = this.apicultor().id;
-        this.router.navigate(['/admin/apiarios/nuevo'], {
+        const baseRoute = this.getBaseRoute();
+
+        // ✅ Navegar primero y luego cerrar modal cuando la navegación se complete
+        this.router.navigate([`${baseRoute}/apiarios/nuevo`], {
             queryParams: { apicultorId }
+        }).then(() => {
+            this.onClose(); // Cerrar modal DESPUÉS de navegar
         });
-        this.onClose(); // Cerrar modal después de navegar
+    }
+
+    /**
+     * ✅ Obtener ruta base según el rol del usuario
+     */
+    private getBaseRoute(): string {
+        const currentUser = this.authService.getCurrentUser();
+        return currentUser?.role === 'ACOPIADOR' ? '/acopiador' : '/admin';
     }
 
     /**

@@ -273,14 +273,16 @@ export class ApiarioDetailComponent implements OnInit {
         // Deshabilitar el campo para que no se pueda cambiar
         this.apiarioForm.get('apicultorId')?.disable();
 
-        // Buscar el nombre del apicultor en la lista disponible
-        // Esto se ejecutará después de que se carguen los apicultores
-        setTimeout(() => {
-            const apicultor = this.apicultoresDisponibles().find(a => a.id === apicultorId);
-            if (apicultor) {
-                this.apicultorPreseleccionadoNombre.set(apicultor.nombreCompleto);
+        // Usar effect para actualizar el nombre cuando los apicultores estén cargados
+        effect(() => {
+            const apicultores = this.apicultoresDisponibles();
+            if (apicultores.length > 0) {
+                const apicultor = apicultores.find(a => a.id === apicultorId);
+                if (apicultor) {
+                    this.apicultorPreseleccionadoNombre.set(apicultor.nombreCompleto);
+                }
             }
-        }, 100);
+        }, { allowSignalWrites: true });
     }
 
     // ============================================================================
@@ -494,7 +496,8 @@ export class ApiarioDetailComponent implements OnInit {
      */
     cancel(): void {
         if (confirm('¿Deseas cancelar? Los cambios no guardados se perderán.')) {
-            this.router.navigate(['/admin/apiarios']);
+            const baseRoute = this.getBaseRoute();
+            this.router.navigate([`${baseRoute}/apiarios`]);
         }
     }
 
@@ -502,7 +505,8 @@ export class ApiarioDetailComponent implements OnInit {
      * ✅ NUEVO: Regresar al listado sin confirmación
      */
     goBack(): void {
-        this.router.navigate(['/admin/apiarios']);
+        const baseRoute = this.getBaseRoute();
+        this.router.navigate([`${baseRoute}/apiarios`]);
     }
 
     /**

@@ -76,6 +76,12 @@ export class ActionMenuComponent {
     /** Acción esperando confirmación */
     pendingAction = signal<ActionItem | null>(null);
 
+    /** Dirección del dropdown (up/down) - se calcula automáticamente */
+    dropdownDirection = signal<'up' | 'down'>('down');
+
+    /** ✅ Posición fija calculada del menú */
+    menuPosition = signal<{ top?: string; bottom?: string; left?: string; right?: string } | null>(null);
+
     // ============================================================================
     // COMPUTED
     // ============================================================================
@@ -124,6 +130,16 @@ export class ActionMenuComponent {
                 this.pendingAction.set(null);
             }
         });
+
+        // ✅ Efecto para calcular dirección del dropdown cuando se abre
+        effect(() => {
+            if (this.isOpen()) {
+                // Esperar un tick para que el DOM se actualice
+                setTimeout(() => {
+                    this.calculateDropdownDirection();
+                }, 0);
+            }
+        });
     }
 
     // ============================================================================
@@ -144,6 +160,15 @@ export class ActionMenuComponent {
     onEscapeKey(): void {
         if (this.isOpen()) {
             this.closeMenu();
+        }
+    }
+
+    @HostListener('window:scroll', ['$event'])
+    @HostListener('window:resize', ['$event'])
+    onScrollOrResize(): void {
+        if (this.isOpen()) {
+            // Recalcular posición cuando hay scroll o resize
+            this.calculateDropdownDirection();
         }
     }
 
@@ -233,5 +258,46 @@ export class ActionMenuComponent {
 
     trackBySectionLabel(index: number, section: ActionSection): string {
         return section.label + index;
+    }
+
+    /**
+     * ✅ Calcular automáticamente si el menú debe abrirse hacia arriba o abajo
+     * y su posición fija basado en el espacio disponible en la ventana
+     */
+    private calculateDropdownDirection(): void {
+        // Buscar el botón trigger (padre del componente)
+        const triggerButton = this.elementRef.nativeElement.closest('.action-menu-trigger')?.querySelector('button');
+        if (!triggerButton) return;
+
+        const buttonRect = triggerButton.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        const spaceBelow = windowHeight - buttonRect.bottom;
+        const menuHeight = 200; // Altura estimada del menú
+
+        const position = this.position();
+
+        // Calcular posición horizontal
+        let horizontalPos: { left?: string; right?: string } = {};
+        if (position === 'left') {
+            horizontalPos = { left: `${buttonRect.left}px` };
+        } else {
+            horizontalPos = { right: `${window.innerWidth - buttonRect.right}px` };
+        }
+
+        // Si hay suficiente espacio abajo, abrir hacia abajo
+        if (spaceBelow >= menuHeight + 20) {
+            this.dropdownDirection.set('down');
+            this.menuPosition.set({
+                top: `${buttonRect.bottom + 8}px`, // 8px de separación
+                ...horizontalPos
+            });
+        } else {
+            // Abrir hacia arriba
+            this.dropdownDirection.set('up');
+            this.menuPosition.set({
+                bottom: `${window.innerHeight - buttonRect.top + 8}px`, // 8px de separación
+                ...horizontalPos
+            });
+        }
     }
 }

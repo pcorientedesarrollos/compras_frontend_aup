@@ -1,6 +1,11 @@
 <!-- Menu Dropdown -->
 @if (isOpen() && hasContent()) {
-<div class="action-menu" [class.position-left]="position() === 'left'" [class.position-right]="position() === 'right'"
+<div class="action-menu"
+    [class.position-left]="position() === 'left'"
+    [class.position-right]="position() === 'right'"
+    [class.direction-up]="dropdownDirection() === 'up'"
+    [class.direction-down]="dropdownDirection() === 'down'"
+    [ngStyle]="menuPosition()"
     (click)="$event.stopPropagation()">
 
     <!-- Confirmation Dialog -->

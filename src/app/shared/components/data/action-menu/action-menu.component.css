@@ -1,21 +1,46 @@
-/* Menu Container */
+/* Menu Container - ✅ FIXED para estar siempre visible */
 .action-menu {
-    @apply absolute mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden;
+    position: fixed; /* ✅ Fixed para salir del flujo de la tabla */
+    @apply w-48 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden;
+    z-index: 9999; /* ✅ Z-index muy alto para estar siempre encima */
+}
+
+/* ✅ Dirección: Hacia abajo (default) */
+.action-menu.direction-down {
     animation: slideDown 0.15s ease-out;
 }
 
+/* ✅ Dirección: Hacia arriba */
+.action-menu.direction-up {
+    animation: slideUp 0.15s ease-out;
+}
+
+/* Posición horizontal - Ya no se usan porque usamos ngStyle con posición calculada
 .action-menu.position-left {
     @apply left-0;
 }
 
 .action-menu.position-right {
     @apply right-0;
-}
+} */
 
+/* Animaciones */
 @keyframes slideDown {
     from {
         opacity: 0;
         transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
     }
 
     to {

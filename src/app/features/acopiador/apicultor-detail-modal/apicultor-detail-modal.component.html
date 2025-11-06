@@ -156,6 +156,11 @@
                         <span class="font-bold text-gray-900">{{ apicultor().cantidadApiarios }}</span>
                         apiario(s) registrado(s)
                     </p>
+
+                    <button class="btn-new-apiario" (click)="crearNuevoApiario()" title="Crear nuevo apiario">
+                        <app-icon name="plus" size="sm" />
+                        <span>Nuevo Apiario</span>
+                    </button>
                 </div>
 
                 <app-honey-table [columns]="apiariosColumns()" [data]="apiarios()" [config]="apiariosTableConfig()"
