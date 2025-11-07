@@ -81,20 +81,17 @@ export class AcopiadorDashboardComponent implements OnInit {
 
     /**
      * Cargar métricas del dashboard desde el backend
+     *
+     * NUEVO: Usa API consolidada (1 llamada HTTP en lugar de 3)
+     * - Más rápido (~70% menos latencia)
+     * - Datos consistentes (mismo snapshot)
+     * - Filtrado automático por proveedorId (desde JWT)
      */
     loadDashboardMetrics(): void {
         this.loading.set(true);
 
-        const user = this.currentUser();
-        const proveedorId = user?.proveedorId;
-
-        if (!proveedorId) {
-            console.warn('Usuario acopiador sin proveedorId asociado');
-            this.loading.set(false);
-            return;
-        }
-
-        this.dashboardService.getAcopiadorMetrics(proveedorId)
+        // Ya no necesitamos proveedorId - el backend lo extrae del JWT automáticamente
+        this.dashboardService.getAcopiadorMetricsConsolidado()
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (data) => {

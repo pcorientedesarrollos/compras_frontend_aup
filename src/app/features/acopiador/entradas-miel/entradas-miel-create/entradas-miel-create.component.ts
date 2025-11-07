@@ -298,12 +298,12 @@ export class EntradasMielCreateComponent implements OnInit {
         detalles.forEach(detalle => {
             const tamborGroup = this.fb.group({
                 id: [detalle.id], // Guardar ID para actualización
-                bruto: [detalle.bruto || 0, [Validators.required, Validators.min(0.01)]],
-                tara: [detalle.tara || 0, [Validators.required, Validators.min(0)]],
+                bruto: [parseFloat(detalle.bruto) || 0, [Validators.required, Validators.min(0.01)]],
+                tara: [parseFloat(detalle.tara) || 0, [Validators.required, Validators.min(0)]],
                 floracionId: [detalle.floracionId],
-                humedad: [detalle.humedad, [Validators.required, Validators.min(0), Validators.max(100)]],
+                humedad: [parseFloat(detalle.humedad) || null, [Validators.required, Validators.min(0), Validators.max(100)]],
                 colorId: [detalle.colorId],
-                precio: [detalle.precio, [Validators.required, Validators.min(0.01)]]
+                precio: [parseFloat(detalle.precio) || 0, [Validators.required, Validators.min(0.01)]]
             });
 
             // Subscribirse a cambios para recalcular totales
@@ -351,8 +351,8 @@ export class EntradasMielCreateComponent implements OnInit {
         let sumaImporte = 0;
 
         this.tamboresArray.controls.forEach((control, index) => {
-            const bruto = control.get('bruto')?.value || 0;
-            const tara = control.get('tara')?.value || 0;
+            const bruto = parseFloat(control.get('bruto')?.value) || 0;
+            const tara = parseFloat(control.get('tara')?.value) || 0;
             const pesoNeto = bruto - tara;
             sumaPB += bruto;
             sumaTara += tara;
@@ -362,10 +362,10 @@ export class EntradasMielCreateComponent implements OnInit {
             sumaImporte += this.calcularCostoTotal(index);
         });
 
-        this.totalPB.set(sumaPB);
-        this.totalTara.set(sumaTara);
-        this.totalPN.set(sumaPN);
-        this.importeTotal.set(sumaImporte);
+        this.totalPB.set(parseFloat(sumaPB.toFixed(2)));
+        this.totalTara.set(parseFloat(sumaTara.toFixed(2)));
+        this.totalPN.set(parseFloat(sumaPN.toFixed(2)));
+        this.importeTotal.set(parseFloat(sumaImporte.toFixed(2)));
     }
 
     // ============================================================================
@@ -411,8 +411,8 @@ export class EntradasMielCreateComponent implements OnInit {
      */
     calcularPesoNeto(index: number): number {
         const tambor = this.tamboresArray.at(index);
-        const bruto = tambor.get('bruto')?.value || 0;
-        const tara = tambor.get('tara')?.value || 0;
+        const bruto = parseFloat(tambor.get('bruto')?.value) || 0;
+        const tara = parseFloat(tambor.get('tara')?.value) || 0;
         return bruto - tara;
     }
 
@@ -422,7 +422,7 @@ export class EntradasMielCreateComponent implements OnInit {
     calcularCostoTotal(index: number): number {
         const pesoNeto = this.calcularPesoNeto(index);
         const tambor = this.tamboresArray.at(index);
-        const precio = tambor.get('precio')?.value || 0;
+        const precio = parseFloat(tambor.get('precio')?.value) || 0;
         return pesoNeto * precio;
     }
 
@@ -431,9 +431,9 @@ export class EntradasMielCreateComponent implements OnInit {
      */
     getClasificacion(index: number): ClasificacionMiel | null {
         const tambor = this.tamboresArray.at(index);
-        const humedad = tambor.get('humedad')?.value;
+        const humedad = parseFloat(tambor.get('humedad')?.value);
 
-        if (humedad === null || humedad === undefined) return null;
+        if (humedad === null || humedad === undefined || isNaN(humedad)) return null;
 
         return humedad <= 20 ? ClasificacionMiel.EXPORTACION : ClasificacionMiel.NACIONAL;
     }
@@ -455,8 +455,8 @@ export class EntradasMielCreateComponent implements OnInit {
      */
     validarPesos(index: number): boolean {
         const tambor = this.tamboresArray.at(index);
-        const bruto = tambor.get('bruto')?.value || 0;
-        const tara = tambor.get('tara')?.value || 0;
+        const bruto = parseFloat(tambor.get('bruto')?.value) || 0;
+        const tara = parseFloat(tambor.get('tara')?.value) || 0;
 
         return bruto > tara;
     }
@@ -541,13 +541,17 @@ export class EntradasMielCreateComponent implements OnInit {
             apicultorId: formValue.apicultorId,
             ...(formValue.observaciones && { observaciones: formValue.observaciones }),
             detalles: formValue.tambores.map((tambor: any) => {
+                const bruto = parseFloat(tambor.bruto) || 0;
+                const tara = parseFloat(tambor.tara) || 0;
+                const pesoNeto = bruto - tara;
+
                 const detalle: any = {
                     tipoMielId: tipoMielId,
-                    kilos: Number((tambor.bruto - tambor.tara).toFixed(2)),  // PN = PB - T
-                    humedad: Number(tambor.humedad),
-                    precio: Number(tambor.precio), // Precio individual por tambor
-                    bruto: Number(tambor.bruto),
-                    tara: Number(tambor.tara),
+                    kilos: parseFloat(pesoNeto.toFixed(2)),  // PN = PB - T
+                    humedad: parseFloat(tambor.humedad) || 0,
+                    precio: parseFloat(tambor.precio) || 0, // Precio individual por tambor
+                    bruto: parseFloat(bruto.toFixed(2)),
+                    tara: parseFloat(tara.toFixed(2)),
                     autorizado: true
                 };
 
@@ -603,13 +607,17 @@ export class EntradasMielCreateComponent implements OnInit {
             apicultorId: formValue.apicultorId,
             ...(formValue.observaciones && { observaciones: formValue.observaciones }),
             detalles: formValue.tambores.map((tambor: any) => {
+                const bruto = parseFloat(tambor.bruto) || 0;
+                const tara = parseFloat(tambor.tara) || 0;
+                const pesoNeto = bruto - tara;
+
                 const detalle: any = {
                     tipoMielId: tipoMielId,
-                    kilos: Number((tambor.bruto - tambor.tara).toFixed(2)),  // PN = PB - T
-                    humedad: Number(tambor.humedad),
-                    precio: Number(tambor.precio), // Precio individual por tambor
-                    bruto: Number(tambor.bruto),
-                    tara: Number(tambor.tara),
+                    kilos: parseFloat(pesoNeto.toFixed(2)),  // PN = PB - T
+                    humedad: parseFloat(tambor.humedad) || 0,
+                    precio: parseFloat(tambor.precio) || 0, // Precio individual por tambor
+                    bruto: parseFloat(bruto.toFixed(2)),
+                    tara: parseFloat(tara.toFixed(2)),
                     autorizado: true
                 };
 
