@@ -168,6 +168,7 @@ export type IconName =
     | 'star'                     // ⭐ Favorito/Destacado
     | 'heart'                    // ❤️ Me gusta
     | 'hashtag'                  // 🔢 Número/Colmenas
+    | 'truck'                    // 🚚 Transporte/En Tránsito
 
     // ============================================================================
     // 🔐 CATEGORÍA 12: SEGURIDAD

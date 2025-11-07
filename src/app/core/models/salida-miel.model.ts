@@ -41,8 +41,8 @@ export enum EstadoSalida {
  */
 export interface DetalleSalidaMiel {
     id: string;
-    salidaEncabezadoId: string;
     tamborId: string;
+    tamborConsecutivo: string;
 
     // Snapshot del tambor
     tipoMielId: number;
@@ -51,7 +51,7 @@ export interface DetalleSalidaMiel {
     floracionNombre: string | null;
     colorId: number | null;
     colorNombre: string | null;
-    clasificacion: ClasificacionMiel;
+    clasificacion: ClasificacionMiel | string; // String para permitir valores del backend
     kilosDeclarados: number;      // Kilos brutos del tambor (con tara)
     humedadPromedio: number | null;
     costoTotal: number;
@@ -65,50 +65,41 @@ export interface DetalleSalidaMiel {
     humedadVerificada: number | null;
     observacionesVerificador: string | null;
     tieneDiferencias: boolean;
+    observaciones: string | null;
+
+    // Timestamps
+    createdAt: string;
+    updatedAt: string;
 }
 
 /**
  * Salida completa (GET /api/salidas-miel/:id)
+ * IMPORTANTE: El backend envía campos planos, no objetos anidados
  */
 export interface SalidaMielAPI {
     id: string;
     folio: string; // SAL-YYYY-NNNN
     fecha: string; // ISO Date
-    proveedor: {
-        id: number;
-        nombre: string;
-    };
-    chofer: {
-        id: string;
-        nombre: string;
-        alias: string | null;
-    };
+    proveedorId: number;
+    proveedorNombre: string;
+    choferId: string;
+    choferNombre: string;
+    choferAlias: string | null;
     totalKilos: number;
     totalCompra: number;
     cantidadTambores: number;
-    estado: EstadoSalida;
+    estado: EstadoSalida | string; // String para permitir valores del backend
     tieneDiferencias: boolean;
     observaciones: string | null;
     observacionesChofer: string | null;
-    usuarioCreador: {
-        id: string;
-        nombre: string;
-    };
-    usuarioFinalizador: {
-        id: string;
-        nombre: string;
-    } | null;
-    verificador: {
-        id: string;
-        nombre: string;
-    } | null;
+    usuarioCreadorId: string;
+    usuarioCreadorNombre: string;
     fechaCreacion: string; // ISO DateTime
     fechaFinalizacion: string | null; // ISO DateTime
     fechaVerificacion: string | null; // ISO DateTime
+    usuarioFinalizadorNombre: string | null;
     observacionesVerificador: string | null;
     detalles: DetalleSalidaMiel[];
-    createdAt: string; // ISO DateTime
-    updatedAt: string; // ISO DateTime
 }
 
 /**

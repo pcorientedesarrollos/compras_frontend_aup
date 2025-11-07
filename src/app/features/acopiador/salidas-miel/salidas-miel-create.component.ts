@@ -182,6 +182,7 @@ export class SalidasMielCreateComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (salida) => {
+                    console.log('Salida cargada:', salida); // Debug
                     this.salidaCargada.set(salida);
 
                     // Verificar si se puede editar
@@ -192,16 +193,20 @@ export class SalidasMielCreateComponent implements OnInit {
                         );
                     }
 
+                    // Convertir fecha ISO a YYYY-MM-DD si es necesario
+                    const fechaFormateada = salida.fecha.split('T')[0];
+
                     // Cargar datos del formulario
+                    // IMPORTANTE: El backend envía choferId directamente, no como objeto
                     this.salidaForm.patchValue({
-                        fecha: salida.fecha,
-                        choferId: salida.chofer.id,
+                        fecha: fechaFormateada,
+                        choferId: salida.choferId,
                         observaciones: salida.observaciones || '',
                         observacionesChofer: salida.observacionesChofer || ''
                     });
 
-                    // Deshabilitar campos si no es editable
-                    if (!this.puedeEditar()) {
+                    // Deshabilitar campos si no se puede editar el encabezado
+                    if (!this.puedeEditarEncabezado()) {
                         this.salidaForm.disable();
                     }
 
@@ -485,14 +490,36 @@ export class SalidasMielCreateComponent implements OnInit {
     // ============================================================================
 
     /**
-     * Verificar si la salida se puede editar
+     * Verificar si la salida se puede editar (añadir/quitar tambores)
+     * Solo se permite en estado EN_PROCESO
      */
     puedeEditar(): boolean {
         const salida = this.salidaCargada();
         if (!salida) return true; // Modo crear
 
-        // No se puede editar si está EN_TRANSITO o VERIFICADA
-        return salida.estado !== 'EN_TRANSITO' && salida.estado !== 'VERIFICADA';
+        // Solo se puede editar si está EN_PROCESO
+        return salida.estado === 'EN_PROCESO';
+    }
+
+    /**
+     * Verificar si se puede modificar el encabezado (fecha, chofer, observaciones)
+     * Solo se permite en estado EN_PROCESO
+     */
+    puedeEditarEncabezado(): boolean {
+        const salida = this.salidaCargada();
+        if (!salida) return true; // Modo crear
+
+        return salida.estado === 'EN_PROCESO';
+    }
+
+    /**
+     * Verificar si es solo lectura (EN_TRANSITO o VERIFICADA)
+     */
+    esSoloLectura(): boolean {
+        const salida = this.salidaCargada();
+        if (!salida) return false;
+
+        return salida.estado === 'EN_TRANSITO' || salida.estado === 'VERIFICADA';
     }
 
     /**

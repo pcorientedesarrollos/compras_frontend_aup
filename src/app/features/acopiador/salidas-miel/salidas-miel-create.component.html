@@ -35,18 +35,37 @@
                 </div>
             </div>
 
-            @if (isEditMode() && !puedeEditar()) {
+            @if (isEditMode()) {
+            <!-- Badge de estado según el estado actual -->
+            @if (esSoloLectura()) {
             <div class="bg-red-50 border border-red-200 rounded-lg px-4 py-2 flex items-center gap-2">
                 <app-icon name="lock-closed" size="sm" class="text-red-600" />
-                <span class="text-sm font-medium text-red-700">Solo lectura</span>
+                <span class="text-sm font-medium text-red-700">Solo Lectura</span>
             </div>
+            } @else if (!puedeEditar() && salidaCargada()?.estado === 'FINALIZADA') {
+            <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 flex items-center gap-2">
+                <app-icon name="check-circle" size="sm" class="text-blue-600" />
+                <span class="text-sm font-medium text-blue-700">Finalizada - No Editable</span>
+            </div>
+            } @else {
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2 flex items-center gap-2">
+                <app-icon name="pencil" size="sm" class="text-yellow-600" />
+                <span class="text-sm font-medium text-yellow-700">En Proceso - Editable</span>
+            </div>
+            }
             }
         </div>
         <p class="text-sm text-gray-600 ml-12">
-            @if (isEditMode() && !puedeEditar()) {
-            Esta salida no se puede editar porque ya está en tránsito o verificada
+            @if (isEditMode()) {
+                @if (esSoloLectura()) {
+                    Esta salida no se puede editar porque ya está {{ salidaCargada()?.estado === 'EN_TRANSITO' ? 'en tránsito' : 'verificada' }}
+                } @else if (!puedeEditar()) {
+                    Esta salida está finalizada. Solo puede ver los tambores asignados.
+                } @else {
+                    Puede añadir o quitar tambores mientras esté en estado "En Proceso"
+                }
             } @else {
-            Complete la información y seleccione los tambores para la salida
+                Complete la información y seleccione los tambores para la salida
             }
         </p>
     </div>
@@ -436,7 +455,7 @@
                 }
             </button>
 
-            @if (!isEditMode() || puedeEditar()) {
+            @if (!isEditMode() || (puedeEditar() && tamboresSeleccionados.length > 0)) {
             <button type="submit"
                 class="bg-honey-primary hover:bg-honey-dark text-white px-6 py-2.5 rounded-lg transition-colors font-medium flex items-center gap-2"
                 [disabled]="loading() || tamboresSeleccionados.length === 0"
@@ -448,7 +467,7 @@
                 } @else {
                 <app-icon name="check-circle" size="sm" />
                 @if (isEditMode()) {
-                <span>Añadir Tambores</span>
+                <span>Añadir Tambores Seleccionados</span>
                 } @else {
                 <span>Crear y Finalizar Salida</span>
                 }
@@ -457,8 +476,33 @@
             }
         </div>
 
-        <!-- Advertencia si no hay tambores seleccionados -->
-        @if (tamboresSeleccionados.length === 0 && tambores().length > 0) {
+        <!-- Mensaje informativo según estado -->
+        @if (isEditMode() && !puedeEditar()) {
+            @if (salidaCargada()?.estado === 'FINALIZADA') {
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+                <app-icon name="information-circle" size="md" class="text-blue-600 mt-0.5" />
+                <div>
+                    <p class="font-semibold text-blue-900">Salida Finalizada</p>
+                    <p class="text-sm text-blue-700 mt-1">
+                        Esta salida ya está finalizada. No se pueden añadir o quitar tambores.
+                        Los tambores asignados se muestran arriba.
+                    </p>
+                </div>
+            </div>
+            } @else if (esSoloLectura()) {
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+                <app-icon name="lock-closed" size="md" class="text-red-600 mt-0.5" />
+                <div>
+                    <p class="font-semibold text-red-900">Salida en Solo Lectura</p>
+                    <p class="text-sm text-red-700 mt-1">
+                        Esta salida está {{ salidaCargada()?.estado === 'EN_TRANSITO' ? 'en tránsito' : 'verificada' }}.
+                        No se puede modificar.
+                    </p>
+                </div>
+            </div>
+            }
+        } @else if (!isEditMode() && tamboresSeleccionados.length === 0 && tambores().length > 0) {
+        <!-- Advertencia si no hay tambores seleccionados en modo creación -->
         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
             <app-icon name="exclamation-triangle" size="md" class="text-yellow-600 mt-0.5" />
             <div>
