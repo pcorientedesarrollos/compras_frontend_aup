@@ -287,8 +287,10 @@ export interface VerificacionResponse {
   numeroVerificacion: number;
   salidaFolio: string;
   fechaVerificacion: string;
+  proveedorId: number;
   proveedorNombre: string;
   choferNombre: string;
+  choferAlias: string | null;
   verificadorNombre: string;
   cantidadTambores: number;
   cantidadConDiferencias: number;
@@ -296,13 +298,14 @@ export interface VerificacionResponse {
   kilosTotalesDeclarados: number;
   kilosTotalesVerificados: number;
   diferenciaTotal: number;
-  porcentajeDiferencia: number;
+  porcentajeDiferencia?: number;
   observaciones: string | null;
 }
 
 export interface TamborVerificadoDetalle {
   detalleId: string;
   tamborOriginal: {
+    id: string;
     consecutivo: string;
     kilosDeclarados: number;
     humedadDeclarada: number;
@@ -319,11 +322,22 @@ export interface TamborVerificadoDetalle {
     colorVerificado: string | null;
     clasificacionVerificada: ClasificacionMiel;
   } | null;
+  datosFinales: {
+    mielNeta: number;
+    tara: number;
+    pesoBruto: number;
+    tipoMiel: string;
+    clasificacion: ClasificacionMiel;
+    floracion: string | null;
+    color: string | null;
+    humedad: number;
+  };
   tieneDiferencias: boolean;
   diferencias: {
     kilos: number;
     porcentajeKilos: number;
     humedad: number;
+    tara: number;
     cambioFloracion: boolean;
     cambioColor: boolean;
     cambioClasificacion: boolean;

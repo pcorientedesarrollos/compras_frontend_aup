@@ -245,6 +245,59 @@ import { ClasificacionMiel } from '../../../core/models/entrada-miel.model';
                     </div>
                   </div>
 
+                  <!-- ⭐ DATOS FINALES PARA MIGRACIÓN -->
+                  <div class="mt-6 bg-gradient-to-r from-honey-primary/10 to-amber-100/50 border-2 border-honey-primary rounded-lg p-4">
+                    <div class="flex items-center gap-2 mb-3">
+                      <svg class="w-5 h-5 text-honey-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <h4 class="font-bold text-honey-dark">Datos Finales para Migración</h4>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                      <div class="bg-white rounded-md p-2">
+                        <p class="text-gray-600 text-xs">Miel Neta</p>
+                        <p class="font-bold text-gray-900">{{ tambor.datosFinales.mielNeta | number: '1.2-2' }} kg</p>
+                      </div>
+                      <div class="bg-white rounded-md p-2">
+                        <p class="text-gray-600 text-xs">Tara</p>
+                        <p class="font-bold text-gray-900">{{ tambor.datosFinales.tara | number: '1.2-2' }} kg</p>
+                      </div>
+                      <div class="bg-white rounded-md p-2">
+                        <p class="text-gray-600 text-xs">Peso Bruto</p>
+                        <p class="font-bold text-gray-900">{{ tambor.datosFinales.pesoBruto | number: '1.2-2' }} kg</p>
+                      </div>
+                      <div class="bg-white rounded-md p-2">
+                        <p class="text-gray-600 text-xs">Humedad</p>
+                        <p class="font-bold text-gray-900">{{ tambor.datosFinales.humedad | number: '1.1-1' }}%</p>
+                      </div>
+                      <div class="bg-white rounded-md p-2">
+                        <p class="text-gray-600 text-xs">Tipo Miel</p>
+                        <p class="font-bold text-gray-900">{{ tambor.datosFinales.tipoMiel }}</p>
+                      </div>
+                      <div class="bg-white rounded-md p-2">
+                        <p class="text-gray-600 text-xs">Floración</p>
+                        <p class="font-bold text-gray-900">{{ tambor.datosFinales.floracion || 'N/A' }}</p>
+                      </div>
+                      <div class="bg-white rounded-md p-2">
+                        <p class="text-gray-600 text-xs">Color</p>
+                        <p class="font-bold text-gray-900">{{ tambor.datosFinales.color || 'N/A' }}</p>
+                      </div>
+                      <div class="bg-white rounded-md p-2">
+                        <p class="text-gray-600 text-xs">Clasificación</p>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold"
+                              [class.bg-green-100]="tambor.datosFinales.clasificacion === 'EXPORTACION'"
+                              [class.text-green-800]="tambor.datosFinales.clasificacion === 'EXPORTACION'"
+                              [class.bg-orange-100]="tambor.datosFinales.clasificacion === 'NACIONAL'"
+                              [class.text-orange-800]="tambor.datosFinales.clasificacion === 'NACIONAL'">
+                          {{ tambor.datosFinales.clasificacion }}
+                        </span>
+                      </div>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-2 italic">
+                      💡 Estos son los datos reales verificados. Usar para migrar a AUP.
+                    </p>
+                  </div>
+
                   <!-- Observaciones -->
                   @if (tambor.observacionesVerificador) {
                     <div class="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
@@ -254,13 +307,66 @@ import { ClasificacionMiel } from '../../../core/models/entrada-miel.model';
                   }
                 } @else {
                   <!-- Sin diferencias -->
-                  <div class="text-center py-4">
+                  <div class="text-center py-4 mb-4">
                     <p class="text-gray-600">
                       ✅ Este tambor fue verificado sin diferencias. Los datos declarados coinciden con los datos reales.
                     </p>
                     @if (tambor.observacionesVerificador) {
                       <p class="text-sm text-gray-500 mt-2">{{ tambor.observacionesVerificador }}</p>
                     }
+                  </div>
+
+                  <!-- ⭐ DATOS FINALES PARA MIGRACIÓN (Sin diferencias) -->
+                  <div class="bg-gradient-to-r from-honey-primary/10 to-amber-100/50 border-2 border-honey-primary rounded-lg p-4">
+                    <div class="flex items-center gap-2 mb-3">
+                      <svg class="w-5 h-5 text-honey-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <h4 class="font-bold text-honey-dark">Datos Finales para Migración</h4>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                      <div class="bg-white rounded-md p-2">
+                        <p class="text-gray-600 text-xs">Miel Neta</p>
+                        <p class="font-bold text-gray-900">{{ tambor.datosFinales.mielNeta | number: '1.2-2' }} kg</p>
+                      </div>
+                      <div class="bg-white rounded-md p-2">
+                        <p class="text-gray-600 text-xs">Tara</p>
+                        <p class="font-bold text-gray-900">{{ tambor.datosFinales.tara | number: '1.2-2' }} kg</p>
+                      </div>
+                      <div class="bg-white rounded-md p-2">
+                        <p class="text-gray-600 text-xs">Peso Bruto</p>
+                        <p class="font-bold text-gray-900">{{ tambor.datosFinales.pesoBruto | number: '1.2-2' }} kg</p>
+                      </div>
+                      <div class="bg-white rounded-md p-2">
+                        <p class="text-gray-600 text-xs">Humedad</p>
+                        <p class="font-bold text-gray-900">{{ tambor.datosFinales.humedad | number: '1.1-1' }}%</p>
+                      </div>
+                      <div class="bg-white rounded-md p-2">
+                        <p class="text-gray-600 text-xs">Tipo Miel</p>
+                        <p class="font-bold text-gray-900">{{ tambor.datosFinales.tipoMiel }}</p>
+                      </div>
+                      <div class="bg-white rounded-md p-2">
+                        <p class="text-gray-600 text-xs">Floración</p>
+                        <p class="font-bold text-gray-900">{{ tambor.datosFinales.floracion || 'N/A' }}</p>
+                      </div>
+                      <div class="bg-white rounded-md p-2">
+                        <p class="text-gray-600 text-xs">Color</p>
+                        <p class="font-bold text-gray-900">{{ tambor.datosFinales.color || 'N/A' }}</p>
+                      </div>
+                      <div class="bg-white rounded-md p-2">
+                        <p class="text-gray-600 text-xs">Clasificación</p>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold"
+                              [class.bg-green-100]="tambor.datosFinales.clasificacion === 'EXPORTACION'"
+                              [class.text-green-800]="tambor.datosFinales.clasificacion === 'EXPORTACION'"
+                              [class.bg-orange-100]="tambor.datosFinales.clasificacion === 'NACIONAL'"
+                              [class.text-orange-800]="tambor.datosFinales.clasificacion === 'NACIONAL'">
+                          {{ tambor.datosFinales.clasificacion }}
+                        </span>
+                      </div>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-2 italic">
+                      💡 Estos son los datos reales verificados. Usar para migrar a AUP.
+                    </p>
                   </div>
                 }
               </div>
