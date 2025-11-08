@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { AuthService } from '../../../core/services/auth.service';
-import { DashboardService } from '../../../core/services/dashboard.service';
+import { DashboardService, AdminMetricasResponse } from '../../../core/services/dashboard.service';
 import { IconComponent } from '../../../shared/components/ui/icon/icon.component';
 import { BeeLoaderComponent } from '../../../shared/components/bee-loader/bee-loader.component';
 import { IconName } from '../../../shared/components/ui/icon/types/icon.types';
@@ -12,11 +12,12 @@ import { IconName } from '../../../shared/components/ui/icon/types/icon.types';
 interface MetricCard {
     title: string;
     value: string;
-    icon: IconName; // 🎯 Ahora usa IconName en lugar de emoji
+    icon: IconName;
     color: string;
     bgColor: string;
     change?: string;
     changeType?: 'positive' | 'negative';
+    subtitle?: string;
 }
 
 interface QuickAction {
@@ -82,58 +83,79 @@ export class AdminDashboardComponent implements OnInit {
     }
 
     /**
-     * Cargar métricas del dashboard desde el backend
+     * Cargar métricas del dashboard desde el backend usando API consolidada
      */
     loadDashboardMetrics(): void {
         this.loading.set(true);
 
-        this.dashboardService.getAdminMetrics()
+        this.dashboardService.getAdminMetricsConsolidado()
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (data) => {
-                    // 🎯 Construir métricas con datos reales
+                    // 🎯 Construir métricas con datos reales de la API consolidada
                     const metricsData: MetricCard[] = [
                         {
                             title: 'Total Apicultores',
-                            value: data.totalApicultores?.toString() || '0',
+                            value: data.apicultores.total.toString(),
+                            subtitle: `${data.apicultores.activos} activos / ${data.apicultores.inactivos} inactivos`,
                             icon: 'bee',
                             color: 'text-green-600',
                             bgColor: 'bg-green-100'
                         },
                         {
-                            title: 'Apiarios Activos',
-                            value: data.totalApiarios?.toString() || '0',
+                            title: 'Apiarios Registrados',
+                            value: data.apiarios.total.toString(),
                             icon: 'map-pin',
                             color: 'text-blue-600',
                             bgColor: 'bg-blue-100'
                         },
                         {
                             title: 'Proveedores',
-                            value: data.totalProveedores?.toString() || '0',
+                            value: data.proveedores.total.toString(),
+                            subtitle: `${data.proveedores.acopiadores} acopiadores / ${data.proveedores.mieleras} mieleras`,
                             icon: 'building-office',
                             color: 'text-purple-600',
                             bgColor: 'bg-purple-100'
                         },
                         {
                             title: 'Colmenas Totales',
-                            value: data.totalColmenas?.toString() || '0',
+                            value: data.colmenas.total.toLocaleString('es-MX'),
+                            subtitle: `Promedio: ${data.colmenas.promedioPorApiario.toFixed(1)} por apiario`,
                             icon: 'hashtag',
                             color: 'text-amber-600',
                             bgColor: 'bg-amber-100'
                         },
                         {
-                            title: 'Kilos en Inventario',
-                            value: new Intl.NumberFormat('es-MX', { maximumFractionDigits: 0 }).format(data.totalKilosInventario || 0),
+                            title: 'Kilos Disponibles',
+                            value: data.inventario.kilosDisponibles.toLocaleString('es-MX', { maximumFractionDigits: 0 }),
+                            subtitle: `${data.inventario.kilosUsados.toLocaleString('es-MX', { maximumFractionDigits: 0 })} kg usados`,
                             icon: 'scale',
                             color: 'text-orange-600',
                             bgColor: 'bg-orange-100'
                         },
                         {
                             title: 'Tambores Disponibles',
-                            value: data.totalTamboresDisponibles?.toString() || '0',
+                            value: data.inventario.tamboresDisponibles.toString(),
+                            subtitle: `${data.inventario.tamboresTotal} totales / ${data.inventario.tiposMielUnicos} tipos`,
                             icon: 'shopping-bag',
                             color: 'text-indigo-600',
                             bgColor: 'bg-indigo-100'
+                        },
+                        {
+                            title: 'Entradas de Miel',
+                            value: data.entradasMiel.totalEntradas.toString(),
+                            subtitle: `${data.entradasMiel.totalKilosIngresados.toLocaleString('es-MX', { maximumFractionDigits: 0 })} kg ingresados`,
+                            icon: 'truck',
+                            color: 'text-teal-600',
+                            bgColor: 'bg-teal-100'
+                        },
+                        {
+                            title: 'Usuarios del Sistema',
+                            value: data.usuarios.total.toString(),
+                            subtitle: `${data.usuarios.administradores} admins / ${data.usuarios.verificadores} verificadores`,
+                            icon: 'users',
+                            color: 'text-pink-600',
+                            bgColor: 'bg-pink-100'
                         }
                     ];
 

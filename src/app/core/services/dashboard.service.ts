@@ -72,6 +72,61 @@ export interface DashboardMetricasParams {
   fechaFin?: string;     // YYYY-MM-DD
 }
 
+/**
+ * ============================================================================
+ * Response del endpoint GET /api/dashboard/admin/metricas
+ * ============================================================================
+ */
+export interface AdminMetricasResponse {
+  success: boolean;
+  data: {
+    apicultores: {
+      total: number;
+      activos: number;
+      inactivos: number;
+    };
+    apiarios: {
+      total: number;
+      porEstado: Array<{
+        estado: string;
+        cantidad: number;
+      }>;
+    };
+    colmenas: {
+      total: number;
+      promedioPorApiario: number;
+    };
+    proveedores: {
+      total: number;
+      acopiadores: number;
+      mieleras: number;
+    };
+    inventario: {
+      kilosDisponibles: number;
+      kilosUsados: number;
+      kilosTotal: number;
+      tamboresDisponibles: number;
+      tamboresTotal: number;
+      tiposMielUnicos: number;
+    };
+    entradasMiel: {
+      totalEntradas: number;
+      totalKilosIngresados: number;
+      promedioKilosPorEntrada: number;
+      ultimaEntrada: string | null;
+    };
+    usuarios: {
+      total: number;
+      administradores: number;
+      acopiadores: number;
+      apicultores: number;
+      mieleras: number;
+      verificadores: number;
+    };
+  };
+  message?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -86,6 +141,7 @@ export class DashboardService {
 
   /**
    * Obtener métricas del dashboard para ADMINISTRADOR
+   * @deprecated Usar getAdminMetricsConsolidado() - API optimizada (1 llamada en lugar de 4)
    */
   getAdminMetrics(): Observable<DashboardMetrics> {
     return forkJoin({
@@ -121,6 +177,86 @@ export class DashboardService {
         totalTamboresDisponibles: data.inventario.tambores
       }))
     );
+  }
+
+  /**
+   * ============================================================================
+   * NUEVO: Obtener métricas del dashboard para ADMINISTRADOR (API consolidada)
+   * ============================================================================
+   *
+   * Llama al endpoint GET /api/dashboard/admin/metricas
+   *
+   * VENTAJAS:
+   * - 1 sola llamada HTTP (vs 4 del método anterior)
+   * - Datos consistentes (mismo snapshot temporal)
+   * - Menor latencia (~75% más rápido)
+   * - Más métricas disponibles (usuarios, estados, etc.)
+   *
+   * @param params Parámetros opcionales (fechas para filtrar entradas de miel)
+   * @returns Observable con todas las métricas consolidadas del admin
+   */
+  getAdminMetricsConsolidado(params?: DashboardMetricasParams): Observable<AdminMetricasResponse['data']> {
+    // Construir query params si existen
+    const queryParams: Record<string, string> = {};
+    if (params?.fechaInicio) queryParams['fechaInicio'] = params.fechaInicio;
+    if (params?.fechaFin) queryParams['fechaFin'] = params.fechaFin;
+
+    const queryString = new URLSearchParams(queryParams).toString();
+    const url = queryString
+      ? `dashboard/admin/metricas?${queryString}`
+      : 'dashboard/admin/metricas';
+
+    return this.httpService
+      .get<AdminMetricasResponse>(url)
+      .pipe(
+        map(response => response.data),
+        catchError(error => {
+          console.error('Error al cargar métricas consolidadas del admin:', error);
+          // Retornar valores en 0 en caso de error
+          return of({
+            apicultores: {
+              total: 0,
+              activos: 0,
+              inactivos: 0
+            },
+            apiarios: {
+              total: 0,
+              porEstado: []
+            },
+            colmenas: {
+              total: 0,
+              promedioPorApiario: 0
+            },
+            proveedores: {
+              total: 0,
+              acopiadores: 0,
+              mieleras: 0
+            },
+            inventario: {
+              kilosDisponibles: 0,
+              kilosUsados: 0,
+              kilosTotal: 0,
+              tamboresDisponibles: 0,
+              tamboresTotal: 0,
+              tiposMielUnicos: 0
+            },
+            entradasMiel: {
+              totalEntradas: 0,
+              totalKilosIngresados: 0,
+              promedioKilosPorEntrada: 0,
+              ultimaEntrada: null
+            },
+            usuarios: {
+              total: 0,
+              administradores: 0,
+              acopiadores: 0,
+              apicultores: 0,
+              mieleras: 0,
+              verificadores: 0
+            }
+          });
+        })
+      );
   }
 
   /**

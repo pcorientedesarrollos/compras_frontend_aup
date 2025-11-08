@@ -29,13 +29,17 @@
     </div>
 
     <!-- Métricas Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         @for (metric of metrics(); track metric.title) {
         <div class="bg-white rounded-lg shadow-md p-5 hover:shadow-lg transition-shadow">
             <div class="flex items-start justify-between">
                 <div class="flex-1">
                     <p class="text-sm text-gray-600 mb-1">{{ metric.title }}</p>
                     <p class="text-3xl font-bold text-gray-800">{{ metric.value }}</p>
+
+                    @if (metric.subtitle) {
+                    <p class="text-xs text-gray-500 mt-2">{{ metric.subtitle }}</p>
+                    }
 
                     @if (metric.change) {
                     <div class="flex items-center mt-2">
