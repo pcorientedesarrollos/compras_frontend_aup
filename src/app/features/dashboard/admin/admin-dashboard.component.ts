@@ -1,6 +1,5 @@
 import { Component, inject, computed, signal, OnInit, DestroyRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { AuthService } from '../../../core/services/auth.service';
@@ -23,7 +22,7 @@ interface MetricCard {
 @Component({
     selector: 'app-admin-dashboard',
     standalone: true,
-    imports: [CommonModule, RouterLink, IconComponent, BeeLoaderComponent],
+    imports: [CommonModule, IconComponent, BeeLoaderComponent],
     templateUrl: './admin-dashboard.component.html',
     styleUrl: './admin-dashboard.component.css'
 })
@@ -108,19 +107,19 @@ export class AdminDashboardComponent implements OnInit {
                             bgColor: 'bg-purple-100'
                         },
                         {
+                            title: 'Apiarios Registrados',
+                            value: data.apiarios.total.toString(),
+                            icon: 'map-pin',
+                            color: 'text-blue-600',
+                            bgColor: 'bg-blue-100'
+                        },
+                        {
                             title: 'Total Apicultores',
                             value: data.apicultores.total.toString(),
                             subtitle: `${data.apicultores.activos} activos / ${data.apicultores.inactivos} inactivos`,
                             icon: 'bee',
                             color: 'text-green-600',
                             bgColor: 'bg-green-100'
-                        },
-                        {
-                            title: 'Apiarios Registrados',
-                            value: data.apiarios.total.toString(),
-                            icon: 'map-pin',
-                            color: 'text-blue-600',
-                            bgColor: 'bg-blue-100'
                         },
                         {
                             title: 'Colmenas Totales',
@@ -153,6 +152,22 @@ export class AdminDashboardComponent implements OnInit {
                             icon: 'truck',
                             color: 'text-teal-600',
                             bgColor: 'bg-teal-100'
+                        },
+                        {
+                            title: 'Verificaciones',
+                            value: data.verificaciones.total.toString(),
+                            subtitle: `${data.verificaciones.enTransito} en tránsito / ${data.verificaciones.verificadas} verificadas`,
+                            icon: 'check-circle',
+                            color: 'text-emerald-600',
+                            bgColor: 'bg-emerald-100'
+                        },
+                        {
+                            title: 'Tambores',
+                            value: data.tambores.total.toString(),
+                            subtitle: `${data.tambores.activos} activos / ${data.tambores.asignados} asignados / ${data.tambores.entregados} entregados`,
+                            icon: 'inbox',
+                            color: 'text-cyan-600',
+                            bgColor: 'bg-cyan-100'
                         },
                         {
                             title: 'Usuarios del Sistema',

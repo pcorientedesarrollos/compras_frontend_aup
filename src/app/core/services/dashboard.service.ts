@@ -117,6 +117,17 @@ export interface AdminMetricasResponse {
       promedioKilosPorEntrada: number;
       ultimaEntrada: string | null;
     };
+    verificaciones: {
+      enTransito: number;
+      verificadas: number;
+      total: number;
+    };
+    tambores: {
+      activos: number;
+      asignados: number;
+      entregados: number;
+      total: number;
+    };
     usuarios: {
       total: number;
       administradores: number;
@@ -249,6 +260,17 @@ export class DashboardService {
               totalKilosIngresados: 0,
               promedioKilosPorEntrada: 0,
               ultimaEntrada: null
+            },
+            verificaciones: {
+              enTransito: 0,
+              verificadas: 0,
+              total: 0
+            },
+            tambores: {
+              activos: 0,
+              asignados: 0,
+              entregados: 0,
+              total: 0
             },
             usuarios: {
               total: 0,
