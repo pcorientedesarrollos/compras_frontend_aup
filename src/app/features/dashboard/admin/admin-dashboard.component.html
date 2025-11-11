@@ -8,9 +8,9 @@
 
 <div class="space-y-6">
 
-    <!-- Header con saludo -->
+    <!-- Header con saludo y filtro de mes -->
     <div class="bg-gradient-to-r from-honey-primary to-amber-600 rounded-xl shadow-lg p-6 text-white">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
                 <h1 class="text-2xl md:text-3xl font-bold mb-2 flex items-center gap-2">
                     ¡Bienvenido, {{ currentUser()?.nombre }}!
@@ -20,7 +20,43 @@
                     Panel de Administración · Sistema de Trazabilidad Oaxaca Miel
                 </p>
             </div>
-            <div class="hidden md:block">
+
+            <!-- 📅 Filtro de Mes -->
+            <div class="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg p-2">
+                <!-- Botón Mes Anterior -->
+                <button
+                    (click)="previousMonth()"
+                    class="flex items-center justify-center w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                    title="Mes anterior">
+                    <app-icon name="chevron-left" size="md" className="text-white" />
+                </button>
+
+                <!-- Indicador de Mes/Año -->
+                <button
+                    (click)="goToCurrentMonth()"
+                    [class]="'px-4 py-2 rounded-lg font-medium transition-all min-w-[180px] text-center ' +
+                             (isCurrentMonth()
+                              ? 'bg-white text-honey-primary shadow-md'
+                              : 'bg-white/10 hover:bg-white/20 text-white')"
+                    title="Ir al mes actual">
+                    <span class="text-sm">{{ displayDate() }}</span>
+                </button>
+
+                <!-- Botón Mes Siguiente -->
+                <button
+                    (click)="nextMonth()"
+                    [disabled]="isNextMonthDisabled()"
+                    [class]="'flex items-center justify-center w-10 h-10 rounded-lg transition-colors ' +
+                             (isNextMonthDisabled()
+                              ? 'bg-white/5 cursor-not-allowed opacity-50'
+                              : 'bg-white/10 hover:bg-white/20')"
+                    title="Mes siguiente">
+                    <app-icon name="chevron-right" size="md" className="text-white" />
+                </button>
+            </div>
+
+            <!-- Icono decorativo (solo desktop) -->
+            <div class="hidden lg:block">
                 <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
                     <app-icon name="honey" size="2xl" className="text-white" />
                 </div>
@@ -63,30 +99,8 @@
         }
     </div>
 
-    <!-- Acciones Rápidas -->
-    <div>
-        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <app-icon name="bolt" size="lg" className="text-honey-primary" />
-            Acciones Rápidas
-        </h2>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            @for (action of quickActions; track action.route) {
-            <a [routerLink]="action.route"
-                [class]="'block p-5 rounded-lg text-white shadow-md hover:shadow-xl transition-all transform hover:scale-105 ' + action.color">
-                <!-- ✅ Icono SVG -->
-                <div class="mb-3">
-                    <app-icon [name]="action.icon" size="2xl" className="text-white" />
-                </div>
-                <h3 class="text-lg font-bold mb-1">{{ action.title }}</h3>
-                <p class="text-sm text-white/80">{{ action.description }}</p>
-            </a>
-            }
-        </div>
-    </div>
-
     <!-- Actividad Reciente (placeholder) -->
-    <div class="bg-white rounded-lg shadow-md p-6">
+    <!-- <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
             <app-icon name="document-text" size="lg" className="text-gray-700" />
             Actividad Reciente
@@ -96,7 +110,6 @@
             @for (i of [1,2,3,4]; track i) {
             <div class="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
                 <div class="w-10 h-10 bg-honey-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <!-- ✅ Icono SVG -->
                     <app-icon name="bell" size="md" className="text-honey-primary" />
                 </div>
                 <div class="flex-1 min-w-0">
@@ -119,7 +132,7 @@
                 <app-icon name="arrow-right" size="sm" />
             </a>
         </div>
-    </div>
+    </div> -->
 
 </div>
 

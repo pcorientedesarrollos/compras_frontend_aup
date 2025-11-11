@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal, OnInit, DestroyRef } from '@angular/core';
+import { Component, inject, computed, signal, OnInit, DestroyRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -20,14 +20,6 @@ interface MetricCard {
     subtitle?: string;
 }
 
-interface QuickAction {
-    title: string;
-    description: string;
-    icon: IconName; // 🎯 Ahora usa IconName
-    route: string;
-    color: string;
-}
-
 @Component({
     selector: 'app-admin-dashboard',
     standalone: true,
@@ -46,40 +38,46 @@ export class AdminDashboardComponent implements OnInit {
     loading = signal(true);
     metrics = signal<MetricCard[]>([]);
 
-    // Acciones rápidas (con iconos SVG)
-    quickActions: QuickAction[] = [
-        {
-            title: 'Nuevo Apicultor',
-            description: 'Registrar nuevo apicultor',
-            icon: 'user-plus',
-            route: '/admin/apicultores',
-            color: 'bg-green-500 hover:bg-green-600'
-        },
-        {
-            title: 'Ver Apicultores',
-            description: 'Gestionar apicultores registrados',
-            icon: 'bee',
-            route: '/admin/apicultores',
-            color: 'bg-amber-500 hover:bg-amber-600'
-        },
-        {
-            title: 'Ver Apiarios',
-            description: 'Consultar ubicaciones de apiarios',
-            icon: 'map-pin',
-            route: '/admin/apiarios',
-            color: 'bg-blue-500 hover:bg-blue-600'
-        },
-        {
-            title: 'Proveedores',
-            description: 'Gestionar acopiadores y mieleras',
-            icon: 'building-office',
-            route: '/admin/proveedores',
-            color: 'bg-purple-500 hover:bg-purple-600'
-        }
-    ];
+    // 📅 Signals para filtro de mes/año
+    selectedMonth = signal<number>(new Date().getMonth() + 1); // 1-12
+    selectedYear = signal<number>(new Date().getFullYear());
+
+    // Computed para mostrar fecha formateada
+    displayDate = computed(() => {
+        const monthNames = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+        return `${monthNames[this.selectedMonth() - 1]} ${this.selectedYear()}`;
+    });
+
+    // Computed para verificar si estamos en el mes actual
+    isCurrentMonth = computed(() => {
+        const now = new Date();
+        return this.selectedMonth() === now.getMonth() + 1 &&
+               this.selectedYear() === now.getFullYear();
+    });
+
+    // Flag para evitar doble carga en inicialización
+    private isInitialized = false;
+
+    constructor() {
+        // 🔄 Effect para recargar métricas cuando cambie mes/año
+        effect(() => {
+            // Leer los signals para registrar dependencias
+            const mes = this.selectedMonth();
+            const anio = this.selectedYear();
+
+            // Solo recargar si ya se inicializó (evita llamada doble en ngOnInit)
+            if (this.isInitialized && mes && anio) {
+                this.loadDashboardMetrics();
+            }
+        }, { allowSignalWrites: true });
+    }
 
     ngOnInit(): void {
         this.loadDashboardMetrics();
+        this.isInitialized = true; // Marcar como inicializado después de la primera carga
     }
 
     /**
@@ -88,12 +86,27 @@ export class AdminDashboardComponent implements OnInit {
     loadDashboardMetrics(): void {
         this.loading.set(true);
 
-        this.dashboardService.getAdminMetricsConsolidado()
+        // Enviar mes y año como query params
+        const params = {
+            mes: this.selectedMonth(),
+            anio: this.selectedYear()
+        };
+
+        this.dashboardService.getAdminMetricsConsolidado(params)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (data) => {
                     // 🎯 Construir métricas con datos reales de la API consolidada
+                    // Orden: Proveedores → Apiarios → Apicultores → resto (igual que sidebar)
                     const metricsData: MetricCard[] = [
+                        {
+                            title: 'Proveedores',
+                            value: data.proveedores.total.toString(),
+                            subtitle: `${data.proveedores.acopiadores} acopiadores / ${data.proveedores.mieleras} mieleras`,
+                            icon: 'building-office',
+                            color: 'text-purple-600',
+                            bgColor: 'bg-purple-100'
+                        },
                         {
                             title: 'Total Apicultores',
                             value: data.apicultores.total.toString(),
@@ -108,14 +121,6 @@ export class AdminDashboardComponent implements OnInit {
                             icon: 'map-pin',
                             color: 'text-blue-600',
                             bgColor: 'bg-blue-100'
-                        },
-                        {
-                            title: 'Proveedores',
-                            value: data.proveedores.total.toString(),
-                            subtitle: `${data.proveedores.acopiadores} acopiadores / ${data.proveedores.mieleras} mieleras`,
-                            icon: 'building-office',
-                            color: 'text-purple-600',
-                            bgColor: 'bg-purple-100'
                         },
                         {
                             title: 'Colmenas Totales',
@@ -168,4 +173,65 @@ export class AdminDashboardComponent implements OnInit {
                 }
             });
     }
+
+    /**
+     * 📅 Navegar al mes anterior
+     */
+    previousMonth(): void {
+        let mes = this.selectedMonth();
+        let anio = this.selectedYear();
+
+        mes--;
+        if (mes < 1) {
+            mes = 12;
+            anio--;
+        }
+
+        this.selectedMonth.set(mes);
+        this.selectedYear.set(anio);
+    }
+
+    /**
+     * 📅 Navegar al mes actual
+     */
+    goToCurrentMonth(): void {
+        const now = new Date();
+        this.selectedMonth.set(now.getMonth() + 1);
+        this.selectedYear.set(now.getFullYear());
+    }
+
+    /**
+     * 📅 Navegar al mes siguiente
+     */
+    nextMonth(): void {
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+
+        // No permitir avanzar más allá del mes actual
+        if (this.selectedMonth() === currentMonth && this.selectedYear() === currentYear) {
+            return;
+        }
+
+        let mes = this.selectedMonth();
+        let anio = this.selectedYear();
+
+        mes++;
+        if (mes > 12) {
+            mes = 1;
+            anio++;
+        }
+
+        this.selectedMonth.set(mes);
+        this.selectedYear.set(anio);
+    }
+
+    /**
+     * 📅 Verificar si el botón "Siguiente" debe estar deshabilitado
+     */
+    isNextMonthDisabled = computed(() => {
+        const now = new Date();
+        return this.selectedMonth() === now.getMonth() + 1 &&
+               this.selectedYear() === now.getFullYear();
+    });
 }

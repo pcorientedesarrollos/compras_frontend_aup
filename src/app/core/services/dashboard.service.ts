@@ -70,6 +70,8 @@ export interface AcopiadorMetricasResponse {
 export interface DashboardMetricasParams {
   fechaInicio?: string;  // YYYY-MM-DD
   fechaFin?: string;     // YYYY-MM-DD
+  mes?: number;          // 1-12
+  anio?: number;         // ≥2024
 }
 
 /**
@@ -200,6 +202,8 @@ export class DashboardService {
     const queryParams: Record<string, string> = {};
     if (params?.fechaInicio) queryParams['fechaInicio'] = params.fechaInicio;
     if (params?.fechaFin) queryParams['fechaFin'] = params.fechaFin;
+    if (params?.mes) queryParams['mes'] = params.mes.toString();
+    if (params?.anio) queryParams['anio'] = params.anio.toString();
 
     const queryString = new URLSearchParams(queryParams).toString();
     const url = queryString
