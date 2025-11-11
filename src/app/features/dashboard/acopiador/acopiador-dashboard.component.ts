@@ -1,6 +1,5 @@
-import { Component, inject, computed, signal, OnInit, DestroyRef } from '@angular/core';
+import { Component, inject, computed, signal, OnInit, DestroyRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { AuthService } from '../../../core/services/auth.service';
@@ -12,23 +11,16 @@ import { IconName } from '../../../shared/components/ui/icon/types/icon.types';
 interface MetricCard {
     title: string;
     value: string;
-    icon: IconName; // ✅ SVG icons
+    icon: IconName;
     color: string;
     bgColor: string;
-}
-
-interface QuickAction {
-    title: string;
-    description: string;
-    icon: IconName; // ✅ SVG icons
-    route: string;
-    color: string;
+    subtitle?: string;
 }
 
 @Component({
     selector: 'app-acopiador-dashboard',
     standalone: true,
-    imports: [CommonModule, RouterLink, IconComponent, BeeLoaderComponent],
+    imports: [CommonModule, IconComponent, BeeLoaderComponent],
     templateUrl: './acopiador-dashboard.component.html',
     styleUrl: './acopiador-dashboard.component.css'
 })
@@ -43,87 +35,108 @@ export class AcopiadorDashboardComponent implements OnInit {
     loading = signal(true);
     metrics = signal<MetricCard[]>([]);
 
-    // Acciones rápidas (con iconos SVG)
-    quickActions: QuickAction[] = [
-        {
-            title: 'Mis Apicultores',
-            description: 'Gestionar apicultores vinculados',
-            icon: 'bee',
-            route: '/acopiador/apicultores',
-            color: 'bg-green-500 hover:bg-green-600'
-        },
-        {
-            title: 'Ver Apiarios',
-            description: 'Ubicación de apiarios en mapa',
-            icon: 'map-pin',
-            route: '/acopiador/apiarios',
-            color: 'bg-blue-500 hover:bg-blue-600'
-        },
-        {
-            title: 'Entradas de Miel',
-            description: 'Registrar nuevas compras',
-            icon: 'shopping-bag',
-            route: '/acopiador/entradas-miel',
-            color: 'bg-amber-500 hover:bg-amber-600'
-        },
-        {
-            title: 'Salidas de Miel',
-            description: 'Gestionar envíos',
-            icon: 'folder',
-            route: '/acopiador/salidas-miel',
-            color: 'bg-purple-500 hover:bg-purple-600'
-        }
-    ];
+    // 📅 Signals para filtro de mes/año
+    selectedMonth = signal<number>(new Date().getMonth() + 1); // 1-12
+    selectedYear = signal<number>(new Date().getFullYear());
+
+    // Computed para mostrar fecha formateada
+    displayDate = computed(() => {
+        const monthNames = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+        return `${monthNames[this.selectedMonth() - 1]} ${this.selectedYear()}`;
+    });
+
+    // Computed para verificar si estamos en el mes actual
+    isCurrentMonth = computed(() => {
+        const now = new Date();
+        return this.selectedMonth() === now.getMonth() + 1 &&
+               this.selectedYear() === now.getFullYear();
+    });
+
+    // Flag para evitar doble carga en inicialización
+    private isInitialized = false;
+
+    constructor() {
+        // 🔄 Effect para recargar métricas cuando cambie mes/año
+        effect(() => {
+            const mes = this.selectedMonth();
+            const anio = this.selectedYear();
+
+            if (this.isInitialized && mes && anio) {
+                this.loadDashboardMetrics();
+            }
+        }, { allowSignalWrites: true });
+    }
 
     ngOnInit(): void {
         this.loadDashboardMetrics();
+        this.isInitialized = true;
     }
 
     /**
-     * Cargar métricas del dashboard desde el backend
-     *
-     * NUEVO: Usa API consolidada (1 llamada HTTP en lugar de 3)
-     * - Más rápido (~70% menos latencia)
-     * - Datos consistentes (mismo snapshot)
-     * - Filtrado automático por proveedorId (desde JWT)
+     * Cargar métricas del dashboard desde el backend usando API consolidada
      */
     loadDashboardMetrics(): void {
         this.loading.set(true);
 
-        // Ya no necesitamos proveedorId - el backend lo extrae del JWT automáticamente
-        this.dashboardService.getAcopiadorMetricsConsolidado()
+        const params = {
+            mes: this.selectedMonth(),
+            anio: this.selectedYear()
+        };
+
+        this.dashboardService.getAcopiadorMetricsConsolidado(params)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (data) => {
-                    // 🎯 Construir métricas con datos reales
+                    // 🎯 Construir métricas con datos reales de la API
                     const metricsData: MetricCard[] = [
                         {
                             title: 'Apicultores Vinculados',
-                            value: data.totalApicultores?.toString() || '0',
+                            value: data.apicultoresVinculados.total.toString(),
                             icon: 'bee',
                             color: 'text-green-600',
                             bgColor: 'bg-green-100'
                         },
                         {
                             title: 'Entradas de Miel',
-                            value: data.totalEntradasMiel?.toString() || '0',
+                            value: data.entradasMiel.totalEntradas.toString(),
+                            subtitle: `${data.entradasMiel.totalKilos.toLocaleString('es-MX', { maximumFractionDigits: 0 })} kg · $${data.entradasMiel.totalCompras.toLocaleString('es-MX', { maximumFractionDigits: 0 })}`,
                             icon: 'shopping-bag',
                             color: 'text-amber-600',
                             bgColor: 'bg-amber-100'
                         },
                         {
-                            title: 'Kilos en Inventario',
-                            value: new Intl.NumberFormat('es-MX', { maximumFractionDigits: 0 }).format(data.totalKilosInventario || 0),
+                            title: 'Inventario',
+                            value: data.inventario.kilosTotal.toLocaleString('es-MX', { maximumFractionDigits: 0 }) + ' kg',
+                            subtitle: `${data.inventario.kilosDisponibles.toLocaleString('es-MX', { maximumFractionDigits: 0 })} disponibles / ${data.inventario.kilosUsados.toLocaleString('es-MX', { maximumFractionDigits: 0 })} usados`,
                             icon: 'scale',
                             color: 'text-orange-600',
                             bgColor: 'bg-orange-100'
                         },
                         {
                             title: 'Tipos de Miel',
-                            value: data.totalTamboresDisponibles?.toString() || '0',
+                            value: data.inventario.tiposMielUnicos.toString(),
                             icon: 'tag',
                             color: 'text-purple-600',
                             bgColor: 'bg-purple-100'
+                        },
+                        {
+                            title: 'Verificaciones',
+                            value: data.verificaciones.total.toString(),
+                            subtitle: `${data.verificaciones.enTransito} en tránsito / ${data.verificaciones.verificadas} verificadas`,
+                            icon: 'check-circle',
+                            color: 'text-emerald-600',
+                            bgColor: 'bg-emerald-100'
+                        },
+                        {
+                            title: 'Tambores',
+                            value: data.tambores.total.toString(),
+                            subtitle: `${data.tambores.activos} activos / ${data.tambores.asignados} asignados / ${data.tambores.entregados} entregados`,
+                            icon: 'inbox',
+                            color: 'text-cyan-600',
+                            bgColor: 'bg-cyan-100'
                         }
                     ];
 
@@ -136,4 +149,64 @@ export class AcopiadorDashboardComponent implements OnInit {
                 }
             });
     }
+
+    /**
+     * 📅 Navegar al mes anterior
+     */
+    previousMonth(): void {
+        let mes = this.selectedMonth();
+        let anio = this.selectedYear();
+
+        mes--;
+        if (mes < 1) {
+            mes = 12;
+            anio--;
+        }
+
+        this.selectedMonth.set(mes);
+        this.selectedYear.set(anio);
+    }
+
+    /**
+     * 📅 Navegar al mes actual
+     */
+    goToCurrentMonth(): void {
+        const now = new Date();
+        this.selectedMonth.set(now.getMonth() + 1);
+        this.selectedYear.set(now.getFullYear());
+    }
+
+    /**
+     * 📅 Navegar al mes siguiente
+     */
+    nextMonth(): void {
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+
+        if (this.selectedMonth() === currentMonth && this.selectedYear() === currentYear) {
+            return;
+        }
+
+        let mes = this.selectedMonth();
+        let anio = this.selectedYear();
+
+        mes++;
+        if (mes > 12) {
+            mes = 1;
+            anio++;
+        }
+
+        this.selectedMonth.set(mes);
+        this.selectedYear.set(anio);
+    }
+
+    /**
+     * 📅 Verificar si el botón "Siguiente" debe estar deshabilitado
+     */
+    isNextMonthDisabled = computed(() => {
+        const now = new Date();
+        return this.selectedMonth() === now.getMonth() + 1 &&
+               this.selectedYear() === now.getFullYear();
+    });
 }

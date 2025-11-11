@@ -61,6 +61,17 @@ export interface AcopiadorMetricasResponse {
       kilosTotal: number;
       tiposMielUnicos: number;
     };
+    verificaciones: {
+      enTransito: number;
+      verificadas: number;
+      total: number;
+    };
+    tambores: {
+      activos: number;
+      asignados: number;
+      entregados: number;
+      total: number;
+    };
   };
 }
 
@@ -329,14 +340,16 @@ export class DashboardService {
    * - Menor latencia (~70% más rápido)
    * - Filtrado automático por proveedorId (desde JWT)
    *
-   * @param params Parámetros opcionales (fechas)
-   * @returns Observable con métricas consolidadas
+   * @param params Parámetros opcionales (fechas/mes/año)
+   * @returns Observable con métricas consolidadas del acopiador
    */
-  getAcopiadorMetricsConsolidado(params?: DashboardMetricasParams): Observable<DashboardMetrics> {
+  getAcopiadorMetricsConsolidado(params?: DashboardMetricasParams): Observable<AcopiadorMetricasResponse['data']> {
     // Construir query params si existen
     const queryParams: Record<string, string> = {};
     if (params?.fechaInicio) queryParams['fechaInicio'] = params.fechaInicio;
     if (params?.fechaFin) queryParams['fechaFin'] = params.fechaFin;
+    if (params?.mes) queryParams['mes'] = params.mes.toString();
+    if (params?.anio) queryParams['anio'] = params.anio.toString();
 
     const queryString = new URLSearchParams(queryParams).toString();
     const url = queryString
@@ -346,20 +359,38 @@ export class DashboardService {
     return this.httpService
       .get<AcopiadorMetricasResponse>(url)
       .pipe(
-        map(response => ({
-          totalApicultores: response.data.apicultoresVinculados.total,
-          totalEntradasMiel: response.data.entradasMiel.totalEntradas,
-          totalKilosInventario: response.data.inventario.kilosDisponibles,
-          totalTamboresDisponibles: response.data.inventario.tiposMielUnicos
-        })),
+        map(response => response.data),
         catchError(error => {
           console.error('Error al cargar métricas consolidadas del acopiador:', error);
           // Retornar valores en 0 en caso de error
           return of({
-            totalApicultores: 0,
-            totalEntradasMiel: 0,
-            totalKilosInventario: 0,
-            totalTamboresDisponibles: 0
+            apicultoresVinculados: {
+              total: 0
+            },
+            entradasMiel: {
+              totalEntradas: 0,
+              totalKilos: 0,
+              totalCompras: 0,
+              promedioKilosPorEntrada: 0,
+              promedioPrecioPorKilo: 0
+            },
+            inventario: {
+              kilosDisponibles: 0,
+              kilosUsados: 0,
+              kilosTotal: 0,
+              tiposMielUnicos: 0
+            },
+            verificaciones: {
+              enTransito: 0,
+              verificadas: 0,
+              total: 0
+            },
+            tambores: {
+              activos: 0,
+              asignados: 0,
+              entregados: 0,
+              total: 0
+            }
           });
         })
       );

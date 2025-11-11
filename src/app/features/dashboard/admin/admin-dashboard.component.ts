@@ -107,19 +107,19 @@ export class AdminDashboardComponent implements OnInit {
                             bgColor: 'bg-purple-100'
                         },
                         {
-                            title: 'Apiarios Registrados',
-                            value: data.apiarios.total.toString(),
-                            icon: 'map-pin',
-                            color: 'text-blue-600',
-                            bgColor: 'bg-blue-100'
-                        },
-                        {
                             title: 'Total Apicultores',
                             value: data.apicultores.total.toString(),
                             subtitle: `${data.apicultores.activos} activos / ${data.apicultores.inactivos} inactivos`,
                             icon: 'bee',
                             color: 'text-green-600',
                             bgColor: 'bg-green-100'
+                        },
+                        {
+                            title: 'Apiarios Registrados',
+                            value: data.apiarios.total.toString(),
+                            icon: 'map-pin',
+                            color: 'text-blue-600',
+                            bgColor: 'bg-blue-100'
                         },
                         {
                             title: 'Colmenas Totales',
