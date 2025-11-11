@@ -277,6 +277,7 @@ export class ApiarioDetailComponent implements OnInit {
     /**
      * ✅ Pre-seleccionar apicultor cuando viene por query param
      * Esto ocurre cuando se crea desde el modal de apicultor
+     * 🔧 NO deshabilitar el campo para no afectar la validación del formulario
      */
     private preSelectApicultor(apicultorId: string): void {
         // Pre-llenar el campo
@@ -284,19 +285,23 @@ export class ApiarioDetailComponent implements OnInit {
             apicultorId: apicultorId
         });
 
-        // Deshabilitar el campo para que no se pueda cambiar
-        this.apiarioForm.get('apicultorId')?.disable();
+        // ❌ NO deshabilitar - causaba que el formulario se quedara inválido
+        // El campo será readonly visualmente en el template
 
-        // Usar effect para actualizar el nombre cuando los apicultores estén cargados
-        effect(() => {
-            const apicultores = this.apicultoresDisponibles();
-            if (apicultores.length > 0) {
-                const apicultor = apicultores.find(a => a.id === apicultorId);
-                if (apicultor) {
-                    this.apicultorPreseleccionadoNombre.set(apicultor.nombreCompleto);
+        // Buscar el nombre del apicultor cuando se carguen los apicultores
+        this.apicultorService.getAllApicultores()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (apicultores) => {
+                    const apicultor = apicultores.find(a => a.id === apicultorId);
+                    if (apicultor) {
+                        this.apicultorPreseleccionadoNombre.set(apicultor.nombreCompleto);
+                    }
+                },
+                error: (error) => {
+                    console.error('Error al buscar apicultor:', error);
                 }
-            }
-        }, { allowSignalWrites: true });
+            });
     }
 
     // ============================================================================
