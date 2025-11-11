@@ -131,6 +131,11 @@ export interface EntradaMielAPI {
     motivoCancelacion?: string | null;
     cantidadDetalles: number;
     kilosTotales: number;
+    // Nuevos campos de estado de uso de detalles
+    todosDetallesUsados: boolean;
+    cantidadDetallesDisponibles: number;
+    cantidadDetallesUsados: number;
+    cantidadDetallesCancelados: number;
 }
 
 /**

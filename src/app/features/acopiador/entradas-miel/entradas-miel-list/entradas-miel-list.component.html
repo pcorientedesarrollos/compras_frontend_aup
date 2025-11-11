@@ -130,6 +130,7 @@
                         <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Fecha</th>
                         <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Apicultor</th>
                         <th class="px-6 py-4 text-center text-sm font-semibold text-gray-900">No. Registros</th>
+                        <th class="px-6 py-4 text-center text-sm font-semibold text-gray-900">Estado Uso</th>
                         <th class="px-6 py-4 text-right text-sm font-semibold text-gray-900">Kilos</th>
                         <th class="px-6 py-4 text-right text-sm font-semibold text-gray-900">Total Compra</th>
                         <th class="px-6 py-4 text-center text-sm font-semibold text-gray-900">Acciones</th>
@@ -163,6 +164,21 @@
                             </span>
                         </td>
 
+                        <!-- Estado Uso -->
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex flex-col items-center gap-1">
+                                <span [class]="'px-2.5 py-1 rounded-full text-xs font-semibold ' + getEstadoUsoBadgeClass(entrada)">
+                                    {{ getEstadoUsoText(entrada) }}
+                                </span>
+                                @if (entrada.todosDetallesUsados) {
+                                <span class="text-xs text-gray-500 flex items-center gap-1">
+                                    <app-icon name="lock-closed" size="xs" />
+                                    Bloqueado
+                                </span>
+                                }
+                            </div>
+                        </td>
+
                         <!-- Kilos -->
                         <td class="px-6 py-4 text-right text-sm font-semibold text-gray-900">
                             {{ entrada.kilosTotales.toFixed(2) }} kg
@@ -184,12 +200,18 @@
                                     <app-icon name="eye" size="sm" />
                                 </button>
 
-                                <!-- Editar (solo si está ACTIVO) -->
-                                @if (entrada.estado === EstadoEntrada.ACTIVO) {
+                                <!-- Editar (solo si está ACTIVO y tiene detalles disponibles) -->
+                                @if (puedeEditarEntrada(entrada)) {
                                 <button (click)="editarEntrada(entrada.id)"
                                     class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
                                     title="Editar entrada">
                                     <app-icon name="pencil" size="sm" />
+                                </button>
+                                } @else if (entrada.estado === EstadoEntrada.ACTIVO && entrada.todosDetallesUsados) {
+                                <button disabled
+                                    class="p-2 text-gray-400 cursor-not-allowed rounded-lg"
+                                    title="No se puede editar: todos los detalles están usados">
+                                    <app-icon name="lock-closed" size="sm" />
                                 </button>
                                 }
 

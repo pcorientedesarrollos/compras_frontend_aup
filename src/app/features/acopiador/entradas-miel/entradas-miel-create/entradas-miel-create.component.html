@@ -9,9 +9,24 @@
         <div>
             <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
                 <app-icon name="shopping-bag" size="xl" color="text-honey-primary" />
+                @if (isEditMode()) {
+                Editar Entrada de Miel
+                } @else {
                 Nueva Entrada de Miel
+                }
             </h1>
-            <p class="text-gray-600 mt-1">Registra la compra de miel por registros</p>
+            <p class="text-gray-600 mt-1">
+                @if (isEditMode()) {
+                Modifica la entrada de miel (solo detalles disponibles son editables)
+                } @else {
+                Registra la compra de miel por registros
+                }
+            </p>
+            @if (isEditMode() && entradaOriginal()) {
+            <p class="text-sm text-honey-dark font-semibold mt-1">
+                Folio: {{ entradaOriginal()!.folio }}
+            </p>
+            }
         </div>
 
         <div class="text-right">
@@ -96,12 +111,33 @@
                 </h2>
             </div>
 
+            <!-- Advertencia de detalles bloqueados (solo en modo edición) -->
+            @if (isEditMode()) {
+            <div class="mb-4 bg-amber-50 border-l-4 border-amber-500 p-4 rounded">
+                <div class="flex items-start gap-3">
+                    <app-icon name="exclamation-triangle" size="md" color="text-amber-600" class="flex-shrink-0 mt-0.5" />
+                    <div>
+                        <p class="text-sm font-semibold text-amber-800">Atención al editar</p>
+                        <p class="text-sm text-amber-700 mt-1">
+                            Los detalles marcados como <span class="font-semibold">USADO</span> o
+                            <span class="font-semibold">CANCELADO</span> no pueden ser modificados porque
+                            ya han sido utilizados en procesos posteriores. Solo puedes editar los detalles
+                            marcados como <span class="font-semibold text-green-700">DISPONIBLE</span>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            }
+
             <!-- Tabla Responsive -->
             <div class="overflow-x-auto">
                 <table class="w-full border-collapse">
                     <thead>
                         <tr class="bg-honey-primary/10 border-b-2 border-honey-primary">
                             <th class="px-3 py-3 text-left text-sm font-semibold text-gray-900">#</th>
+                            @if (isEditMode()) {
+                            <th class="px-3 py-3 text-center text-sm font-semibold text-gray-900">Estado</th>
+                            }
                             <th class="px-3 py-3 text-left text-sm font-semibold text-gray-900">Floración</th>
                             <th class="px-3 py-3 text-left text-sm font-semibold text-gray-900">Color</th>
                             <th class="px-3 py-3 text-right text-sm font-semibold text-gray-900">PB (kg)</th>
@@ -115,15 +151,36 @@
                     </thead>
                     <tbody formArrayName="tambores">
                         @for (tambor of tamboresArray.controls; track $index) {
-                        <tr [formGroupName]="$index" class="border-b hover:bg-gray-50 transition-colors">
+                        <tr [formGroupName]="$index"
+                            [class]="isTamborBloqueado($index) ? 'border-b bg-gray-100/50' : 'border-b hover:bg-gray-50 transition-colors'">
 
                             <!-- # (Índice) -->
                             <td class="px-3 py-3">
-                                <span
-                                    class="inline-flex items-center justify-center w-8 h-8 bg-honey-primary text-white rounded-full font-semibold text-sm">
-                                    {{ $index + 1 }}
-                                </span>
+                                <div class="flex items-center gap-2">
+                                    <span
+                                        class="inline-flex items-center justify-center w-8 h-8 bg-honey-primary text-white rounded-full font-semibold text-sm">
+                                        {{ $index + 1 }}
+                                    </span>
+                                    @if (isTamborBloqueado($index)) {
+                                    <app-icon name="lock-closed" size="sm" color="text-gray-500" />
+                                    }
+                                </div>
                             </td>
+
+                            <!-- Estado de Uso (solo en modo edición) -->
+                            @if (isEditMode()) {
+                            <td class="px-3 py-3 text-center">
+                                @if (getEstadoUsoTambor($index)) {
+                                <span [class]="'px-2 py-1 rounded-full text-xs font-semibold ' + getEstadoUsoTamborBadgeClass($index)">
+                                    {{ getEstadoUsoTambor($index) }}
+                                </span>
+                                } @else {
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                                    NUEVO
+                                </span>
+                                }
+                            </td>
+                            }
 
                             <!-- Floración (SELECT) -->
                             <td class="px-3 py-3">

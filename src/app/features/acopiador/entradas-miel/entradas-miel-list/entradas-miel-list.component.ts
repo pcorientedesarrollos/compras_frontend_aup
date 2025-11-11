@@ -426,4 +426,41 @@ export class EntradasMielListComponent implements OnInit {
     getTotalKilos(detalle: EntradaMielDetailAPI): number {
         return detalle.detalles.reduce((sum, d) => sum + d.kilos, 0);
     }
+
+    /**
+     * Obtener clase CSS para badge de estado de uso
+     */
+    getEstadoUsoBadgeClass(entrada: EntradaMielAPI): string {
+        if (entrada.todosDetallesUsados) {
+            return 'bg-gray-100 text-gray-800';
+        } else if (entrada.cantidadDetallesDisponibles > 0) {
+            return 'bg-green-100 text-green-800';
+        }
+        return 'bg-yellow-100 text-yellow-800';
+    }
+
+    /**
+     * Obtener texto para badge de estado de uso
+     */
+    getEstadoUsoText(entrada: EntradaMielAPI): string {
+        const disponibles = entrada.cantidadDetallesDisponibles;
+        const usados = entrada.cantidadDetallesUsados;
+        const total = entrada.cantidadDetalles;
+
+        if (entrada.todosDetallesUsados) {
+            return `${usados}/${total} usados`;
+        } else if (disponibles === total) {
+            return `${disponibles}/${total} disponibles`;
+        } else {
+            return `${disponibles}/${total} disponibles`;
+        }
+    }
+
+    /**
+     * Verificar si se puede editar la entrada
+     * Solo se puede editar si tiene al menos un detalle disponible
+     */
+    puedeEditarEntrada(entrada: EntradaMielAPI): boolean {
+        return entrada.estado === EstadoEntrada.ACTIVO && entrada.cantidadDetallesDisponibles > 0;
+    }
 }

@@ -298,6 +298,7 @@ export class EntradasMielCreateComponent implements OnInit {
         detalles.forEach(detalle => {
             const tamborGroup = this.fb.group({
                 id: [detalle.id], // Guardar ID para actualización
+                estadoUso: [detalle.estadoUso], // Guardar estado de uso
                 bruto: [parseFloat(detalle.bruto) || 0, [Validators.required, Validators.min(0.01)]],
                 tara: [parseFloat(detalle.tara) || 0, [Validators.required, Validators.min(0)]],
                 floracionId: [detalle.floracionId],
@@ -305,6 +306,16 @@ export class EntradasMielCreateComponent implements OnInit {
                 colorId: [detalle.colorId],
                 precio: [parseFloat(detalle.precio) || 0, [Validators.required, Validators.min(0.01)]]
             });
+
+            // Si el detalle está USADO o CANCELADO, deshabilitar todos los campos
+            if (detalle.estadoUso === 'USADO' || detalle.estadoUso === 'CANCELADO') {
+                tamborGroup.get('bruto')?.disable();
+                tamborGroup.get('tara')?.disable();
+                tamborGroup.get('floracionId')?.disable();
+                tamborGroup.get('humedad')?.disable();
+                tamborGroup.get('colorId')?.disable();
+                tamborGroup.get('precio')?.disable();
+            }
 
             // Subscribirse a cambios para recalcular totales
             tamborGroup.valueChanges
@@ -602,11 +613,15 @@ export class EntradasMielCreateComponent implements OnInit {
         const tipoMielId = formValue.tipoMielId;
 
         // Construir request con todos los tambores (incluir IDs para actualizar)
+        // IMPORTANTE: Usar getRawValue() en cada tambor para incluir campos disabled
         const request: UpdateEntradaMielRequest = {
             fecha: formValue.fecha,
             apicultorId: formValue.apicultorId,
             ...(formValue.observaciones && { observaciones: formValue.observaciones }),
-            detalles: formValue.tambores.map((tambor: any) => {
+            detalles: this.tamboresArray.controls.map((control) => {
+                // Usar getRawValue() para obtener valores de campos disabled también
+                const tambor = control.getRawValue();
+
                 const bruto = parseFloat(tambor.bruto) || 0;
                 const tara = parseFloat(tambor.tara) || 0;
                 const pesoNeto = bruto - tara;
@@ -660,5 +675,39 @@ export class EntradasMielCreateComponent implements OnInit {
         if (confirm('¿Desea cancelar? Se perderán los datos ingresados.')) {
             this.router.navigate(['/acopiador/entradas-miel']);
         }
+    }
+
+    /**
+     * Verificar si un tambor está bloqueado (USADO o CANCELADO)
+     */
+    isTamborBloqueado(index: number): boolean {
+        const tambor = this.tamboresArray.at(index);
+        const estadoUso = tambor.get('estadoUso')?.value;
+        return estadoUso === 'USADO' || estadoUso === 'CANCELADO';
+    }
+
+    /**
+     * Obtener estado de uso de un tambor
+     */
+    getEstadoUsoTambor(index: number): string | null {
+        const tambor = this.tamboresArray.at(index);
+        return tambor.get('estadoUso')?.value || null;
+    }
+
+    /**
+     * Obtener clase CSS para badge de estado de uso del tambor
+     */
+    getEstadoUsoTamborBadgeClass(index: number): string {
+        const estadoUso = this.getEstadoUsoTambor(index);
+
+        if (estadoUso === 'USADO') {
+            return 'bg-gray-100 text-gray-800';
+        } else if (estadoUso === 'CANCELADO') {
+            return 'bg-red-100 text-red-800';
+        } else if (estadoUso === 'DISPONIBLE') {
+            return 'bg-green-100 text-green-800';
+        }
+
+        return 'bg-blue-100 text-blue-800'; // NUEVO (sin estado aún)
     }
 }
