@@ -148,10 +148,17 @@ export class ApiariosListComponent implements OnInit {
             align: 'center',
             badgeVariant: 'warning'
         },
-        ,
         {
             key: 'produccion',
             label: 'Producción',
+            type: 'text',
+            sortable: true,
+            width: '60px',
+            align: 'center'
+        },
+        {
+            key: 'produccionAnual',
+            label: 'Producción Anual',
             type: 'text',
             sortable: true,
             width: '60px',

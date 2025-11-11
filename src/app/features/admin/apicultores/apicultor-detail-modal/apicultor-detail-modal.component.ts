@@ -204,6 +204,24 @@ export class ApicultorDetailModalComponent {
             width: '100px',
             align: 'center'
         },
+           
+        {
+            key: 'produccion',
+            label: 'Producción (kg)',
+            type: 'number',
+            sortable: true,
+            width: '100px',
+            align: 'center'
+        },
+        {
+            key: 'produccionAnual',
+            label: 'Producción Anual (kg)',
+            type: 'number',
+            sortable: true,
+            width: '100px',
+            align: 'center'
+        },
+
         {
             key: 'latitud',
             label: 'Latitud',

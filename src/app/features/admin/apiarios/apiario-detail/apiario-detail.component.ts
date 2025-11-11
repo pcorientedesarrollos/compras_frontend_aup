@@ -96,6 +96,9 @@ export class ApiarioDetailComponent implements OnInit {
     /** ✅ Nombre del apicultor pre-seleccionado (cuando viene por query param) */
     apicultorPreseleccionadoNombre = signal<string | null>(null);
 
+    /** ✅ Producción anual calculada en tiempo real */
+    produccionAnualCalculada = signal<number>(0);
+
     // ============================================================================
     // FORM
     // ============================================================================
@@ -141,21 +144,21 @@ export class ApiarioDetailComponent implements OnInit {
 
     /**
      * Inicializar formulario reactivo v2.0
-     * ✅ CAMBIOS: Agregado campo 'produccion', latitud/longitud opcionales
+     * ✅ CAMBIOS: produccion OBLIGATORIO (POR COLMENA), latitud/longitud OBLIGATORIOS
      */
     private initForm(): void {
         this.apiarioForm = this.fb.group({
             apicultorId: ['', Validators.required],
             nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(255)]],
-            colmenas: [1, [Validators.required, Validators.min(1), Validators.max(9999)]],
-            produccion: [null, [Validators.min(0)]], // ✅ NUEVO: Producción (opcional)
-            latitud: [null, [Validators.min(-90), Validators.max(90)]],  // Opcional
-            longitud: [null, [Validators.min(-180), Validators.max(180)]]  // Opcional
+            colmenas: [1, [Validators.required, Validators.min(1), Validators.max(10000)]],
+            produccion: ['', [Validators.required, Validators.min(0.01), Validators.max(1000)]], // ✅ OBLIGATORIO: Producción POR COLMENA
+            latitud: ['', [Validators.required, Validators.min(-90), Validators.max(90)]],  // ✅ OBLIGATORIO
+            longitud: ['', [Validators.required, Validators.min(-180), Validators.max(180)]]  // ✅ OBLIGATORIO
         });
     }
 
     /**
-     * ✅ NUEVO: Configurar validación reactiva del formulario
+     * ✅ NUEVO: Configurar validación reactiva del formulario + cálculo de producción anual
      */
     private setupFormValidation(): void {
         // Suscribirse a cambios de validez del formulario
@@ -165,8 +168,19 @@ export class ApiarioDetailComponent implements OnInit {
                 this.formValidSignal.set(this.apiarioForm.valid);
             });
 
+        // ✅ Calcular producción anual en tiempo real
+        this.apiarioForm.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((values) => {
+                const colmenas = values.colmenas || 0;
+                const produccion = values.produccion || 0;
+                this.produccionAnualCalculada.set(colmenas * produccion);
+            });
+
         // Actualizar estado inicial
         this.formValidSignal.set(this.apiarioForm.valid);
+        const initialValues = this.apiarioForm.value;
+        this.produccionAnualCalculada.set((initialValues.colmenas || 0) * (initialValues.produccion || 0));
     }
 
     /**
@@ -244,9 +258,9 @@ export class ApiarioDetailComponent implements OnInit {
             apicultorId: apiario.apicultorId,
             nombre: apiario.nombre,
             colmenas: apiario.colmenas,
-            produccion: apiario.produccion || null, // ✅ NUEVO
-            latitud: apiario.latitud || null,
-            longitud: apiario.longitud || null
+            produccion: apiario.produccion, // ✅ OBLIGATORIO ahora
+            latitud: apiario.latitud,
+            longitud: apiario.longitud
         });
 
         // ✅ Guardar nombre del apicultor para mostrar en modo edición
@@ -371,7 +385,8 @@ export class ApiarioDetailComponent implements OnInit {
 
     /**
      * Crear nuevo apiario v2.0
-     * ✅ Incluye campo produccion
+     * ✅ produccion ahora es OBLIGATORIO (POR COLMENA)
+     * ✅ Backend calcula automáticamente produccionAnual
      */
     private createApiario(): void {
         this.isSaving.set(true);
@@ -381,9 +396,9 @@ export class ApiarioDetailComponent implements OnInit {
             apicultorId: formValue.apicultorId,
             nombre: formValue.nombre,
             colmenas: formValue.colmenas,
-            produccion: formValue.produccion != null ? formValue.produccion : undefined, // ✅ Envía 0 si es válido
-            latitud: formValue.latitud ? parseFloat(formValue.latitud) : 0,
-            longitud: formValue.longitud ? parseFloat(formValue.longitud) : 0
+            produccion: parseFloat(formValue.produccion), // ✅ OBLIGATORIO: Producción POR COLMENA
+            latitud: parseFloat(formValue.latitud),
+            longitud: parseFloat(formValue.longitud)
         };
 
         this.apiarioService
@@ -405,7 +420,7 @@ export class ApiarioDetailComponent implements OnInit {
 
     /**
      * Actualizar apiario existente v2.0
-     * ✅ Incluye campo produccion
+     * ✅ Backend recalcula produccionAnual si cambian colmenas o produccion
      */
     private updateApiario(): void {
         if (!this.apiarioId()) return;
@@ -416,9 +431,9 @@ export class ApiarioDetailComponent implements OnInit {
         const request: UpdateApiarioRequest = {
             nombre: formValue.nombre,
             colmenas: formValue.colmenas,
-            produccion: formValue.produccion != null ? formValue.produccion : undefined, // ✅ Envía 0 si es válido
-            latitud: formValue.latitud ? parseFloat(formValue.latitud) : undefined,
-            longitud: formValue.longitud ? parseFloat(formValue.longitud) : undefined
+            produccion: parseFloat(formValue.produccion),
+            latitud: parseFloat(formValue.latitud),
+            longitud: parseFloat(formValue.longitud)
         };
 
         this.apiarioService

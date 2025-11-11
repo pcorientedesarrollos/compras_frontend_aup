@@ -151,6 +151,18 @@ select.form-input {
 }
 
 /* ============================================================================
+   PRODUCCIÓN ANUAL CALCULADA
+   ============================================================================ */
+
+.produccion-anual-card {
+    @apply mt-4 p-5 bg-gradient-to-br from-honey-primary/10 to-amber-50 border-2 border-honey-primary/30 rounded-xl shadow-sm;
+}
+
+.icon-produccion {
+    @apply w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-md;
+}
+
+/* ============================================================================
    GEOLOCALIZACIÓN
    ============================================================================ */
 
