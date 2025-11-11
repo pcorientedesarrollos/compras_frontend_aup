@@ -1,0 +1,274 @@
+<div class="perfil-container">
+    <!-- ============================================================================ -->
+    <!-- HEADER -->
+    <!-- ============================================================================ -->
+    <div class="page-header">
+        <div class="flex items-center space-x-3">
+            <app-icon name="user-circle" size="2xl" color="text-honey-primary" />
+            <div>
+                <h1 class="page-title">Mi Perfil</h1>
+                <p class="page-subtitle">Información de tu cuenta</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================================ -->
+    <!-- MENSAJES DE ÉXITO/ERROR -->
+    <!-- ============================================================================ -->
+    @if (successMessage()) {
+    <div class="alert alert-success">
+        <app-icon name="check-circle" size="md" />
+        <span>{{ successMessage() }}</span>
+    </div>
+    }
+
+    @if (errorMessage()) {
+    <div class="alert alert-error">
+        <app-icon name="exclamation-circle" size="md" />
+        <span>{{ errorMessage() }}</span>
+    </div>
+    }
+
+    <!-- ============================================================================ -->
+    <!-- LOADING STATE -->
+    <!-- ============================================================================ -->
+    @if (isLoading() && !currentUser()) {
+    <div class="loading-container">
+        <div class="spinner"></div>
+        <p class="loading-text">Cargando perfil...</p>
+    </div>
+    }
+
+    <!-- ============================================================================ -->
+    <!-- PERFIL CONTENT -->
+    <!-- ============================================================================ -->
+    @if (currentUser()) {
+    <div class="perfil-grid">
+
+        <!-- ========================================================================== -->
+        <!-- SECCIÓN: INFORMACIÓN GENERAL -->
+        <!-- ========================================================================== -->
+        <div class="card">
+            <div class="card-header">
+                <div class="flex items-center space-x-2">
+                    <app-icon name="information-circle" size="lg" color="text-honey-primary" />
+                    <h2 class="card-title">Información General</h2>
+                </div>
+
+                @if (!isEditingProfile()) {
+                <button type="button" (click)="enableProfileEdit()" class="btn-icon"
+                    [disabled]="isLoading()">
+                    <app-icon name="pencil" size="md" />
+                    <span>Editar</span>
+                </button>
+                }
+            </div>
+
+            <div class="card-body">
+                @if (!isEditingProfile()) {
+                <!-- Vista de solo lectura -->
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label class="info-label">Nombre Completo</label>
+                        <p class="info-value">{{ currentUser()?.nombre }}</p>
+                    </div>
+
+                    <div class="info-item">
+                        <label class="info-label">Usuario</label>
+                        <p class="info-value">{{ currentUser()?.username }}</p>
+                    </div>
+
+                    <div class="info-item">
+                        <label class="info-label">Email</label>
+                        <p class="info-value">
+                            {{ currentUser()?.email || 'No registrado' }}
+                        </p>
+                    </div>
+
+                    <div class="info-item">
+                        <label class="info-label">Rol</label>
+                        <app-badge [variant]="roleBadgeVariant()">{{ roleLabel() }}</app-badge>
+                    </div>
+
+                    <div class="info-item">
+                        <label class="info-label">Estado</label>
+                        <app-badge [variant]="currentUser()?.activo ? 'success' : 'danger'">
+                            {{ currentUser()?.activo ? 'Activo' : 'Inactivo' }}
+                        </app-badge>
+                    </div>
+
+                    <div class="info-item">
+                        <label class="info-label">Fecha de Registro</label>
+                        <p class="info-value">{{ formatDate(currentUser()!.createdAt) }}</p>
+                    </div>
+                </div>
+                } @else {
+                <!-- Formulario de edición -->
+                <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="form-edit">
+                    <div class="form-group">
+                        <label for="nombre" class="form-label">
+                            Nombre Completo <span class="required">*</span>
+                        </label>
+                        <input id="nombre" type="text" formControlName="nombre" class="form-input"
+                            placeholder="Ej: Juan Pérez García"
+                            [class.error]="hasError(profileForm, 'nombre', 'required') || hasError(profileForm, 'nombre', 'minlength')">
+
+                        @if (hasError(profileForm, 'nombre', 'required')) {
+                        <p class="error-text">El nombre es obligatorio</p>
+                        }
+                        @if (hasError(profileForm, 'nombre', 'minlength')) {
+                        <p class="error-text">El nombre debe tener al menos 3 caracteres</p>
+                        }
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email</label>
+                        <input id="email" type="email" formControlName="email" class="form-input"
+                            placeholder="Ej: usuario@ejemplo.com"
+                            [class.error]="hasError(profileForm, 'email', 'email')">
+
+                        @if (hasError(profileForm, 'email', 'email')) {
+                        <p class="error-text">El email no es válido</p>
+                        }
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" (click)="cancelProfileEdit()" class="btn btn-secondary"
+                            [disabled]="isLoading()">
+                            <app-icon name="x-mark" size="md" />
+                            <span>Cancelar</span>
+                        </button>
+                        <button type="submit" class="btn btn-primary"
+                            [disabled]="!profileFormValid() || isLoading()">
+                            <app-icon name="check" size="md" />
+                            <span>{{ isLoading() ? 'Guardando...' : 'Guardar Cambios' }}</span>
+                        </button>
+                    </div>
+                </form>
+                }
+            </div>
+        </div>
+
+        <!-- ========================================================================== -->
+        <!-- SECCIÓN: CAMBIAR CONTRASEÑA -->
+        <!-- ========================================================================== -->
+        <div class="card">
+            <div class="card-header">
+                <div class="flex items-center space-x-2">
+                    <app-icon name="lock-closed" size="lg" color="text-honey-primary" />
+                    <h2 class="card-title">Seguridad</h2>
+                </div>
+
+                @if (!isEditingPassword()) {
+                <button type="button" (click)="enablePasswordEdit()" class="btn-icon"
+                    [disabled]="isLoading()">
+                    <app-icon name="key" size="md" />
+                    <span>Cambiar Contraseña</span>
+                </button>
+                }
+            </div>
+
+            <div class="card-body">
+                @if (!isEditingPassword()) {
+                <!-- Vista de solo lectura -->
+                <div class="password-info">
+                    <app-icon name="shield-check" size="2xl" color="text-gray-400" />
+                    <p class="text-gray-600 text-center">
+                        Tu contraseña está protegida y encriptada.<br>
+                        Haz clic en "Cambiar Contraseña" para actualizarla.
+                    </p>
+                </div>
+                } @else {
+                <!-- Formulario de cambio de contraseña -->
+                <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="form-edit">
+                    <div class="form-group">
+                        <label for="oldPassword" class="form-label">
+                            Contraseña Actual <span class="required">*</span>
+                        </label>
+                        <input id="oldPassword" type="password" formControlName="oldPassword"
+                            class="form-input" placeholder="Ingresa tu contraseña actual"
+                            [class.error]="hasError(passwordForm, 'oldPassword', 'required')">
+
+                        @if (hasError(passwordForm, 'oldPassword', 'required')) {
+                        <p class="error-text">La contraseña actual es obligatoria</p>
+                        }
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newPassword" class="form-label">
+                            Nueva Contraseña <span class="required">*</span>
+                        </label>
+                        <input id="newPassword" type="password" formControlName="newPassword"
+                            class="form-input" placeholder="Ingresa tu nueva contraseña"
+                            [class.error]="hasError(passwordForm, 'newPassword', 'required') || passwordErrors().length > 0">
+
+                        <!-- Requisitos de contraseña -->
+                        <div class="password-requirements">
+                            <p class="text-sm font-medium text-gray-700 mb-2">La contraseña debe
+                                cumplir:</p>
+                            <ul class="space-y-1">
+                                <li class="requirement"
+                                    [class.valid]="!passwordErrors().includes('Mínimo 8 caracteres')">
+                                    <app-icon [name]="!passwordErrors().includes('Mínimo 8 caracteres') ? 'check-circle' : 'x-circle'"
+                                        size="sm"
+                                        [color]="!passwordErrors().includes('Mínimo 8 caracteres') ? 'text-green-600' : 'text-red-600'" />
+                                    <span>Mínimo 8 caracteres</span>
+                                </li>
+                                <li class="requirement"
+                                    [class.valid]="!passwordErrors().includes('Al menos 1 letra mayúscula')">
+                                    <app-icon [name]="!passwordErrors().includes('Al menos 1 letra mayúscula') ? 'check-circle' : 'x-circle'"
+                                        size="sm"
+                                        [color]="!passwordErrors().includes('Al menos 1 letra mayúscula') ? 'text-green-600' : 'text-red-600'" />
+                                    <span>Al menos 1 letra mayúscula</span>
+                                </li>
+                                <li class="requirement"
+                                    [class.valid]="!passwordErrors().includes('Al menos 1 letra minúscula')">
+                                    <app-icon [name]="!passwordErrors().includes('Al menos 1 letra minúscula') ? 'check-circle' : 'x-circle'"
+                                        size="sm"
+                                        [color]="!passwordErrors().includes('Al menos 1 letra minúscula') ? 'text-green-600' : 'text-red-600'" />
+                                    <span>Al menos 1 letra minúscula</span>
+                                </li>
+                                <li class="requirement"
+                                    [class.valid]="!passwordErrors().includes('Al menos 1 número')">
+                                    <app-icon [name]="!passwordErrors().includes('Al menos 1 número') ? 'check-circle' : 'x-circle'"
+                                        size="sm"
+                                        [color]="!passwordErrors().includes('Al menos 1 número') ? 'text-green-600' : 'text-red-600'" />
+                                    <span>Al menos 1 número</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword" class="form-label">
+                            Confirmar Nueva Contraseña <span class="required">*</span>
+                        </label>
+                        <input id="confirmPassword" type="password" formControlName="confirmPassword"
+                            class="form-input" placeholder="Confirma tu nueva contraseña"
+                            [class.error]="hasError(passwordForm, 'confirmPassword', 'required') || (!passwordsMatch() && passwordForm.value.confirmPassword)">
+
+                        @if (!passwordsMatch() && passwordForm.value.confirmPassword) {
+                        <p class="error-text">Las contraseñas no coinciden</p>
+                        }
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" (click)="cancelPasswordEdit()" class="btn btn-secondary"
+                            [disabled]="isLoading()">
+                            <app-icon name="x-mark" size="md" />
+                            <span>Cancelar</span>
+                        </button>
+                        <button type="submit" class="btn btn-primary"
+                            [disabled]="!passwordFormValid() || !isNewPasswordValid() || isLoading()">
+                            <app-icon name="check" size="md" />
+                            <span>{{ isLoading() ? 'Cambiando...' : 'Cambiar Contraseña' }}</span>
+                        </button>
+                    </div>
+                </form>
+                }
+            </div>
+        </div>
+
+    </div>
+    }
+</div>

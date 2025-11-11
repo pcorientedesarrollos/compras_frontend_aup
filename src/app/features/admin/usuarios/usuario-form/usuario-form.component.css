@@ -1,0 +1,170 @@
+/**
+ * ============================================================================
+ * 👤 USUARIO FORM COMPONENT STYLES
+ * ============================================================================
+ */
+
+/* ============================================================================
+   CONTAINER
+   ============================================================================ */
+.usuario-form-container {
+    @apply p-6 max-w-5xl mx-auto;
+}
+
+/* ============================================================================
+   PAGE HEADER
+   ============================================================================ */
+.page-header {
+    @apply mb-6;
+}
+
+.page-title {
+    @apply text-3xl font-bold text-gray-900;
+}
+
+.page-subtitle {
+    @apply text-gray-600 mt-1;
+}
+
+/* ============================================================================
+   ALERTS
+   ============================================================================ */
+.alert {
+    @apply flex items-center space-x-3 p-4 rounded-lg mb-6;
+}
+
+.alert-error {
+    @apply bg-red-50 border border-red-200 text-red-800;
+}
+
+/* ============================================================================
+   LOADING
+   ============================================================================ */
+.loading-container {
+    @apply flex flex-col items-center justify-center py-12;
+}
+
+.spinner {
+    @apply w-12 h-12 border-4 border-honey-primary border-t-transparent rounded-full animate-spin;
+}
+
+.loading-text {
+    @apply mt-4 text-gray-600;
+}
+
+/* ============================================================================
+   FORM CARD
+   ============================================================================ */
+.form-card {
+    @apply bg-white rounded-lg shadow-md border border-gray-200 p-6;
+}
+
+/* ============================================================================
+   FORM GRID
+   ============================================================================ */
+.form-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-6 mb-6;
+}
+
+/* ============================================================================
+   FORM GROUPS
+   ============================================================================ */
+.form-group {
+    @apply space-y-2;
+}
+
+.form-group-full {
+    @apply md:col-span-2;
+}
+
+.form-label {
+    @apply block text-sm font-medium text-gray-700;
+}
+
+.form-input,
+.form-select {
+    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-transparent transition-all;
+}
+
+.form-input[readonly] {
+    @apply bg-gray-100 cursor-not-allowed;
+}
+
+.form-input.error,
+.form-select.error {
+    @apply border-red-500 focus:ring-red-500;
+}
+
+.error-text {
+    @apply text-sm text-red-600 mt-1;
+}
+
+.help-text {
+    @apply text-sm text-gray-500 mt-1;
+}
+
+.required {
+    @apply text-red-500;
+}
+
+/* ============================================================================
+   PASSWORD REQUIREMENTS
+   ============================================================================ */
+.password-requirements {
+    @apply mt-3 p-4 bg-gray-50 rounded-lg;
+}
+
+.requirement {
+    @apply flex items-center space-x-2 text-sm text-gray-700;
+}
+
+.requirement.valid {
+    @apply text-green-700;
+}
+
+/* ============================================================================
+   FORM ACTIONS
+   ============================================================================ */
+.form-actions {
+    @apply flex items-center justify-end space-x-3 pt-6 border-t border-gray-200;
+}
+
+/* ============================================================================
+   BUTTONS
+   ============================================================================ */
+.btn {
+    @apply inline-flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors;
+}
+
+.btn-primary {
+    @apply bg-honey-primary text-white hover:bg-honey-dark disabled:bg-gray-300 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+    @apply bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+@media (max-width: 768px) {
+    .usuario-form-container {
+        @apply p-4;
+    }
+
+    .page-title {
+        @apply text-2xl;
+    }
+
+    .form-grid {
+        @apply grid-cols-1;
+    }
+
+    .form-actions {
+        @apply flex-col space-y-2 space-x-0;
+    }
+
+    .form-actions button {
+        @apply w-full justify-center;
+    }
+}

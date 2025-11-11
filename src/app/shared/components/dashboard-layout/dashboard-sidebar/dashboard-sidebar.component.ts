@@ -70,10 +70,10 @@ export class DashboardSidebarComponent {
                 { icon: 'building-office', label: 'Proveedores', route: '/admin/proveedores' },
                 { icon: 'bee', label: 'Apicultores', route: '/admin/apicultores' },
                 { icon: 'map-pin', label: 'Apiarios', route: '/admin/apiarios' },
-                // { icon: 'users', label: 'Usuarios', route: '/admin/usuarios' },
+                { icon: 'users', label: 'Usuarios', route: '/admin/usuarios' },  // ✅ NUEVO
+                { icon: 'user-circle', label: 'Mi Perfil', route: '/perfil' },   // ✅ NUEVO
                 // { icon: 'document-text', label: 'Reportes', route: '/admin/reportes' },
                 // { icon: 'cog-6-tooth', label: 'Configuración', route: '/admin/configuracion' },
-                // { icon: 'arrow-down', label: '🧪 Test Table', route: '/dashboard/test-table', badge: 'DEV', badgeClass: 'bg-purple-100 text-purple-800' }
             ];
         }
 
@@ -86,7 +86,7 @@ export class DashboardSidebarComponent {
                 { icon: 'tag', label: 'Asignación Tambores', route: '/acopiador/asignacion-tambores' },
                 { icon: 'clipboard', label: 'Tambores Disponibles', route: '/acopiador/tambores-disponibles' },
                 { icon: 'folder', label: 'Salidas de Miel', route: '/acopiador/salidas-miel' },
-                // { icon: 'shopping-bag', label: 'Compras de Miel', route: '/acopiador/compras' }
+                { icon: 'user-circle', label: 'Mi Perfil', route: '/perfil' },  // ✅ NUEVO
             ];
         }
 
@@ -96,7 +96,7 @@ export class DashboardSidebarComponent {
                 { icon: 'map-pin', label: 'Mis Apiarios', route: '/apicultor/apiarios' },
                 { icon: 'plus', label: 'Nuevo Apiario', route: '/apicultor/apiarios/nuevo' },
                 { icon: 'building-office', label: 'Mis Proveedores', route: '/apicultor/proveedores' },
-                { icon: 'user-circle', label: 'Mi Perfil', route: '/apicultor/perfil' }
+                { icon: 'user-circle', label: 'Mi Perfil', route: '/perfil' }  // ✅ Ruta unificada
             ];
         }
 
@@ -105,7 +105,8 @@ export class DashboardSidebarComponent {
                 { icon: 'chart-bar', label: 'Dashboard', route: '/dashboard/mielera' },
                 { icon: 'honey', label: 'Producción', route: '/mielera/produccion' },
                 { icon: 'shopping-bag', label: 'Compras', route: '/mielera/compras' },
-                { icon: 'document-text', label: 'Reportes', route: '/mielera/reportes' }
+                { icon: 'document-text', label: 'Reportes', route: '/mielera/reportes' },
+                { icon: 'user-circle', label: 'Mi Perfil', route: '/perfil' }  // ✅ NUEVO
             ];
         }
 
@@ -113,7 +114,8 @@ export class DashboardSidebarComponent {
             return [
                 { icon: 'home', label: 'Dashboard', route: '/verificador' },
                 { icon: 'shopping-bag', label: 'En Tránsito', route: '/verificador/en-transito' },
-                { icon: 'check-circle', label: 'Verificadas', route: '/verificador/verificadas' }
+                { icon: 'check-circle', label: 'Verificadas', route: '/verificador/verificadas' },
+                { icon: 'user-circle', label: 'Mi Perfil', route: '/perfil' }  // ✅ NUEVO
             ];
         }
 

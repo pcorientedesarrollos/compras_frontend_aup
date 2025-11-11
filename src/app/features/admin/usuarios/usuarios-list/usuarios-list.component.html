@@ -1,0 +1,279 @@
+<div class="usuarios-container">
+    <!-- ============================================================================ -->
+    <!-- HEADER -->
+    <!-- ============================================================================ -->
+    <div class="page-header">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <app-icon name="users" size="2xl" color="text-honey-primary" />
+                <div>
+                    <h1 class="page-title">Gestión de Usuarios</h1>
+                    <p class="page-subtitle">Administra usuarios del sistema</p>
+                </div>
+            </div>
+
+            <button type="button" (click)="createUsuario()" class="btn btn-primary">
+                <app-icon name="plus" size="md" />
+                <span>Nuevo Usuario</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================================ -->
+    <!-- MENSAJES -->
+    <!-- ============================================================================ -->
+    @if (successMessage()) {
+    <div class="alert alert-success">
+        <app-icon name="check-circle" size="md" />
+        <span>{{ successMessage() }}</span>
+    </div>
+    }
+
+    @if (errorMessage()) {
+    <div class="alert alert-error">
+        <app-icon name="exclamation-circle" size="md" />
+        <span>{{ errorMessage() }}</span>
+    </div>
+    }
+
+    <!-- ============================================================================ -->
+    <!-- FILTROS -->
+    <!-- ============================================================================ -->
+    <div class="filters-card">
+        <div class="filters-grid">
+            <!-- Búsqueda -->
+            <div class="filter-group">
+                <label class="filter-label">Buscar</label>
+                <input type="text" [value]="searchText()" (input)="onSearchChange($any($event.target).value)"
+                    class="filter-input" placeholder="Nombre o usuario...">
+            </div>
+
+            <!-- Filtro por rol -->
+            <div class="filter-group">
+                <label class="filter-label">Rol</label>
+                <select [value]="selectedRole()" (change)="onRoleChange($any($event.target).value)"
+                    class="filter-select">
+                    @for (option of roleOptions; track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Filtro por estado -->
+            <div class="filter-group">
+                <label class="filter-label">Estado</label>
+                <select [value]="selectedStatus() === null ? '' : selectedStatus()?.toString()"
+                    (change)="onStatusChange($any($event.target).value)" class="filter-select">
+                    @for (option of statusOptions; track option.label) {
+                    <option [value]="option.value === null ? '' : option.value">{{ option.label }}
+                    </option>
+                    }
+                </select>
+            </div>
+
+            <!-- Botón limpiar filtros -->
+            @if (hasActiveFilters()) {
+            <div class="filter-group flex items-end">
+                <button type="button" (click)="clearFilters()" class="btn btn-secondary w-full">
+                    <app-icon name="x-mark" size="md" />
+                    <span>Limpiar Filtros</span>
+                </button>
+            </div>
+            }
+        </div>
+    </div>
+
+    <!-- ============================================================================ -->
+    <!-- TABLA DE USUARIOS -->
+    <!-- ============================================================================ -->
+    <div class="table-card">
+        @if (isLoading()) {
+        <div class="loading-container">
+            <div class="spinner"></div>
+            <p class="loading-text">Cargando usuarios...</p>
+        </div>
+        } @else if (usuarios().length === 0) {
+        <div class="empty-state">
+            <app-icon name="users" size="2xl" color="text-gray-400" />
+            <p class="empty-text">No se encontraron usuarios</p>
+            @if (hasActiveFilters()) {
+            <button type="button" (click)="clearFilters()" class="btn btn-secondary mt-4">
+                Limpiar Filtros
+            </button>
+            }
+        </div>
+        } @else {
+        <div class="table-wrapper">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Fecha Registro</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (usuario of usuarios(); track usuario.id) {
+                    <tr>
+                        <td class="font-medium">{{ usuario.username }}</td>
+                        <td>{{ usuario.nombre }}</td>
+                        <td>{{ usuario.email || 'N/A' }}</td>
+                        <td>
+                            <app-badge [variant]="getRoleBadgeVariant(usuario.role)">
+                                {{ getRoleLabel(usuario.role) }}
+                            </app-badge>
+                        </td>
+                        <td>
+                            <app-badge [variant]="usuario.activo ? 'success' : 'danger'">
+                                {{ usuario.activo ? 'Activo' : 'Inactivo' }}
+                            </app-badge>
+                        </td>
+                        <td>{{ formatDate(usuario.createdAt) }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <!-- Editar -->
+                                <button type="button" (click)="editUsuario(usuario.id)"
+                                    class="btn-icon-action" title="Editar usuario">
+                                    <app-icon name="pencil" size="sm" color="text-blue-600" />
+                                </button>
+
+                                <!-- Activar/Desactivar -->
+                                <button type="button" (click)="confirmToggleStatus(usuario.id)"
+                                    class="btn-icon-action"
+                                    [title]="usuario.activo ? 'Desactivar usuario' : 'Activar usuario'">
+                                    <app-icon [name]="usuario.activo ? 'lock-closed' : 'lock-open'"
+                                        size="sm"
+                                        [color]="usuario.activo ? 'text-red-600' : 'text-green-600'" />
+                                </button>
+
+                                <!-- Restablecer contraseña -->
+                                <button type="button" (click)="confirmResetPassword(usuario.id)"
+                                    class="btn-icon-action" title="Restablecer contraseña">
+                                    <app-icon name="key" size="sm" color="text-orange-600" />
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        @if (totalPages() > 1) {
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Mostrando {{ (currentPage() - 1) * pageSize() + 1 }} -
+                {{ Math.min(currentPage() * pageSize(), totalRecords()) }}
+                de {{ totalRecords() }} registros
+            </div>
+
+            <div class="pagination-controls">
+                <button type="button" (click)="previousPage()" [disabled]="currentPage() === 1"
+                    class="btn-pagination">
+                    <app-icon name="chevron-left" size="sm" />
+                    <span>Anterior</span>
+                </button>
+
+                <div class="pagination-numbers">
+                    @for (page of [].constructor(totalPages()); track $index) {
+                    <button type="button" (click)="goToPage($index + 1)"
+                        [class.active]="currentPage() === $index + 1" class="btn-page">
+                        {{ $index + 1 }}
+                    </button>
+                    }
+                </div>
+
+                <button type="button" (click)="nextPage()"
+                    [disabled]="currentPage() === totalPages()" class="btn-pagination">
+                    <span>Siguiente</span>
+                    <app-icon name="chevron-right" size="sm" />
+                </button>
+            </div>
+        </div>
+        }
+        }
+    </div>
+</div>
+
+<!-- ============================================================================ -->
+<!-- MODAL DE CONFIRMACIÓN -->
+<!-- ============================================================================ -->
+@if (showConfirmModal()) {
+<div class="modal-overlay" (click)="closeConfirmModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <!-- Activar/Desactivar Usuario -->
+        @if (confirmModalAction() === 'toggle' && selectedUser()) {
+        <div class="modal-body">
+            <div class="modal-icon"
+                [class.bg-red-100]="selectedUser()!.activo"
+                [class.bg-green-100]="!selectedUser()!.activo">
+                <app-icon [name]="selectedUser()!.activo ? 'lock-closed' : 'lock-open'" size="2xl"
+                    [color]="selectedUser()!.activo ? 'text-red-600' : 'text-green-600'" />
+            </div>
+
+            <h3 class="modal-title">
+                {{ selectedUser()!.activo ? 'Desactivar' : 'Activar' }} Usuario
+            </h3>
+
+            <p class="modal-message">
+                ¿Estás seguro de que deseas {{ selectedUser()!.activo ? 'desactivar' : 'activar' }} al
+                usuario
+                <strong>{{ selectedUser()!.nombre }}</strong> ({{ selectedUser()!.username }})?
+            </p>
+
+            <div class="modal-actions">
+                <button type="button" (click)="closeConfirmModal()" class="btn btn-secondary">
+                    Cancelar
+                </button>
+                <button type="button" (click)="executeToggleStatus()"
+                    [class.btn-danger]="selectedUser()!.activo"
+                    [class.btn-success]="!selectedUser()!.activo">
+                    {{ selectedUser()!.activo ? 'Desactivar' : 'Activar' }}
+                </button>
+            </div>
+        </div>
+        }
+
+        <!-- Restablecer Contraseña -->
+        @if (confirmModalAction() === 'reset' && selectedUser()) {
+        <div class="modal-body">
+            <div class="modal-icon bg-orange-100">
+                <app-icon name="key" size="2xl" color="text-orange-600" />
+            </div>
+
+            <h3 class="modal-title">Restablecer Contraseña</h3>
+
+            <p class="modal-message">
+                Ingresa la nueva contraseña para el usuario
+                <strong>{{ selectedUser()!.nombre }}</strong> ({{ selectedUser()!.username }})
+            </p>
+
+            <div class="form-group">
+                <label class="form-label">Nueva Contraseña</label>
+                <input type="password" [value]="newPasswordForReset()"
+                    (input)="newPasswordForReset.set($any($event.target).value)"
+                    class="form-input" placeholder="Mínimo 8 caracteres">
+                <p class="help-text">Debe contener al menos 8 caracteres, 1 mayúscula, 1 minúscula
+                    y 1 número</p>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" (click)="closeConfirmModal()" class="btn btn-secondary">
+                    Cancelar
+                </button>
+                <button type="button" (click)="executeResetPassword()"
+                    [disabled]="!newPasswordForReset() || newPasswordForReset().length < 8"
+                    class="btn btn-primary">
+                    Restablecer
+                </button>
+            </div>
+        </div>
+        }
+    </div>
+</div>
+}

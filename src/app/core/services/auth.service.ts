@@ -3,7 +3,16 @@ import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, tap, map } from 'rxjs';
 import { HttpService } from './http.service';
 import { StorageService } from './storage.service';
-import { User, LoginRequest, LoginResponse, RegisterRequest, ApiResponse, UserProfile } from '../models/user.model';
+import {
+  User,
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest,
+  ApiResponse,
+  UserProfile,
+  UpdateProfileRequest,
+  ChangePasswordRequest
+} from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -75,8 +84,9 @@ export class AuthService {
 
   /**
    * Actualizar perfil propio
+   * PATCH /api/auth/profile
    */
-  updateProfile(data: { nombre: string }): Observable<User> {
+  updateProfile(data: UpdateProfileRequest): Observable<User> {
     return this.httpService.patch<ApiResponse<User>>('auth/profile', data)
       .pipe(
         map(response => response.data),
@@ -89,12 +99,11 @@ export class AuthService {
 
   /**
    * Cambiar contraseña
+   * PATCH /api/auth/change-password
    */
-  changePassword(currentPassword: string, newPassword: string): Observable<void> {
-    return this.httpService.patch<ApiResponse<void>>('auth/change-password', {
-      currentPassword,
-      newPassword
-    }).pipe(map(response => response.data));
+  changePassword(data: ChangePasswordRequest): Observable<{ message: string }> {
+    return this.httpService.patch<ApiResponse<{ message: string }>>('auth/change-password', data)
+      .pipe(map(response => response.data));
   }
 
   /**

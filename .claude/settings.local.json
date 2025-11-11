@@ -4,7 +4,8 @@
       "Bash(npm install:*)",
       "Bash(ng generate:*)",
       "Bash(git checkout:*)",
-      "Bash(npm run ng:*)"
+      "Bash(npm run ng:*)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []

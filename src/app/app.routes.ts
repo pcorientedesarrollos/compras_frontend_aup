@@ -111,10 +111,30 @@ export const routes: Routes = [
                 path: 'apiarios/:id/edit',
                 loadComponent: () => import('./features/admin/apiarios/apiario-detail/apiario-detail.component')
                     .then(m => m.ApiarioDetailComponent)
+            },
+
+            // ✅ USUARIOS - Lista (Solo Admin)
+            {
+                path: 'usuarios',
+                loadComponent: () => import('./features/admin/usuarios/usuarios-list/usuarios-list.component')
+                    .then(m => m.UsuariosListComponent)
+            },
+
+            // ✅ USUARIOS - Crear
+            {
+                path: 'usuarios/nuevo',
+                loadComponent: () => import('./features/admin/usuarios/usuario-form/usuario-form.component')
+                    .then(m => m.UsuarioFormComponent)
+            },
+
+            // ✅ USUARIOS - Editar
+            {
+                path: 'usuarios/:id/edit',
+                loadComponent: () => import('./features/admin/usuarios/usuario-form/usuario-form.component')
+                    .then(m => m.UsuarioFormComponent)
             }
 
             // TODO: Agregar más rutas de admin aquí
-            // { path: 'usuarios', loadComponent: ... },
             // { path: 'reportes', loadComponent: ... },
         ]
     },
@@ -243,6 +263,23 @@ export const routes: Routes = [
     {
         path: 'verificador',
         loadChildren: () => import('./features/verificador/verificador.routes').then(m => m.VERIFICADOR_ROUTES)
+    },
+
+    // ============================================================================
+    // ✅ RUTA COMPARTIDA: MI PERFIL (Todos los roles)
+    // ============================================================================
+    {
+        path: 'perfil',
+        loadComponent: () => import('./shared/components/dashboard-layout/dashboard-layout.component')
+            .then(m => m.DashboardLayoutComponent),
+        canActivate: [authGuard],
+        children: [
+            {
+                path: '',
+                loadComponent: () => import('./features/shared/perfil/perfil.component')
+                    .then(m => m.PerfilComponent)
+            }
+        ]
     },
 
     // 404 - Ruta no encontrada

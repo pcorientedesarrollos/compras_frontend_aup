@@ -1,0 +1,256 @@
+<div class="usuario-form-container">
+    <!-- ============================================================================ -->
+    <!-- HEADER -->
+    <!-- ============================================================================ -->
+    <div class="page-header">
+        <div class="flex items-center space-x-3">
+            <app-icon [name]="mode() === 'create' ? 'user-plus' : 'pencil'" size="2xl"
+                color="text-honey-primary" />
+            <div>
+                <h1 class="page-title">{{ pageTitle() }}</h1>
+                <p class="page-subtitle">
+                    {{ mode() === 'create' ? 'Ingresa los datos del nuevo usuario' : 'Modifica los datos del usuario' }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================================ -->
+    <!-- ERROR MESSAGE -->
+    <!-- ============================================================================ -->
+    @if (errorMessage()) {
+    <div class="alert alert-error">
+        <app-icon name="exclamation-circle" size="md" />
+        <span>{{ errorMessage() }}</span>
+    </div>
+    }
+
+    <!-- ============================================================================ -->
+    <!-- LOADING STATE -->
+    <!-- ============================================================================ -->
+    @if (isLoading() && mode() === 'edit' && !currentUser()) {
+    <div class="loading-container">
+        <div class="spinner"></div>
+        <p class="loading-text">Cargando usuario...</p>
+    </div>
+    }
+
+    <!-- ============================================================================ -->
+    <!-- FORM -->
+    <!-- ============================================================================ -->
+    @if (mode() === 'create' || currentUser()) {
+    <div class="form-card">
+        <form [formGroup]="usuarioForm" (ngSubmit)="onSubmit()">
+            <div class="form-grid">
+
+                <!-- ================================================================ -->
+                <!-- USUARIO (USERNAME) -->
+                <!-- ================================================================ -->
+                <div class="form-group">
+                    <label for="username" class="form-label">
+                        Usuario <span class="required">*</span>
+                    </label>
+                    <input id="username" type="text" formControlName="username" class="form-input"
+                        placeholder="Ej: juan.perez" [class.error]="hasError('username', 'required') ||
+                            hasError('username', 'minlength') || hasError('username', 'maxlength')"
+                        [readonly]="mode() === 'edit'">
+
+                    @if (mode() === 'edit') {
+                    <p class="help-text">El usuario no se puede modificar</p>
+                    } @else {
+                    <p class="help-text">Mínimo 3 caracteres, máximo 50</p>
+                    }
+
+                    @if (hasError('username', 'required')) {
+                    <p class="error-text">El usuario es obligatorio</p>
+                    }
+                    @if (hasError('username', 'minlength')) {
+                    <p class="error-text">Mínimo 3 caracteres</p>
+                    }
+                </div>
+
+                <!-- ================================================================ -->
+                <!-- NOMBRE COMPLETO -->
+                <!-- ================================================================ -->
+                <div class="form-group">
+                    <label for="nombre" class="form-label">
+                        Nombre Completo <span class="required">*</span>
+                    </label>
+                    <input id="nombre" type="text" formControlName="nombre" class="form-input"
+                        placeholder="Ej: Juan Pérez García" [class.error]="hasError('nombre', 'required') ||
+                            hasError('nombre', 'minlength')">
+
+                    <p class="help-text">Nombre completo del usuario</p>
+
+                    @if (hasError('nombre', 'required')) {
+                    <p class="error-text">El nombre es obligatorio</p>
+                    }
+                    @if (hasError('nombre', 'minlength')) {
+                    <p class="error-text">Mínimo 3 caracteres</p>
+                    }
+                </div>
+
+                <!-- ================================================================ -->
+                <!-- EMAIL -->
+                <!-- ================================================================ -->
+                <div class="form-group">
+                    <label for="email" class="form-label">Email</label>
+                    <input id="email" type="email" formControlName="email" class="form-input"
+                        placeholder="Ej: usuario@ejemplo.com" [class.error]="hasError('email', 'email')">
+
+                    <p class="help-text">Correo electrónico del usuario (opcional)</p>
+
+                    @if (hasError('email', 'email')) {
+                    <p class="error-text">Email inválido</p>
+                    }
+                </div>
+
+                <!-- ================================================================ -->
+                <!-- ROL -->
+                <!-- ================================================================ -->
+                <div class="form-group">
+                    <label for="role" class="form-label">
+                        Rol <span class="required">*</span>
+                    </label>
+                    <select id="role" formControlName="role" class="form-select"
+                        [class.error]="hasError('role', 'required')">
+                        <option value="">Selecciona un rol</option>
+                        @for (option of roleOptions; track option.value) {
+                        <option [value]="option.value">{{ option.label }} - {{ option.description }}
+                        </option>
+                        }
+                    </select>
+
+                    <p class="help-text">Rol del usuario en el sistema</p>
+
+                    @if (hasError('role', 'required')) {
+                    <p class="error-text">El rol es obligatorio</p>
+                    }
+                </div>
+
+                <!-- ================================================================ -->
+                <!-- CONTRASEÑA (Solo en modo creación) -->
+                <!-- ================================================================ -->
+                @if (mode() === 'create') {
+                <div class="form-group form-group-full">
+                    <label for="password" class="form-label">
+                        Contraseña <span class="required">*</span>
+                    </label>
+                    <input id="password" type="password" formControlName="password" class="form-input"
+                        placeholder="Mínimo 8 caracteres" [class.error]="hasError('password', 'required') ||
+                            hasError('password', 'minlength') || passwordErrors().length > 0">
+
+                    <!-- Requisitos de contraseña -->
+                    <div class="password-requirements">
+                        <p class="text-sm font-medium text-gray-700 mb-2">La contraseña debe cumplir:
+                        </p>
+                        <ul class="space-y-1">
+                            <li class="requirement"
+                                [class.valid]="!passwordErrors().includes('Mínimo 8 caracteres')">
+                                <app-icon [name]="!passwordErrors().includes('Mínimo 8 caracteres') ? 'check-circle' : 'x-circle'"
+                                    size="sm"
+                                    [color]="!passwordErrors().includes('Mínimo 8 caracteres') ? 'text-green-600' : 'text-red-600'" />
+                                <span>Mínimo 8 caracteres</span>
+                            </li>
+                            <li class="requirement"
+                                [class.valid]="!passwordErrors().includes('Al menos 1 letra mayúscula')">
+                                <app-icon [name]="!passwordErrors().includes('Al menos 1 letra mayúscula') ? 'check-circle' : 'x-circle'"
+                                    size="sm"
+                                    [color]="!passwordErrors().includes('Al menos 1 letra mayúscula') ? 'text-green-600' : 'text-red-600'" />
+                                <span>Al menos 1 letra mayúscula</span>
+                            </li>
+                            <li class="requirement"
+                                [class.valid]="!passwordErrors().includes('Al menos 1 letra minúscula')">
+                                <app-icon [name]="!passwordErrors().includes('Al menos 1 letra minúscula') ? 'check-circle' : 'x-circle'"
+                                    size="sm"
+                                    [color]="!passwordErrors().includes('Al menos 1 letra minúscula') ? 'text-green-600' : 'text-red-600'" />
+                                <span>Al menos 1 letra minúscula</span>
+                            </li>
+                            <li class="requirement"
+                                [class.valid]="!passwordErrors().includes('Al menos 1 número')">
+                                <app-icon [name]="!passwordErrors().includes('Al menos 1 número') ? 'check-circle' : 'x-circle'"
+                                    size="sm"
+                                    [color]="!passwordErrors().includes('Al menos 1 número') ? 'text-green-600' : 'text-red-600'" />
+                                <span>Al menos 1 número</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                }
+
+                <!-- ================================================================ -->
+                <!-- CAMPO CONDICIONAL: PROVEEDOR (Acopiador/Mielera) -->
+                <!-- ================================================================ -->
+                @if (showProveedorField()) {
+                <div class="form-group">
+                    <label for="proveedorId" class="form-label">
+                        Proveedor (Acopiador/Mielera)
+                    </label>
+                    <select id="proveedorId" formControlName="proveedorId" class="form-select">
+                        <option [value]="null">Sin proveedor</option>
+                        @for (proveedor of proveedores(); track proveedor.idProveedor) {
+                        <option [value]="proveedor.idProveedor">
+                            {{ proveedor.nombre }} - {{ proveedor.tipoDeMiel }}
+                        </option>
+                        }
+                    </select>
+                    <p class="help-text">Proveedor asociado al usuario</p>
+                </div>
+                }
+
+                <!-- ================================================================ -->
+                <!-- CAMPO CONDICIONAL: APICULTOR -->
+                <!-- ================================================================ -->
+                @if (showApicultorField()) {
+                <div class="form-group">
+                    <label for="apicultorId" class="form-label">
+                        Apicultor
+                    </label>
+                    <select id="apicultorId" formControlName="apicultorId" class="form-select">
+                        <option [value]="null">Sin apicultor</option>
+                        @for (apicultor of apicultores(); track apicultor.id) {
+                        <option [value]="apicultor.id">
+                            {{ apicultor.nombreCompleto }} - {{ apicultor.curp }}
+                        </option>
+                        }
+                    </select>
+                    <p class="help-text">Apicultor asociado al usuario</p>
+                </div>
+                }
+
+                <!-- ================================================================ -->
+                <!-- CAMPO CONDICIONAL: VERIFICADOR ID -->
+                <!-- ================================================================ -->
+                @if (showVerificadorField()) {
+                <div class="form-group">
+                    <label for="verificadorId" class="form-label">
+                        ID de Verificador
+                    </label>
+                    <input id="verificadorId" type="text" formControlName="verificadorId"
+                        class="form-input" placeholder="Ej: VERIF-001">
+                    <p class="help-text">Identificador único del verificador</p>
+                </div>
+                }
+
+            </div>
+
+            <!-- ================================================================ -->
+            <!-- FORM ACTIONS -->
+            <!-- ================================================================ -->
+            <div class="form-actions">
+                <button type="button" (click)="cancel()" class="btn btn-secondary"
+                    [disabled]="isLoading()">
+                    <app-icon name="x-mark" size="md" />
+                    <span>Cancelar</span>
+                </button>
+
+                <button type="submit" class="btn btn-primary" [disabled]="!formValid() || isLoading()">
+                    <app-icon name="check" size="md" />
+                    <span>{{ isLoading() ? 'Guardando...' : (mode() === 'create' ? 'Crear Usuario' :
+                        'Actualizar Usuario') }}</span>
+                </button>
+            </div>
+        </form>
+    </div>
+    }
+</div>
