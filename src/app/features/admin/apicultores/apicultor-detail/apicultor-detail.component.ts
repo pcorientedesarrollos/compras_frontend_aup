@@ -52,6 +52,7 @@ import { ApicultorService } from '../../../../core/services/apicultor.service';
 import { ProveedorService } from '../../../../core/services/proveedor.service';
 import { EstadoService } from '../../../../core/services/estado.service';
 import { MunicipioService } from '../../../../core/services/municipio.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 type FormMode = 'create' | 'edit';
 
@@ -72,6 +73,7 @@ export class ApicultorDetailComponent implements OnInit {
     private proveedorService = inject(ProveedorService);
     private estadoService = inject(EstadoService);
     private municipioService = inject(MunicipioService);
+    private authService = inject(AuthService);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
     private destroyRef = inject(DestroyRef);
@@ -225,11 +227,21 @@ export class ApicultorDetailComponent implements OnInit {
 
     /**
      * Determinar modo (create/edit) según la ruta
+     * SEGURIDAD: ACOPIADOR no puede editar apicultores
      */
     private checkMode(): void {
         const id = this.route.snapshot.paramMap.get('id');
+        const currentUser = this.authService.getCurrentUser();
+        const isAcopiador = currentUser?.role === 'ACOPIADOR';
 
         if (id && id !== 'nuevo') {
+            // BLOQUEO: Si es ACOPIADOR y está intentando editar, redirigir a lista
+            if (isAcopiador) {
+                console.warn('ACOPIADOR intentó acceder a edición de apicultor - redirigiendo a lista');
+                this.router.navigate(['/acopiador/apicultores']);
+                return;
+            }
+
             this.mode.set('edit');
             this.apicultorId.set(id);
             this.loadApicultor(id);

@@ -151,7 +151,8 @@ export interface TamborParaVerificar {
   kilosDeclarados: number;
   humedadPromedio: number;
   costoTotal: number;
-  taraCapturada: number | null;
+  tara: number; // Peso original del tambor vacío (del registro inicial)
+  taraCapturada: number | null; // Tara capturada/precargada (se puede modificar)
 
   // Datos verificados
   verificado: boolean;

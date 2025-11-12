@@ -95,87 +95,144 @@ export class AdminDashboardComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (data) => {
-                    // 🎯 Construir métricas con datos reales de la API consolidada
-                    // Orden: Proveedores → Apiarios → Apicultores → resto (igual que sidebar)
+                    // 🎯 17 Cards individuales según especificación del cliente
                     const metricsData: MetricCard[] = [
+                        // 1. Total Proveedores
                         {
-                            title: 'Proveedores',
+                            title: 'Total Proveedores',
                             value: data.proveedores.total.toString(),
-                            subtitle: `${data.proveedores.acopiadores} acopiadores / ${data.proveedores.mieleras} mieleras`,
                             icon: 'building-office',
                             color: 'text-purple-600',
                             bgColor: 'bg-purple-100'
                         },
+                        // 2. Total Apicultores
                         {
                             title: 'Total Apicultores',
                             value: data.apicultores.total.toString(),
-                            subtitle: `${data.apicultores.activos} activos / ${data.apicultores.inactivos} inactivos`,
                             icon: 'bee',
                             color: 'text-green-600',
                             bgColor: 'bg-green-100'
                         },
+                        // 3. Apicultores Activos
                         {
-                            title: 'Apiarios Registrados',
+                            title: 'Apicultores Activos',
+                            value: data.apicultores.activos.toString(),
+                            icon: 'check-circle',
+                            color: 'text-emerald-600',
+                            bgColor: 'bg-emerald-100'
+                        },
+                        // 4. Total Apiarios
+                        {
+                            title: 'Total Apiarios',
                             value: data.apiarios.total.toString(),
                             icon: 'map-pin',
                             color: 'text-blue-600',
                             bgColor: 'bg-blue-100'
                         },
+                        // 5. Total Colmenas
                         {
-                            title: 'Colmenas Totales',
+                            title: 'Total Colmenas',
                             value: data.colmenas.total.toLocaleString('es-MX'),
-                            subtitle: `Promedio: ${data.colmenas.promedioPorApiario.toFixed(1)} por apiario`,
                             icon: 'hashtag',
                             color: 'text-amber-600',
                             bgColor: 'bg-amber-100'
                         },
+                        // 6. Total Entradas de Miel
                         {
-                            title: 'Kilos Disponibles',
-                            value: data.inventario.kilosDisponibles.toLocaleString('es-MX', { maximumFractionDigits: 0 }),
-                            subtitle: `${data.inventario.kilosUsados.toLocaleString('es-MX', { maximumFractionDigits: 0 })} kg usados`,
-                            icon: 'scale',
-                            color: 'text-orange-600',
-                            bgColor: 'bg-orange-100'
-                        },
-                        {
-                            title: 'Tambores Disponibles',
-                            value: data.inventario.tamboresDisponibles.toString(),
-                            subtitle: `${data.inventario.tamboresTotal} totales / ${data.inventario.tiposMielUnicos} tipos`,
-                            icon: 'shopping-bag',
-                            color: 'text-indigo-600',
-                            bgColor: 'bg-indigo-100'
-                        },
-                        {
-                            title: 'Entradas de Miel',
+                            title: 'Total Entradas de Miel',
                             value: data.entradasMiel.totalEntradas.toString(),
-                            subtitle: `${data.entradasMiel.totalKilosIngresados.toLocaleString('es-MX', { maximumFractionDigits: 0 })} kg ingresados`,
                             icon: 'truck',
                             color: 'text-teal-600',
                             bgColor: 'bg-teal-100'
                         },
+                        // 7. Total Kilos Ingresados
                         {
-                            title: 'Verificaciones',
-                            value: data.verificaciones.total.toString(),
-                            subtitle: `${data.verificaciones.enTransito} en tránsito / ${data.verificaciones.verificadas} verificadas`,
-                            icon: 'check-circle',
-                            color: 'text-emerald-600',
-                            bgColor: 'bg-emerald-100'
+                            title: 'Total Kilos Ingresados',
+                            value: data.entradasMiel.totalKilosIngresados.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' kg',
+                            icon: 'scale',
+                            color: 'text-orange-600',
+                            bgColor: 'bg-orange-100'
                         },
+                        // 8. Tambores Disponibles
                         {
-                            title: 'Tambores',
-                            value: data.tambores.total.toString(),
-                            subtitle: `${data.tambores.activos} activos / ${data.tambores.asignados} asignados / ${data.tambores.entregados} entregados`,
+                            title: 'Tambores Disponibles',
+                            value: data.tambores.activos.toString(),
                             icon: 'inbox',
                             color: 'text-cyan-600',
                             bgColor: 'bg-cyan-100'
                         },
+                        // 9. Tambores Asignados
                         {
-                            title: 'Usuarios del Sistema',
-                            value: data.usuarios.total.toString(),
-                            subtitle: `${data.usuarios.administradores} admins / ${data.usuarios.verificadores} verificadores`,
-                            icon: 'users',
-                            color: 'text-pink-600',
-                            bgColor: 'bg-pink-100'
+                            title: 'Tambores Asignados',
+                            value: data.tambores.asignados.toString(),
+                            icon: 'shopping-bag',
+                            color: 'text-indigo-600',
+                            bgColor: 'bg-indigo-100'
+                        },
+                        // 10. Total Tambores
+                        {
+                            title: 'Total Tambores',
+                            value: data.tambores.total.toString(),
+                            icon: 'squares-plus',
+                            color: 'text-violet-600',
+                            bgColor: 'bg-violet-100'
+                        },
+                        // 11. Kilos Disponibles
+                        {
+                            title: 'Kilos Disponibles',
+                            value: data.inventario.kilosDisponibles.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' kg',
+                            icon: 'arrow-trending-up',
+                            color: 'text-lime-600',
+                            bgColor: 'bg-lime-100'
+                        },
+                        // 12. Kilos Usados en Tambores
+                        {
+                            title: 'Kilos Usados en Tambores',
+                            value: data.inventario.kilosUsados.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' kg',
+                            icon: 'tag',
+                            color: 'text-yellow-600',
+                            bgColor: 'bg-yellow-100'
+                        },
+                        // 13. Kilos Sobrante (miel no en tambores)
+                        {
+                            title: 'Kilos Sobrante',
+                            value: data.inventario.kilosSobrante.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' kg',
+                            subtitle: 'Miel no en tambores',
+                            icon: 'arrow-trending-down',
+                            color: 'text-red-600',
+                            bgColor: 'bg-red-100'
+                        },
+                        // 14. Kilos Totales
+                        {
+                            title: 'Kilos Totales',
+                            value: data.inventario.kilosTotal.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' kg',
+                            icon: 'calculator',
+                            color: 'text-slate-600',
+                            bgColor: 'bg-slate-100'
+                        },
+                        // 15. Salidas en Tránsito
+                        {
+                            title: 'Salidas en Tránsito',
+                            value: data.verificaciones.enTransito.toString(),
+                            icon: 'clock',
+                            color: 'text-orange-600',
+                            bgColor: 'bg-orange-100'
+                        },
+                        // 16. Salidas Verificadas
+                        {
+                            title: 'Salidas Verificadas',
+                            value: data.verificaciones.verificadas.toString(),
+                            icon: 'shield-check',
+                            color: 'text-green-600',
+                            bgColor: 'bg-green-100'
+                        },
+                        // 17. Total Salidas
+                        {
+                            title: 'Total Salidas',
+                            value: data.verificaciones.total.toString(),
+                            icon: 'document-text',
+                            color: 'text-gray-600',
+                            bgColor: 'bg-gray-100'
                         }
                     ];
 

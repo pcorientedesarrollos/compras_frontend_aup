@@ -27,7 +27,7 @@ import { ApicultorDetailModalComponent } from '../apicultor-detail-modal/apicult
 // Tipos y modelos
 import { TableColumn, TableConfig } from '../../../../shared/components/data/honey-table/types/table.types';
 import { FilterConfig, FilterState } from '../../../../shared/components/data/honey-table/types/filter.types';
-import { ActionMenuConfig } from '../../../../shared/components/data/honey-table/types/action.types';
+import { ActionMenuConfig, ActionItem } from '../../../../shared/components/data/honey-table/types/action.types';
 import {
     ApicultorAPI,
     ApicultorEstado
@@ -261,41 +261,51 @@ export class ApicultoresListComponent implements OnInit {
 
     /**
      * Configuración de acciones por fila
+     * ACOPIADOR: no puede editar apicultores (solo crear, ver, y eliminar)
      */
-    rowActions = computed<ActionMenuConfig>(() => ({
-        items: [
+    rowActions = computed<ActionMenuConfig>(() => {
+        const currentUser = this.authService.getCurrentUser();
+        const isAcopiador = currentUser?.role === 'ACOPIADOR';
+
+        const baseActions: ActionItem[] = [
             {
                 key: 'view',
                 label: 'Ver detalle',
-                icon: 'eye',
+                icon: 'eye' as const,
                 variant: 'info'
-            },
-            {
-                key: 'edit',
-                label: 'Editar',
-                icon: 'pencil',
-                variant: 'warning'
             },
             {
                 key: 'proveedores',
                 label: 'Ver proveedores',
-                icon: 'building-office',
+                icon: 'building-office' as const,
                 variant: 'success'
             },
             {
                 key: 'apiarios',
                 label: 'Ver apiarios',
-                icon: 'map-pin',
+                icon: 'map-pin' as const,
                 variant: 'info'
             },
             {
                 key: 'delete',
                 label: 'Eliminar',
-                icon: 'trash',
+                icon: 'trash' as const,
                 variant: 'danger'
             }
-        ]
-    }));
+        ];
+
+        // Solo ADMIN puede editar
+        if (!isAcopiador) {
+            baseActions.splice(1, 0, {
+                key: 'edit',
+                label: 'Editar',
+                icon: 'pencil' as const,
+                variant: 'warning'
+            });
+        }
+
+        return { items: baseActions };
+    });
 
     /**
      * ✅ Configuración de filtros v2.0

@@ -154,19 +154,15 @@ export const routes: Routes = [
                     .then(m => m.ApicultoresListComponent)
             },
 
-            // ✅ Apicultores - Crear
+            // ✅ Apicultores - Crear (PERMITIDO para ACOPIADOR)
             {
                 path: 'apicultores/nuevo',
                 loadComponent: () => import('./features/admin/apicultores/apicultor-detail/apicultor-detail.component')
                     .then(m => m.ApicultorDetailComponent)
             },
 
-            // ✅ Apicultores - Editar
-            {
-                path: 'apicultores/:id/edit',
-                loadComponent: () => import('./features/admin/apicultores/apicultor-detail/apicultor-detail.component')
-                    .then(m => m.ApicultorDetailComponent)
-            },
+            // ❌ Apicultores - Editar (BLOQUEADO para ACOPIADOR - ruta eliminada)
+            // Los ACOPIADORES solo pueden CREAR apicultores, NO editarlos
 
             // Apiarios
             {

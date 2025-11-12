@@ -75,22 +75,12 @@ export class EntradasMielListComponent implements OnInit {
             filtered = filtered.filter(e => e.estado === this.filterEstado());
         }
 
-        // Filtro por fecha inicio
-        if (this.filterFechaInicio()) {
-            filtered = filtered.filter(e => {
-                const fechaEntrada = new Date(e.fecha);
-                const fechaInicio = new Date(this.filterFechaInicio());
-                return fechaEntrada >= fechaInicio;
-            });
-        }
-
-        // Filtro por fecha fin
-        if (this.filterFechaFin()) {
-            filtered = filtered.filter(e => {
-                const fechaEntrada = new Date(e.fecha);
-                const fechaFin = new Date(this.filterFechaFin());
-                return fechaEntrada <= fechaFin;
-            });
+        // Filtro por estado de uso (DISPONIBLES / ASIGNADOS)
+        const estadoUso = this.filterEstadoUso();
+        if (estadoUso === 'DISPONIBLES') {
+            filtered = filtered.filter(e => e.todosDetallesUsados === false);
+        } else if (estadoUso === 'ASIGNADOS') {
+            filtered = filtered.filter(e => e.todosDetallesUsados === true);
         }
 
         return filtered;
@@ -108,8 +98,7 @@ export class EntradasMielListComponent implements OnInit {
     /** Filtros */
     searchTerm = signal('');
     filterEstado = signal<EstadoEntrada>(EstadoEntrada.ACTIVO);
-    filterFechaInicio = signal('');
-    filterFechaFin = signal('');
+    filterEstadoUso = signal<'DISPONIBLES' | 'ASIGNADOS'>('DISPONIBLES'); // Por defecto DISPONIBLES
 
     /** Detalle seleccionado (para modal) */
     entradaDetalle = signal<EntradaMielDetailAPI | null>(null);
@@ -203,8 +192,7 @@ export class EntradasMielListComponent implements OnInit {
     clearFilters(): void {
         this.searchTerm.set('');
         this.filterEstado.set(EstadoEntrada.ACTIVO); // Default: ACTIVO
-        this.filterFechaInicio.set('');
-        this.filterFechaFin.set('');
+        this.filterEstadoUso.set('DISPONIBLES'); // Default: DISPONIBLES
         this.currentPage.set(1);
     }
 

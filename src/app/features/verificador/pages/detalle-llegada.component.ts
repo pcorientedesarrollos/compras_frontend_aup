@@ -415,30 +415,24 @@ import { BeeLoaderComponent } from '../../../shared/components/bee-loader/bee-lo
                       [placeholder]="(tamborSeleccionado()?.humedadPromedio || 0).toString()">
                   </div>
 
-                  <!-- Floración Verificada -->
+                  <!-- Floración (Solo lectura) -->
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Floración Verificada</label>
-                    <select
-                      formControlName="floracionVerificadaId"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-transparent">
-                      <option [value]="null">{{ tamborSeleccionado()?.floracionNombre || 'Sin cambios' }}</option>
-                      @for (floracion of floraciones(); track floracion.idFloracion) {
-                        <option [value]="floracion.idFloracion">{{ floracion.floracion }}</option>
-                      }
-                    </select>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Floración</label>
+                    <input
+                      type="text"
+                      [value]="tamborSeleccionado()?.floracionNombre || 'N/A'"
+                      disabled
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed">
                   </div>
 
-                  <!-- Color Verificado -->
+                  <!-- Color (Solo lectura) -->
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Color Verificado</label>
-                    <select
-                      formControlName="colorVerificadoId"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-transparent">
-                      <option [value]="null">{{ tamborSeleccionado()?.colorNombre || 'Sin cambios' }}</option>
-                      @for (color of colores(); track color.idColor) {
-                        <option [value]="color.idColor">{{ color.color }}</option>
-                      }
-                    </select>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                    <input
+                      type="text"
+                      [value]="tamborSeleccionado()?.colorNombre || 'N/A'"
+                      disabled
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed">
                   </div>
                 </div>
 
@@ -616,12 +610,13 @@ export class DetalleLlegadaComponent implements OnInit {
   // Formulario de verificación
   formVerificacion: FormGroup = this.fb.group({
     kilosVerificados: [null, [Validators.min(0)]],
-    taraVerificada: [null, [Validators.min(0)]], // ← NUEVO: Campo para capturar tara
+    taraVerificada: [null, [Validators.min(0)]], // ← Campo para capturar tara
     humedadVerificada: [null, [Validators.min(0), Validators.max(100)]],
-    floracionVerificadaId: [null],
-    colorVerificadoId: [null],
     observacionesVerificador: ['']
   });
+
+  // Signal para mostrar kilos calculados automáticamente
+  kilosCalculados = signal<number | null>(null);
 
   ngOnInit(): void {
     const choferId = this.route.snapshot.paramMap.get('choferId');
@@ -735,11 +730,45 @@ export class DetalleLlegadaComponent implements OnInit {
 
   /**
    * Abrir modal para registrar diferencias
+   * Precarga la tara con el valor original del tambor
    */
   abrirModalVerificar(salidaId: string, tambor: TamborParaVerificar): void {
     this.tamborSeleccionado.set(tambor);
     this.salidaSeleccionadaId.set(salidaId);
-    this.formVerificacion.reset();
+
+    // Precargar formulario con valores por defecto
+    this.formVerificacion.patchValue({
+      kilosVerificados: null,
+      taraVerificada: tambor.tara, // ← PRECARGA: usar tara original
+      humedadVerificada: null,
+      observacionesVerificador: ''
+    });
+
+    // Calcular kilos automáticamente cuando cambie la tara
+    // kilosVerificados = kilosDeclarados + tara - taraVerificada
+    // (donde kilosDeclarados ya incluye el peso bruto)
+    this.formVerificacion.get('taraVerificada')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(taraVerificada => {
+        if (taraVerificada !== null && taraVerificada !== undefined) {
+          // Calcular: bruto - taraVerificada = kilosVerificados
+          // donde bruto = kilosDeclarados + tara
+          const bruto = tambor.kilosDeclarados + tambor.tara;
+          const kilosVerificados = bruto - taraVerificada;
+          this.kilosCalculados.set(kilosVerificados);
+          // Actualizar el campo kilosVerificados automáticamente
+          this.formVerificacion.patchValue({ kilosVerificados }, { emitEvent: false });
+        } else {
+          this.kilosCalculados.set(null);
+        }
+      });
+
+    // Calcular valor inicial
+    const bruto = tambor.kilosDeclarados + tambor.tara;
+    const kilosInicial = bruto - tambor.tara;
+    this.kilosCalculados.set(kilosInicial);
+    this.formVerificacion.patchValue({ kilosVerificados: kilosInicial }, { emitEvent: false });
+
     this.modalVerificacion.set(true);
   }
 
@@ -763,10 +792,8 @@ export class DetalleLlegadaComponent implements OnInit {
     const data: VerificarTamborDTO = {
       verificado: true,
       kilosVerificados: formValue.kilosVerificados || undefined,
-      taraVerificada: formValue.taraVerificada || undefined, // ← NUEVO: Enviar tara verificada
+      taraVerificada: formValue.taraVerificada || undefined, // ← Enviar tara verificada
       humedadVerificada: formValue.humedadVerificada || undefined,
-      floracionVerificadaId: formValue.floracionVerificadaId || undefined,
-      colorVerificadoId: formValue.colorVerificadoId || undefined,
       observacionesVerificador: formValue.observacionesVerificador || undefined
     };
 

@@ -117,6 +117,7 @@ export interface AdminMetricasResponse {
     inventario: {
       kilosDisponibles: number;
       kilosUsados: number;
+      kilosSobrante: number;
       kilosTotal: number;
       tamboresDisponibles: number;
       tamboresTotal: number;
@@ -261,6 +262,7 @@ export class DashboardService {
             inventario: {
               kilosDisponibles: 0,
               kilosUsados: 0,
+              kilosSobrante: 0,
               kilosTotal: 0,
               tamboresDisponibles: 0,
               tamboresTotal: 0,
