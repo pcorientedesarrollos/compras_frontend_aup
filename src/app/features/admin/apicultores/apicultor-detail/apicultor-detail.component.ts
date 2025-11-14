@@ -109,6 +109,12 @@ export class ApicultorDetailComponent implements OnInit {
     /** Término de búsqueda de proveedores */
     proveedorSearchTerm = signal<string>('');
 
+    /** Verificar si el usuario es ACOPIADOR */
+    isAcopiador = computed(() => {
+        const user = this.authService.getCurrentUser();
+        return user?.role === 'ACOPIADOR';
+    });
+
     /** Lista de estados disponibles */
     estados = signal<EstadoOption[]>([]);
 
@@ -307,6 +313,11 @@ export class ApicultorDetailComponent implements OnInit {
             .subscribe({
                 next: (proveedores) => {
                     this.proveedoresDisponibles.set(proveedores);
+
+                    // Si es ACOPIADOR, pre-seleccionar su proveedor automáticamente
+                    if (this.isAcopiador() && proveedores.length === 1 && !this.apicultorId()) {
+                        this.selectedProveedorIds.set([proveedores[0].idProveedor]);
+                    }
                 },
                 error: (error) => {
                     console.error('Error al cargar proveedores:', error);

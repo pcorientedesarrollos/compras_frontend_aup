@@ -35,7 +35,11 @@ import {
 // Servicios
 import { ApicultorService } from '../../../../core/services/apicultor.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { EntradaMielService } from '../../../../core/services/entrada-miel.service';
+import { EstadoService } from '../../../../core/services/estado.service';
+import { MunicipioService } from '../../../../core/services/municipio.service';
 import { IconName } from '../../../../shared/components/ui/icon';
+import { EntradaMielAPI } from '../../../../core/models/entrada-miel.model';
 
 type TabId = 'general' | 'proveedores' | 'apiarios' | 'mielPorTipo';
 
@@ -61,6 +65,9 @@ interface Tab {
 export class ApicultorDetailModalComponent {
     private apicultorService = inject(ApicultorService);
     private authService = inject(AuthService);
+    private entradaMielService = inject(EntradaMielService);
+    private estadoService = inject(EstadoService);
+    private municipioService = inject(MunicipioService);
     private router = inject(Router);
     private destroyRef = inject(DestroyRef);
 
@@ -93,9 +100,42 @@ export class ApicultorDetailModalComponent {
     /** Estado de carga */
     isLoading = signal<boolean>(false);
 
+    /** Lista de entregas del apicultor */
+    entradasMiel = signal<EntradaMielAPI[]>([]);
+
+    /** Mapas de catálogos */
+    private estadosMap = signal<Map<string, string>>(new Map());
+    private municipiosMap = signal<Map<string, string>>(new Map());
+
     // ============================================================================
     // COMPUTED
     // ============================================================================
+
+    /**
+     * Verificar si el usuario es ACOPIADOR
+     */
+    private isAcopiador = computed(() => {
+        const user = this.authService.getCurrentUser();
+        return user?.role === 'ACOPIADOR';
+    });
+
+    /**
+     * Obtener nombre del estado
+     */
+    estadoNombre = computed(() => {
+        const codigo = this.apicultor().estadoCodigo;
+        return this.estadosMap().get(codigo) || codigo;
+    });
+
+    /**
+     * Obtener nombre del municipio
+     */
+    municipioNombre = computed(() => {
+        const estadoCodigo = this.apicultor().estadoCodigo;
+        const municipioCodigo = this.apicultor().municipioCodigo;
+        const key = `${estadoCodigo}-${municipioCodigo}`;
+        return this.municipiosMap().get(key) || municipioCodigo;
+    });
 
     /**
      * Tabs disponibles
@@ -113,7 +153,7 @@ export class ApicultorDetailModalComponent {
                 id: 'proveedores' as TabId,
                 label: `Proveedores (${apic.cantidadProveedores})`,
                 icon: 'building-office' as IconName,
-                visible: true
+                visible: !this.isAcopiador() // Ocultar para ACOPIADOR
             },
             {
                 id: 'apiarios' as TabId,
@@ -264,11 +304,81 @@ export class ApicultorDetailModalComponent {
         size: 'sm'
     }));
 
+    /**
+     * Columnas para tabla de entregas de miel (desglose completo)
+     */
+    mielPorTipoColumns = computed<TableColumn[]>(() => [
+        {
+            key: 'folio',
+            label: 'Folio',
+            type: 'text',
+            sortable: true,
+            width: '150px'
+        },
+        {
+            key: 'fecha',
+            label: 'Fecha',
+            type: 'text',
+            sortable: true,
+            width: '120px',
+            formatter: (value: string) => {
+                const date = new Date(value);
+                return date.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+            }
+        },
+        {
+            key: 'cantidadDetalles',
+            label: 'No. Registros',
+            type: 'number',
+            sortable: true,
+            width: '120px',
+            align: 'center'
+        },
+        {
+            key: 'kilosTotales',
+            label: 'Kilos',
+            type: 'number',
+            sortable: true,
+            width: '120px',
+            align: 'right',
+            formatter: (value: number) => {
+                return value ? value.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' kg' : '0.00 kg';
+            }
+        },
+        {
+            key: 'totalCompra',
+            label: 'Total Compra',
+            type: 'number',
+            sortable: true,
+            width: '150px',
+            align: 'right',
+            formatter: (value: number) => {
+                return value ? '$' + value.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '$0.00';
+            }
+        }
+    ] as TableColumn[]);
+
+    /**
+     * Config de tabla de miel por tipo
+     */
+    mielPorTipoTableConfig = computed<TableConfig>(() => ({
+        loading: this.isLoading(),
+        loadingMessage: 'Cargando datos de entregas...',
+        emptyMessage: 'No hay entregas registradas',
+        striped: true,
+        hoverable: true,
+        stickyHeader: false,
+        size: 'md'
+    }));
+
     // ============================================================================
     // EFFECTS
     // ============================================================================
 
     constructor() {
+        // Cargar catálogos de estados y municipios
+        this.loadCatalogos();
+
         // Establecer tab inicial cuando se abre el modal
         effect(() => {
             if (this.isOpen()) {
@@ -281,6 +391,40 @@ export class ApicultorDetailModalComponent {
     // ============================================================================
     // METHODS - DATA LOADING
     // ============================================================================
+
+    /**
+     * Cargar catálogos de estados y municipios
+     */
+    private loadCatalogos(): void {
+        // Cargar estados
+        this.estadoService.getAllEstados()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (estados) => {
+                    const map = new Map<string, string>();
+                    estados.forEach(estado => {
+                        map.set(estado.codigo_inegi, estado.estado);
+                    });
+                    this.estadosMap.set(map);
+                },
+                error: (error) => console.error('Error al cargar estados:', error)
+            });
+
+        // Cargar municipios
+        this.municipioService.getAllMunicipios()
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (municipios) => {
+                    const map = new Map<string, string>();
+                    municipios.forEach(municipio => {
+                        const key = `${municipio.estado_codigo}-${municipio.clave_municipio}`;
+                        map.set(key, municipio.nombreMunicipio);
+                    });
+                    this.municipiosMap.set(map);
+                },
+                error: (error) => console.error('Error al cargar municipios:', error)
+            });
+    }
 
     /**
      * Cargar detalle completo del apicultor
@@ -299,6 +443,26 @@ export class ApicultorDetailModalComponent {
                 error: (error) => {
                     console.error('Error al cargar detalle del apicultor:', error);
                     this.isLoading.set(false);
+                }
+            });
+
+        // Cargar entregas de miel del apicultor
+        this.loadEntradasMiel(apicultorId);
+    }
+
+    /**
+     * Cargar entregas de miel del apicultor
+     */
+    private loadEntradasMiel(apicultorId: string): void {
+        this.entradaMielService.getEntradas({ apicultorId })
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (response) => {
+                    this.entradasMiel.set(response.data);
+                },
+                error: (error) => {
+                    console.error('Error al cargar entregas de miel:', error);
+                    this.entradasMiel.set([]);
                 }
             });
     }

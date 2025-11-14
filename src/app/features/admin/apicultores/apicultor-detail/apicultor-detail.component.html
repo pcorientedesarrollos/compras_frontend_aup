@@ -214,6 +214,7 @@
 
             <div class="proveedores-section">
                 <div class="proveedores-actions">
+                    @if (!isAcopiador()) {
                     <button type="button" class="btn-secondary" (click)="toggleShowAllProveedores()">
                         <app-icon [name]="showAllProveedores() ? 'eye-slash' : 'eye'" size="sm" />
                         <span>{{ showAllProveedores() ? 'Mostrar Seleccionados' : 'Mostrar Todos' }}</span>
@@ -228,6 +229,7 @@
                         <app-icon name="x-mark" size="sm" />
                         <span>Limpiar selección</span>
                     </button>
+                    }
                     }
 
                     <span class="selected-count">
@@ -248,6 +250,7 @@
                     @for (proveedor of proveedoresToShow(); track proveedor.idProveedor) {
                     <label class="proveedor-item" [class.selected]="isProveedorSelected(proveedor.idProveedor)">
                         <input type="checkbox" [checked]="isProveedorSelected(proveedor.idProveedor)"
+                            [disabled]="isAcopiador()"
                             (change)="toggleProveedor(proveedor.idProveedor)" class="proveedor-checkbox">
                         <div class="proveedor-info">
                             <span class="proveedor-name">{{ proveedor.nombre }}</span>

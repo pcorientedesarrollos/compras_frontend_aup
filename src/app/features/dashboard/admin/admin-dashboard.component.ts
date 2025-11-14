@@ -54,7 +54,7 @@ export class AdminDashboardComponent implements OnInit {
     isCurrentMonth = computed(() => {
         const now = new Date();
         return this.selectedMonth() === now.getMonth() + 1 &&
-               this.selectedYear() === now.getFullYear();
+            this.selectedYear() === now.getFullYear();
     });
 
     // Flag para evitar doble carga en inicialización
@@ -106,13 +106,13 @@ export class AdminDashboardComponent implements OnInit {
                             bgColor: 'bg-purple-100'
                         },
                         // 2. Total Apicultores
-                        {
-                            title: 'Total Apicultores',
-                            value: data.apicultores.total.toString(),
-                            icon: 'bee',
-                            color: 'text-green-600',
-                            bgColor: 'bg-green-100'
-                        },
+                        // {
+                        //     title: 'Total Apicultores',
+                        //     value: data.apicultores.total.toString(),
+                        //     icon: 'bee',
+                        //     color: 'text-green-600',
+                        //     bgColor: 'bg-green-100'
+                        // },
                         // 3. Apicultores Activos
                         {
                             title: 'Apicultores Activos',
@@ -153,14 +153,6 @@ export class AdminDashboardComponent implements OnInit {
                             color: 'text-orange-600',
                             bgColor: 'bg-orange-100'
                         },
-                        // 8. Tambores Disponibles
-                        {
-                            title: 'Tambores Disponibles',
-                            value: data.tambores.activos.toString(),
-                            icon: 'inbox',
-                            color: 'text-cyan-600',
-                            bgColor: 'bg-cyan-100'
-                        },
                         // 9. Tambores Asignados
                         {
                             title: 'Tambores Asignados',
@@ -169,6 +161,15 @@ export class AdminDashboardComponent implements OnInit {
                             color: 'text-indigo-600',
                             bgColor: 'bg-indigo-100'
                         },
+                        // 8. Tambores Disponibles
+                        {
+                            title: 'Tambores Disponibles',
+                            value: data.tambores.activos.toString(),
+                            icon: 'inbox',
+                            color: 'text-cyan-600',
+                            bgColor: 'bg-cyan-100'
+                        },
+
                         // 10. Total Tambores
                         {
                             title: 'Total Tambores',
@@ -176,31 +177,6 @@ export class AdminDashboardComponent implements OnInit {
                             icon: 'squares-plus',
                             color: 'text-violet-600',
                             bgColor: 'bg-violet-100'
-                        },
-                        // 11. Kilos Disponibles
-                        {
-                            title: 'Kilos Disponibles',
-                            value: data.inventario.kilosDisponibles.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' kg',
-                            icon: 'arrow-trending-up',
-                            color: 'text-lime-600',
-                            bgColor: 'bg-lime-100'
-                        },
-                        // 12. Kilos Usados en Tambores
-                        {
-                            title: 'Kilos Usados en Tambores',
-                            value: data.inventario.kilosUsados.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' kg',
-                            icon: 'tag',
-                            color: 'text-yellow-600',
-                            bgColor: 'bg-yellow-100'
-                        },
-                        // 13. Kilos Sobrante (miel no en tambores)
-                        {
-                            title: 'Kilos Sobrante',
-                            value: data.inventario.kilosSobrante.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' kg',
-                            subtitle: 'Miel no en tambores',
-                            icon: 'arrow-trending-down',
-                            color: 'text-red-600',
-                            bgColor: 'bg-red-100'
                         },
                         // 14. Kilos Totales
                         {
@@ -210,13 +186,40 @@ export class AdminDashboardComponent implements OnInit {
                             color: 'text-slate-600',
                             bgColor: 'bg-slate-100'
                         },
-                        // 15. Salidas en Tránsito
+
+                        // 12. Kilos Usados en Tambores
                         {
-                            title: 'Salidas en Tránsito',
-                            value: data.verificaciones.enTransito.toString(),
-                            icon: 'clock',
-                            color: 'text-orange-600',
-                            bgColor: 'bg-orange-100'
+                            title: 'Kilos Usados en Tambores',
+                            value: data.inventario.kilosUsados.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' kg',
+                            icon: 'tag',
+                            color: 'text-yellow-600',
+                            bgColor: 'bg-yellow-100'
+                        },
+                        // 13. Kilos Sobrante (miel no en tambores)
+                        // {
+                        //     title: 'Kilos Sobrante',
+                        //     value: data.inventario.kilosSobrante.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' kg',
+                        //     subtitle: 'Miel no en tambores',
+                        //     icon: 'arrow-trending-down',
+                        //     color: 'text-red-600',
+                        //     bgColor: 'bg-red-100'
+                        // },
+
+                        // 11. Kilos Disponibles
+                        {
+                            title: 'Kilos Disponibles',
+                            value: data.inventario.kilosDisponibles.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' kg',
+                            icon: 'arrow-trending-up',
+                            color: 'text-lime-600',
+                            bgColor: 'bg-lime-100'
+                        },
+                         // 17. Total Salidas
+                        {
+                            title: 'Total Salidas',
+                            value: data.verificaciones.total.toString(),
+                            icon: 'document-text',
+                            color: 'text-gray-600',
+                            bgColor: 'bg-gray-100'
                         },
                         // 16. Salidas Verificadas
                         {
@@ -226,14 +229,17 @@ export class AdminDashboardComponent implements OnInit {
                             color: 'text-green-600',
                             bgColor: 'bg-green-100'
                         },
-                        // 17. Total Salidas
+
+
+                        // 15. Salidas en Tránsito
                         {
-                            title: 'Total Salidas',
-                            value: data.verificaciones.total.toString(),
-                            icon: 'document-text',
-                            color: 'text-gray-600',
-                            bgColor: 'bg-gray-100'
-                        }
+                            title: 'Salidas en Tránsito',
+                            value: data.verificaciones.enTransito.toString(),
+                            icon: 'clock',
+                            color: 'text-orange-600',
+                            bgColor: 'bg-orange-100'
+                        },
+
                     ];
 
                     this.metrics.set(metricsData);
@@ -304,6 +310,6 @@ export class AdminDashboardComponent implements OnInit {
     isNextMonthDisabled = computed(() => {
         const now = new Date();
         return this.selectedMonth() === now.getMonth() + 1 &&
-               this.selectedYear() === now.getFullYear();
+            this.selectedYear() === now.getFullYear();
     });
 }

@@ -275,12 +275,6 @@ export class ApicultoresListComponent implements OnInit {
                 variant: 'info'
             },
             {
-                key: 'proveedores',
-                label: 'Ver proveedores',
-                icon: 'building-office' as const,
-                variant: 'success'
-            },
-            {
                 key: 'apiarios',
                 label: 'Ver apiarios',
                 icon: 'map-pin' as const,
@@ -653,9 +647,6 @@ export class ApicultoresListComponent implements OnInit {
             case 'edit':
                 this.editApicultor(row);
                 break;
-            case 'proveedores':
-                this.viewProveedores(row);
-                break;
             case 'apiarios':
                 this.viewApiarios(row);
                 break;
@@ -680,15 +671,6 @@ export class ApicultoresListComponent implements OnInit {
     private editApicultor(apicultor: ApicultorAPI): void {
         const baseRoute = this.getBaseRoute();
         this.router.navigate([`${baseRoute}/apicultores`, apicultor.id, 'edit']);
-    }
-
-    /**
-     * ✅ Ver proveedores del apicultor (abre modal en tab Proveedores)
-     */
-    private viewProveedores(apicultor: ApicultorAPI): void {
-        this.selectedApicultor.set(apicultor);
-        this.selectedTab.set('proveedores');
-        this.isModalOpen.set(true);
     }
 
     /**

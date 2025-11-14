@@ -93,13 +93,13 @@ export class AcopiadorDashboardComponent implements OnInit {
                     // 🎯 Construir métricas detalladas con datos reales de la API
                     const metricsData: MetricCard[] = [
                         // 1. Apicultores Vinculados
-                        {
-                            title: 'Apicultores Vinculados',
-                            value: data.apicultoresVinculados.total.toString(),
-                            icon: 'bee',
-                            color: 'text-green-600',
-                            bgColor: 'bg-green-100'
-                        },
+                        // {
+                        //     title: 'Apicultores Vinculados',
+                        //     value: data.apicultoresVinculados.total.toString(),
+                        //     icon: 'bee',
+                        //     color: 'text-green-600',
+                        //     bgColor: 'bg-green-100'
+                        // },
                         // 2. Total Entradas de Miel
                         {
                             title: 'Total Entradas de Miel',
@@ -118,13 +118,22 @@ export class AcopiadorDashboardComponent implements OnInit {
                             bgColor: 'bg-orange-100'
                         },
                         // 4. Total Compras (dinero)
+                        // {
+                        //     title: 'Total Compras',
+                        //     value: '$' + data.entradasMiel.totalCompras.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                        //     subtitle: `Promedio: $${data.entradasMiel.promedioPrecioPorKilo.toFixed(2)}/kg`,
+                        //     icon: 'currency-dollar',
+                        //     color: 'text-green-700',
+                        //     bgColor: 'bg-green-100'
+                        // },
+
+                        // 6. Tambores Asignados
                         {
-                            title: 'Total Compras',
-                            value: '$' + data.entradasMiel.totalCompras.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                            subtitle: `Promedio: $${data.entradasMiel.promedioPrecioPorKilo.toFixed(2)}/kg`,
-                            icon: 'currency-dollar',
-                            color: 'text-green-700',
-                            bgColor: 'bg-green-100'
+                            title: 'Tambores Asignados',
+                            value: data.tambores.asignados.toString(),
+                            icon: 'shopping-bag',
+                            color: 'text-indigo-600',
+                            bgColor: 'bg-indigo-100'
                         },
                         // 5. Tambores Disponibles
                         {
@@ -134,22 +143,14 @@ export class AcopiadorDashboardComponent implements OnInit {
                             color: 'text-cyan-600',
                             bgColor: 'bg-cyan-100'
                         },
-                        // 6. Tambores Asignados
-                        {
-                            title: 'Tambores Asignados',
-                            value: data.tambores.asignados.toString(),
-                            icon: 'shopping-bag',
-                            color: 'text-indigo-600',
-                            bgColor: 'bg-indigo-100'
-                        },
                         // 7. Tambores Entregados
-                        {
-                            title: 'Tambores Entregados',
-                            value: data.tambores.entregados.toString(),
-                            icon: 'shield-check',
-                            color: 'text-emerald-600',
-                            bgColor: 'bg-emerald-100'
-                        },
+                        // {
+                        //     title: 'Tambores Entregados',
+                        //     value: data.tambores.entregados.toString(),
+                        //     icon: 'shield-check',
+                        //     color: 'text-emerald-600',
+                        //     bgColor: 'bg-emerald-100'
+                        // },
                         // 8. Total Tambores
                         {
                             title: 'Total Tambores',
@@ -157,22 +158,6 @@ export class AcopiadorDashboardComponent implements OnInit {
                             icon: 'squares-plus',
                             color: 'text-violet-600',
                             bgColor: 'bg-violet-100'
-                        },
-                        // 9. Kilos Disponibles
-                        {
-                            title: 'Kilos Disponibles',
-                            value: data.inventario.kilosDisponibles.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' kg',
-                            icon: 'arrow-trending-up',
-                            color: 'text-lime-600',
-                            bgColor: 'bg-lime-100'
-                        },
-                        // 10. Kilos Usados en Tambores
-                        {
-                            title: 'Kilos Usados en Tambores',
-                            value: data.inventario.kilosUsados.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' kg',
-                            icon: 'tag',
-                            color: 'text-yellow-600',
-                            bgColor: 'bg-yellow-100'
                         },
                         // 11. Kilos Totales
                         {
@@ -182,21 +167,38 @@ export class AcopiadorDashboardComponent implements OnInit {
                             color: 'text-slate-600',
                             bgColor: 'bg-slate-100'
                         },
-                        // 12. Tipos de Miel
+                        // 10. Kilos Usados en Tambores
                         {
-                            title: 'Tipos de Miel',
-                            value: data.inventario.tiposMielUnicos.toString(),
-                            icon: 'sparkles',
-                            color: 'text-purple-600',
-                            bgColor: 'bg-purple-100'
+                            title: 'Kilos Usados en Tambores',
+                            value: data.inventario.kilosUsados.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' kg',
+                            icon: 'tag',
+                            color: 'text-yellow-600',
+                            bgColor: 'bg-yellow-100'
                         },
-                        // 13. Salidas en Tránsito
+
+                        // 9. Kilos Disponibles
                         {
-                            title: 'Salidas en Tránsito',
-                            value: data.verificaciones.enTransito.toString(),
-                            icon: 'clock',
-                            color: 'text-orange-600',
-                            bgColor: 'bg-orange-100'
+                            title: 'Kilos Disponibles',
+                            value: data.inventario.kilosDisponibles.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' kg',
+                            icon: 'arrow-trending-up',
+                            color: 'text-lime-600',
+                            bgColor: 'bg-lime-100'
+                        },
+                        // 12. Tipos de Miel
+                        // {
+                        //     title: 'Tipos de Miel',
+                        //     value: data.inventario.tiposMielUnicos.toString(),
+                        //     icon: 'sparkles',
+                        //     color: 'text-purple-600',
+                        //     bgColor: 'bg-purple-100'
+                        // },
+                        // 15. Total Salidas
+                        {
+                            title: 'Total Salidas',
+                            value: data.verificaciones.total.toString(),
+                            icon: 'document-text',
+                            color: 'text-gray-600',
+                            bgColor: 'bg-gray-100'
                         },
                         // 14. Salidas Verificadas
                         {
@@ -206,14 +208,16 @@ export class AcopiadorDashboardComponent implements OnInit {
                             color: 'text-green-600',
                             bgColor: 'bg-green-100'
                         },
-                        // 15. Total Salidas
+ 
+                        // 13. Salidas en Tránsito
                         {
-                            title: 'Total Salidas',
-                            value: data.verificaciones.total.toString(),
-                            icon: 'document-text',
-                            color: 'text-gray-600',
-                            bgColor: 'bg-gray-100'
-                        }
+                            title: 'Salidas en Tránsito',
+                            value: data.verificaciones.enTransito.toString(),
+                            icon: 'clock',
+                            color: 'text-orange-600',
+                            bgColor: 'bg-orange-100'
+                        },
+
                     ];
 
                     this.metrics.set(metricsData);
