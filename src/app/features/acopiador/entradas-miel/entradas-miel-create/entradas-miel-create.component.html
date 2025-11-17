@@ -147,6 +147,7 @@
                             <th class="px-3 py-3 text-center text-sm font-semibold text-gray-900">Clasificación</th>
                             <th class="px-3 py-3 text-right text-sm font-semibold text-gray-900">Precio/kg ($)</th>
                             <th class="px-3 py-3 text-right text-sm font-semibold text-gray-900">Costo Total ($)</th>
+                            <th class="px-3 py-3 text-center text-sm font-semibold text-gray-900">Acciones</th>
                         </tr>
                     </thead>
                     <tbody formArrayName="tambores">
@@ -265,6 +266,17 @@
                                 </div>
                             </td>
 
+                            <!-- Acciones - Botón Eliminar -->
+                            <td class="px-3 py-3 text-center">
+                                <button type="button"
+                                    (click)="deleteTambor($index)"
+                                    [disabled]="isTamborBloqueado($index)"
+                                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                    title="Eliminar registro">
+                                    <app-icon name="trash" size="sm" />
+                                </button>
+                            </td>
+
                         </tr>
                         }
                     </tbody>
@@ -272,7 +284,11 @@
                     <!-- TOTALES -->
                     <tfoot class="bg-gray-50 border-t-2 border-gray-300">
                         <tr class="font-bold">
+                            @if (isEditMode()) {
+                            <td colspan="4" class="px-3 py-3 text-right text-gray-900">TOTALES:</td>
+                            } @else {
                             <td colspan="3" class="px-3 py-3 text-right text-gray-900">TOTALES:</td>
+                            }
                             <td class="px-3 py-3 text-gray-900 text-right">{{ totalPB().toFixed(2) }}</td>
                             <td class="px-3 py-3 text-gray-900 text-right">{{ totalTara().toFixed(2) }}</td>
                             <td class="px-3 py-3 text-gray-900 bg-honey-primary/20 text-right">{{ totalPN().toFixed(2) }} kg</td>
@@ -280,6 +296,7 @@
                             <td class="px-3 py-3 text-green-700 bg-green-50 text-right text-lg">
                                 ${{ importeTotal().toFixed(2) }}
                             </td>
+                            <td class="px-3 py-3"></td>
                         </tr>
                     </tfoot>
                 </table>

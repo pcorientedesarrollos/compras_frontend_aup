@@ -71,6 +71,8 @@ export class DashboardSidebarComponent {
                 { icon: 'bee', label: 'Apicultores', route: '/admin/apicultores' },
                 { icon: 'map-pin', label: 'Apiarios', route: '/admin/apiarios' },
                 { icon: 'users', label: 'Usuarios', route: '/admin/usuarios' },  // ✅ NUEVO
+                { icon: 'currency-dollar', label: 'Lista de Precios', route: '/admin/lista-precios' },  // ✅ NUEVO
+                { icon: 'document-text', label: 'Auditoría de Precios', route: '/admin/diferencias-precio' },  // ✅ NUEVO
                 { icon: 'user-circle', label: 'Mi Perfil', route: '/perfil' },   // ✅ NUEVO
                 // { icon: 'document-text', label: 'Reportes', route: '/admin/reportes' },
                 // { icon: 'cog-6-tooth', label: 'Configuración', route: '/admin/configuracion' },

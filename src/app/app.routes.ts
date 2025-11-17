@@ -132,6 +132,20 @@ export const routes: Routes = [
                 path: 'usuarios/:id/edit',
                 loadComponent: () => import('./features/admin/usuarios/usuario-form/usuario-form.component')
                     .then(m => m.UsuarioFormComponent)
+            },
+
+            // ✅ LISTA DE PRECIOS (Solo Admin)
+            {
+                path: 'lista-precios',
+                loadComponent: () => import('./features/lista-precios/pages/lista-precios.component')
+                    .then(m => m.ListaPreciosComponent)
+            },
+
+            // ✅ DIFERENCIAS DE PRECIO - Auditoría (Solo Admin)
+            {
+                path: 'diferencias-precio',
+                loadComponent: () => import('./features/diferencias-precio/pages/diferencias-precio.component')
+                    .then(m => m.DiferenciasPrecioComponent)
             }
 
             // TODO: Agregar más rutas de admin aquí

@@ -46,6 +46,7 @@ import { TipoDeMiel, ApicultorDeProveedor } from '../../../../core/models/provee
 import { EntradaMielService } from '../../../../core/services/entrada-miel.service';
 import { ProveedorService } from '../../../../core/services/proveedor.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ListaPreciosService } from '../../../lista-precios/services/lista-precios.service';
 
 @Component({
     selector: 'app-entradas-miel-create',
@@ -67,6 +68,7 @@ export class EntradasMielCreateComponent implements OnInit {
     private router = inject(Router);
     private route = inject(ActivatedRoute);
     private destroyRef = inject(DestroyRef);
+    private listaPreciosService = inject(ListaPreciosService);
 
     // ============================================================================
     // STATE - SIGNALS
@@ -324,6 +326,16 @@ export class EntradasMielCreateComponent implements OnInit {
                     this.recalcularTotales();
                 });
 
+            // Auto-rellenar precio cuando cambie la humedad (solo si no está deshabilitado)
+            if (!tamborGroup.get('humedad')?.disabled) {
+                tamborGroup.get('humedad')?.valueChanges
+                    .pipe(takeUntilDestroyed(this.destroyRef))
+                    .subscribe(() => {
+                        const index = this.tamboresArray.controls.indexOf(tamborGroup);
+                        this.autoRellenarPrecio(index);
+                    });
+            }
+
             this.tamboresArray.push(tamborGroup);
         });
 
@@ -410,6 +422,14 @@ export class EntradasMielCreateComponent implements OnInit {
                     this.recalcularTotales();
                 });
 
+            // Auto-rellenar precio cuando cambie la humedad
+            tamborGroup.get('humedad')?.valueChanges
+                .pipe(takeUntilDestroyed(this.destroyRef))
+                .subscribe(() => {
+                    const index = this.tamboresArray.controls.indexOf(tamborGroup);
+                    this.autoRellenarPrecio(index);
+                });
+
             this.tamboresArray.push(tamborGroup);
         }
 
@@ -450,6 +470,38 @@ export class EntradasMielCreateComponent implements OnInit {
     }
 
     /**
+     * Auto-rellenar precio según tipo de miel y clasificación (basado en humedad)
+     */
+    autoRellenarPrecio(index: number): void {
+        const tipoMielId = this.form.get('tipoMielId')?.value;
+        const tambor = this.tamboresArray.at(index);
+        const humedad = parseFloat(tambor.get('humedad')?.value);
+
+        // Validar que tengamos tipo de miel y humedad
+        if (!tipoMielId || humedad === null || humedad === undefined || isNaN(humedad)) {
+            return;
+        }
+
+        // Determinar clasificación según humedad
+        const clasificacion = humedad <= 20 ? 'EXPORTACION' : 'NACIONAL';
+
+        // Buscar precio en la lista de precios
+        this.listaPreciosService.getPrecioPorTipoYClasificacion(tipoMielId, clasificacion)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (precio) => {
+                    if (precio !== null) {
+                        // Auto-rellenar el precio
+                        tambor.patchValue({ precio }, { emitEvent: false });
+                    }
+                },
+                error: (error) => {
+                    console.error('Error al obtener precio:', error);
+                }
+            });
+    }
+
+    /**
      * Clase CSS para badge de clasificación
      */
     getClasificacionBadgeClass(index: number): string {
@@ -470,6 +522,36 @@ export class EntradasMielCreateComponent implements OnInit {
         const tara = parseFloat(tambor.get('tara')?.value) || 0;
 
         return bruto > tara;
+    }
+
+    /**
+     * Eliminar un tambor del FormArray (solo en memoria, durante creación)
+     */
+    deleteTambor(index: number): void {
+        if (this.tamboresArray.length <= 1) {
+            alert('Debe mantener al menos un tambor');
+            return;
+        }
+
+        // En modo edición, verificar si el tambor está USADO o CANCELADO
+        const tambor = this.tamboresArray.at(index);
+        const estadoUso = tambor.get('estadoUso')?.value;
+
+        if (estadoUso === 'USADO' || estadoUso === 'CANCELADO') {
+            alert('No se puede eliminar un tambor que ya está en uso o cancelado');
+            return;
+        }
+
+        // Eliminar del FormArray
+        this.tamboresArray.removeAt(index);
+
+        // Actualizar el número de tambores
+        this.form.patchValue({
+            numeroTambores: this.tamboresArray.length
+        }, { emitEvent: false });
+
+        // Recalcular totales
+        this.recalcularTotales();
     }
 
     // ============================================================================

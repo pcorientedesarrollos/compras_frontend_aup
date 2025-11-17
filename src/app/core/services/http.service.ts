@@ -14,8 +14,24 @@ export class HttpService {
   /**
    * Método GET genérico
    */
-  get<T>(endpoint: string, params?: HttpParams): Observable<T> {
-    return this.http.get<T>(`${this.apiUrl}/${endpoint}`, { params })
+  get<T>(endpoint: string, params?: HttpParams | { [key: string]: any }): Observable<T> {
+    // Convertir objeto simple a HttpParams si es necesario
+    let httpParams: HttpParams | undefined;
+
+    if (params) {
+      if (params instanceof HttpParams) {
+        httpParams = params;
+      } else {
+        httpParams = new HttpParams();
+        Object.keys(params).forEach(key => {
+          if (params[key] !== undefined && params[key] !== null) {
+            httpParams = httpParams!.set(key, params[key].toString());
+          }
+        });
+      }
+    }
+
+    return this.http.get<T>(`${this.apiUrl}/${endpoint}`, { params: httpParams })
       .pipe(catchError(this.handleError));
   }
 

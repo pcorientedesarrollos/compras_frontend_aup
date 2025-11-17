@@ -1,0 +1,479 @@
+<!-- ============================================================================
+     📊 AUDITORÍA DE DIFERENCIAS DE PRECIO - SISTEMA OAXACA MIEL
+     ============================================================================ -->
+
+<div class="container mx-auto px-4 py-8">
+
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+      <app-icon name="chart-bar" size="xl" color="text-honey-primary" />
+      Auditoría de Diferencias de Precio
+    </h1>
+    <p class="text-gray-600">
+      Monitoreo de diferencias entre precios oficiales y precios capturados por acopiadores
+    </p>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="mb-6 border-b border-gray-200">
+    <nav class="flex space-x-8">
+      <button
+        (click)="setActiveTab('dashboard')"
+        [class]="activeTab() === 'dashboard'
+          ? 'border-honey-primary text-honey-primary'
+          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2">
+        <app-icon name="chart-bar" size="sm" />
+        Dashboard
+      </button>
+      <button
+        (click)="setActiveTab('detalle')"
+        [class]="activeTab() === 'detalle'
+          ? 'border-honey-primary text-honey-primary'
+          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2">
+        <app-icon name="document-text" size="sm" />
+        Detalle de Diferencias
+      </button>
+    </nav>
+  </div>
+
+  <!-- ========================================================================== -->
+  <!-- TAB 1: DASHBOARD -->
+  <!-- ========================================================================== -->
+  @if (activeTab() === 'dashboard') {
+    <div class="space-y-6">
+
+      <!-- Filtros de Fecha -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Filtros de Fecha</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio</label>
+            <input
+              type="date"
+              [value]="fechaInicioDashboard()"
+              (input)="fechaInicioDashboard.set($any($event.target).value)"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Fin</label>
+            <input
+              type="date"
+              [value]="fechaFinDashboard()"
+              (input)="fechaFinDashboard.set($any($event.target).value)"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary" />
+          </div>
+          <div class="flex items-end gap-2">
+            <button
+              (click)="aplicarFiltrosFechasDashboard()"
+              class="px-4 py-2 bg-honey-primary hover:bg-honey-dark text-white rounded-lg transition-colors">
+              Aplicar
+            </button>
+            <button
+              (click)="limpiarFiltrosFechasDashboard()"
+              class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors">
+              Limpiar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      @if (loadingEstadisticas()) {
+        <div class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-honey-primary"></div>
+        </div>
+      }
+
+      <!-- KPIs Cards -->
+      @else if (estadisticas()) {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+
+          <!-- KPI 1: Total Diferencias -->
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-600">Total Diferencias</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">
+                  {{ estadisticas()!.totalDiferencias | number }}
+                </p>
+              </div>
+              <div class="p-3 bg-blue-100 rounded-full">
+                <app-icon name="document-text" size="md" color="text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI 2: Proveedores Afectados -->
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-600">Proveedores Afectados</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">
+                  {{ estadisticas()!.totalProveedoresAfectados }}
+                </p>
+              </div>
+              <div class="p-3 bg-purple-100 rounded-full">
+                <app-icon name="building-office" size="md" color="text-purple-600" />
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI 3: Pérdidas Acumuladas -->
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-600">Pérdidas</p>
+                <p class="text-2xl font-bold text-yellow-600 mt-2">
+                  ${{ estadisticas()!.totalPerdidasAcumuladas | number:'1.2-2' }}
+                </p>
+              </div>
+              <div class="p-3 bg-yellow-100 rounded-full">
+                <app-icon name="arrow-down" size="md" color="text-yellow-600" />
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI 4: Ganancias Acumuladas -->
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-600">Ganancias</p>
+                <p class="text-2xl font-bold text-red-600 mt-2">
+                  ${{ estadisticas()!.totalGananciasAcumuladas | number:'1.2-2' }}
+                </p>
+              </div>
+              <div class="p-3 bg-red-100 rounded-full">
+                <app-icon name="arrow-up" size="md" color="text-red-600" />
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI 5: Desviación Promedio -->
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-600">Desviación Promedio</p>
+                <p class="text-3xl font-bold text-honey-primary mt-2">
+                  {{ estadisticas()!.promedioDesviacionGlobal | number:'1.2-2' }}%
+                </p>
+              </div>
+              <div class="p-3 bg-honey-primary/10 rounded-full">
+                <app-icon name="chart-bar" size="md" color="text-honey-primary" />
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Tabla Top Proveedores -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            Top Proveedores con Más Desviaciones
+          </h2>
+          @if (estadisticas()!.desglosePorProveedor.length > 0) {
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Proveedor</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Diferencias</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Pérdidas</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Ganancias</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Desviación Promedio</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  @for (proveedor of estadisticas()!.desglosePorProveedor.slice(0, 10); track proveedor.proveedorId) {
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {{ proveedor.proveedorNombre }}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                        {{ proveedor.totalDiferencias }}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-yellow-600 font-semibold">
+                        ${{ proveedor.totalPerdida | number:'1.2-2' }}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600 font-semibold">
+                        ${{ proveedor.totalGanancia | number:'1.2-2' }}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-right">
+                        <span [class]="isCritica(proveedor.promedioDesviacion) ? 'text-red-600 font-bold' : 'text-gray-900'">
+                          {{ proveedor.promedioDesviacion | number:'1.2-2' }}%
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <p class="text-center text-gray-500 py-8">No hay datos disponibles</p>
+          }
+        </div>
+
+        <!-- Tabla Desviación por Tipo de Miel -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">
+            Desviación por Tipo de Miel
+          </h2>
+          @if (estadisticas()!.desglosePorTipoMiel.length > 0) {
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo de Miel</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Diferencias</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Desviación Promedio</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  @for (tipo of estadisticas()!.desglosePorTipoMiel; track tipo.tipoMielId) {
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {{ tipo.tipoMielNombre }}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                        {{ tipo.totalDiferencias }}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-right">
+                        <span [class]="isCritica(tipo.promedioDesviacion) ? 'text-red-600 font-bold' : 'text-gray-900'">
+                          {{ tipo.promedioDesviacion | number:'1.2-2' }}%
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <p class="text-center text-gray-500 py-8">No hay datos disponibles</p>
+          }
+        </div>
+
+      } @else {
+        <div class="bg-white rounded-lg shadow-md p-12 text-center">
+          <p class="text-gray-500">No hay estadísticas disponibles</p>
+        </div>
+      }
+
+    </div>
+  }
+
+  <!-- ========================================================================== -->
+  <!-- TAB 2: DETALLE DE DIFERENCIAS -->
+  <!-- ========================================================================== -->
+  @if (activeTab() === 'detalle') {
+    <div class="space-y-6">
+
+      <!-- Filtros de Búsqueda -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Filtros de Búsqueda</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Proveedor ID</label>
+            <input
+              type="number"
+              [value]="filtroProveedorId() || ''"
+              (input)="filtroProveedorId.set($any($event.target).value ? parseInt($any($event.target).value) : null)"
+              placeholder="Ej: 5"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tipo Miel ID</label>
+            <input
+              type="number"
+              [value]="filtroTipoMielId() || ''"
+              (input)="filtroTipoMielId.set($any($event.target).value ? parseInt($any($event.target).value) : null)"
+              placeholder="Ej: 1"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Clasificación</label>
+            <select
+              [value]="filtroClasificacion() || ''"
+              (change)="filtroClasificacion.set($any($event.target).value || null)"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary">
+              <option value="">Todas</option>
+              <option value="EXPORTACION">EXPORTACIÓN</option>
+              <option value="NACIONAL">NACIONAL</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio</label>
+            <input
+              type="date"
+              [value]="filtroFechaInicio()"
+              (input)="filtroFechaInicio.set($any($event.target).value)"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Fin</label>
+            <input
+              type="date"
+              [value]="filtroFechaFin()"
+              (input)="filtroFechaFin.set($any($event.target).value)"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary" />
+          </div>
+        </div>
+        <div class="mt-4 flex gap-2">
+          <button
+            (click)="aplicarFiltros()"
+            class="px-6 py-2 bg-honey-primary hover:bg-honey-dark text-white rounded-lg transition-colors">
+            Buscar
+          </button>
+          <button
+            (click)="limpiarFiltros()"
+            class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors">
+            Limpiar Filtros
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      @if (loadingDiferencias()) {
+        <div class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-honey-primary"></div>
+        </div>
+      }
+
+      <!-- Tabla de Diferencias -->
+      @else if (diferencias().length > 0) {
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+
+          <!-- Info de paginación -->
+          <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <p class="text-sm text-gray-700">
+              Mostrando <span class="font-semibold">{{ (pagination().page - 1) * pagination().limit + 1 }}</span>
+              - <span class="font-semibold">{{ Math.min(pagination().page * pagination().limit, pagination().total) }}</span>
+              de <span class="font-semibold">{{ pagination().total }}</span> resultados
+            </p>
+            <select
+              (change)="cambiarLimite($event)"
+              [value]="pagination().limit"
+              class="px-3 py-1 border border-gray-300 rounded-lg text-sm">
+              <option value="20">20 por página</option>
+              <option value="50">50 por página</option>
+              <option value="100">100 por página</option>
+            </select>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Folio</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Entrada</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Proveedor</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo Miel</th>
+                  <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Clasificación</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Precio Oficial</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Precio Capturado</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Diferencia ($)</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Diferencia (%)</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Usuario</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                @for (diff of diferencias(); track diff.id) {
+                  <tr class="hover:bg-gray-50 cursor-pointer" (click)="verDetalleEntrada(diff.entradaId)">
+                    <!-- Folio -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-honey-primary">
+                      {{ diff.entradaFolio }}
+                    </td>
+                    <!-- Fecha Entrada -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {{ diff.fechaEntrada | date:'dd/MM/yyyy' }}
+                    </td>
+                    <!-- Proveedor -->
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                      {{ diff.proveedorNombre }}
+                    </td>
+                    <!-- Tipo Miel -->
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                      {{ diff.tipoMielNombre }}
+                    </td>
+                    <!-- Clasificación -->
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      <span [class]="'px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ' + getClasificacionBadgeClass(diff.clasificacion)">
+                        {{ diff.clasificacion === 'EXPORTACION' ? 'EXPORTACIÓN' : 'NACIONAL' }}
+                      </span>
+                    </td>
+                    <!-- Precio Oficial -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                      ${{ diff.precioOficial | number:'1.2-2' }}
+                    </td>
+                    <!-- Precio Capturado -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-gray-900">
+                      ${{ diff.precioCapturado | number:'1.2-2' }}
+                    </td>
+                    <!-- Diferencia ($) -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold" [class]="getDiferenciaBadgeClass(diff.diferencia)">
+                      {{ diff.diferencia > 0 ? '+' : '' }}${{ diff.diferencia | number:'1.2-2' }}
+                    </td>
+                    <!-- Diferencia (%) -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold" [class]="getDiferenciaBadgeClass(diff.diferencia)">
+                      <span [class]="isCritica(diff.porcentajeDiferencia) ? 'bg-red-100 px-2 py-1 rounded' : ''">
+                        {{ diff.diferencia > 0 ? '+' : '' }}{{ diff.porcentajeDiferencia | number:'1.2-2' }}%
+                      </span>
+                    </td>
+                    <!-- Usuario -->
+                    <td class="px-6 py-4 text-sm text-gray-600">
+                      {{ diff.usuarioCapturadorNombre }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Paginación -->
+          <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <button
+              (click)="cambiarPagina(pagination().page - 1)"
+              [disabled]="pagination().page === 1"
+              class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+              Anterior
+            </button>
+
+            <div class="flex gap-2">
+              @for (page of getPaginationArray(); track page) {
+                <button
+                  (click)="cambiarPagina(page)"
+                  [class]="page === pagination().page
+                    ? 'bg-honey-primary text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'"
+                  class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium transition-colors">
+                  {{ page }}
+                </button>
+              }
+            </div>
+
+            <button
+              (click)="cambiarPagina(pagination().page + 1)"
+              [disabled]="pagination().page >= pagination().totalPages"
+              class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+              Siguiente
+            </button>
+          </div>
+
+        </div>
+      } @else {
+        <div class="bg-white rounded-lg shadow-md p-12 text-center">
+          <app-icon name="document-text" size="xl" color="text-gray-400" class="mx-auto mb-4" />
+          <h3 class="text-lg font-medium text-gray-900 mb-2">
+            No se encontraron diferencias
+          </h3>
+          <p class="text-gray-600">
+            No hay diferencias de precio con los filtros aplicados
+          </p>
+        </div>
+      }
+
+    </div>
+  }
+
+</div>
