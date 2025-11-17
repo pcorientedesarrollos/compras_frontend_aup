@@ -18,11 +18,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { VerificacionService } from '../../../core/services/verificacion.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { VerificacionResponse } from '../../../core/models/verificador.model';
+import { MigracionModalComponent } from '../../migracion/components/migracion-modal.component';
 
 @Component({
   selector: 'app-verificaciones-completadas',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, MigracionModalComponent],
   template: `
     <div class="p-6">
       <!-- Header -->
@@ -306,6 +307,13 @@ import { VerificacionResponse } from '../../../core/models/verificador.model';
           </div>
         }
       </div>
+
+      <!-- Modal de Migración -->
+      @if (mostrarModalMigracion() && verificacionSeleccionada()) {
+        <app-migracion-modal
+          [verificacion]="verificacionSeleccionada()!"
+          (close)="cerrarModalMigracion($event)" />
+      }
     </div>
   `
 })
@@ -323,6 +331,10 @@ export class VerificacionesCompletadasComponent implements OnInit {
   fechaHasta = signal('');
   currentPage = signal(1);
   pageSize = signal(10);
+
+  // Signals para modal de migración
+  mostrarModalMigracion = signal(false);
+  verificacionSeleccionada = signal<VerificacionResponse | null>(null);
 
   // Computed signals - Filtros
   verificacionesFiltradas = computed(() => {
@@ -448,8 +460,20 @@ export class VerificacionesCompletadasComponent implements OnInit {
    * Migrar una verificación específica a AUP
    */
   migrarVerificacion(verificacion: VerificacionResponse): void {
-    this.router.navigate(['/verificador/migracion-aup'], {
-      state: { verificacion }
-    });
+    this.verificacionSeleccionada.set(verificacion);
+    this.mostrarModalMigracion.set(true);
+  }
+
+  /**
+   * Cerrar modal de migración
+   * @param recargar - Si es true, recarga el listado de verificaciones
+   */
+  cerrarModalMigracion(recargar: boolean): void {
+    this.mostrarModalMigracion.set(false);
+    this.verificacionSeleccionada.set(null);
+
+    if (recargar) {
+      this.loadVerificaciones();
+    }
   }
 }

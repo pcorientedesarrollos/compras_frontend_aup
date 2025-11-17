@@ -63,6 +63,13 @@ export const VERIFICADOR_ROUTES: Routes = [
           import('../migracion/pages/migracion-aup.component').then(
             (m) => m.MigracionAupComponent
           )
+      },
+      {
+        path: 'historial-migracion',
+        loadComponent: () =>
+          import('../migracion/pages/historial-migracion.component').then(
+            (m) => m.HistorialMigracionComponent
+          )
       }
     ]
   }

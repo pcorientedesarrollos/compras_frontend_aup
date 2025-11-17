@@ -117,6 +117,7 @@ export class DashboardSidebarComponent {
                 { icon: 'home', label: 'Dashboard', route: '/verificador' },
                 { icon: 'shopping-bag', label: 'En Tránsito', route: '/verificador/en-transito' },
                 { icon: 'check-circle', label: 'Verificadas', route: '/verificador/verificadas' },
+                { icon: 'document-text', label: 'Historial Migración', route: '/verificador/historial-migracion' },  // ✅ NUEVO
                 { icon: 'user-circle', label: 'Mi Perfil', route: '/perfil' }  // ✅ NUEVO
             ];
         }
