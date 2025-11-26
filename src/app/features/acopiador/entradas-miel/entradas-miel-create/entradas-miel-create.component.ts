@@ -459,6 +459,9 @@ export class EntradasMielCreateComponent implements OnInit {
 
     /**
      * Obtener clasificación según humedad
+     * EXPORTACION: humedad ≤ 20%
+     * INDUSTRIA: humedad = 22% exactamente
+     * NACIONAL: humedad > 20% y ≠ 22%
      */
     getClasificacion(index: number): ClasificacionMiel | null {
         const tambor = this.tamboresArray.at(index);
@@ -466,11 +469,16 @@ export class EntradasMielCreateComponent implements OnInit {
 
         if (humedad === null || humedad === undefined || isNaN(humedad)) return null;
 
-        return humedad <= 20 ? ClasificacionMiel.EXPORTACION : ClasificacionMiel.NACIONAL;
+        if (humedad <= 20) return ClasificacionMiel.EXPORTACION;
+        if (humedad === 22) return ClasificacionMiel.INDUSTRIA;
+        return ClasificacionMiel.NACIONAL;
     }
 
     /**
      * Auto-rellenar precio según tipo de miel y clasificación (basado en humedad)
+     * EXPORTACION: humedad ≤ 20%
+     * INDUSTRIA: humedad = 22% exactamente
+     * NACIONAL: humedad > 20% y ≠ 22%
      */
     autoRellenarPrecio(index: number): void {
         const tipoMielId = this.form.get('tipoMielId')?.value;
@@ -483,7 +491,14 @@ export class EntradasMielCreateComponent implements OnInit {
         }
 
         // Determinar clasificación según humedad
-        const clasificacion = humedad <= 20 ? 'EXPORTACION' : 'NACIONAL';
+        let clasificacion: 'EXPORTACION' | 'NACIONAL' | 'INDUSTRIA';
+        if (humedad <= 20) {
+            clasificacion = 'EXPORTACION';
+        } else if (humedad === 22) {
+            clasificacion = 'INDUSTRIA';
+        } else {
+            clasificacion = 'NACIONAL';
+        }
 
         // Buscar precio en la lista de precios
         this.listaPreciosService.getPrecioPorTipoYClasificacion(tipoMielId, clasificacion)
@@ -503,14 +518,23 @@ export class EntradasMielCreateComponent implements OnInit {
 
     /**
      * Clase CSS para badge de clasificación
+     * EXPORTACION: Verde
+     * NACIONAL: Azul
+     * INDUSTRIA: Ámbar/Naranja
      */
     getClasificacionBadgeClass(index: number): string {
         const clasificacion = this.getClasificacion(index);
         if (!clasificacion) return 'bg-gray-100 text-gray-800';
 
-        return clasificacion === ClasificacionMiel.EXPORTACION
-            ? 'bg-green-100 text-green-800'
-            : 'bg-yellow-100 text-yellow-800';
+        switch (clasificacion) {
+            case ClasificacionMiel.EXPORTACION:
+                return 'bg-green-100 text-green-800';
+            case ClasificacionMiel.INDUSTRIA:
+                return 'bg-amber-100 text-amber-800';
+            case ClasificacionMiel.NACIONAL:
+            default:
+                return 'bg-blue-100 text-blue-800';
+        }
     }
 
     /**

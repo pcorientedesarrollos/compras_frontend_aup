@@ -102,7 +102,7 @@ export class DiferenciasPrecioComponent implements OnInit {
   // Valores temporales para los filtros del formulario
   filtroProveedorId = signal<number | null>(null);
   filtroTipoMielId = signal<number | null>(null);
-  filtroClasificacion = signal<'EXPORTACION' | 'NACIONAL' | null>(null);
+  filtroClasificacion = signal<'EXPORTACION' | 'NACIONAL' | 'INDUSTRIA' | null>(null);
   filtroFechaInicio = signal<string>('');
   filtroFechaFin = signal<string>('');
 
@@ -252,11 +252,20 @@ export class DiferenciasPrecioComponent implements OnInit {
 
   /**
    * Clase CSS para badge de clasificación
+   * EXPORTACION: Verde
+   * NACIONAL: Azul
+   * INDUSTRIA: Ámbar/Naranja
    */
-  getClasificacionBadgeClass(clasificacion: 'EXPORTACION' | 'NACIONAL'): string {
-    return clasificacion === 'EXPORTACION'
-      ? 'bg-blue-100 text-blue-800'
-      : 'bg-green-100 text-green-800';
+  getClasificacionBadgeClass(clasificacion: 'EXPORTACION' | 'NACIONAL' | 'INDUSTRIA'): string {
+    switch (clasificacion) {
+      case 'EXPORTACION':
+        return 'bg-green-100 text-green-800';
+      case 'INDUSTRIA':
+        return 'bg-amber-100 text-amber-800';
+      case 'NACIONAL':
+      default:
+        return 'bg-blue-100 text-blue-800';
+    }
   }
 
   /**

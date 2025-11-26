@@ -20,7 +20,7 @@ export interface DiferenciaPrecio {
   fechaEntrada: string;                // Fecha de la entrada (ISO datetime)
   tipoMielId: number;                  // ID del tipo de miel
   tipoMielNombre: string;              // Nombre del tipo de miel
-  clasificacion: 'EXPORTACION' | 'NACIONAL';
+  clasificacion: 'EXPORTACION' | 'NACIONAL' | 'INDUSTRIA';
   precioOficial: number;               // Precio oficial según lista ($)
   precioCapturado: number;             // Precio capturado por acopiador ($)
   diferencia: number;                  // Diferencia en pesos (+ = ganancia, - = pérdida)
@@ -75,7 +75,7 @@ export interface EstadisticasDiferencias {
 export interface FiltrosDiferenciasPrecio {
   proveedorId?: number;                // Filtrar por proveedor
   tipoMielId?: number;                 // Filtrar por tipo de miel
-  clasificacion?: 'EXPORTACION' | 'NACIONAL';
+  clasificacion?: 'EXPORTACION' | 'NACIONAL' | 'INDUSTRIA';
   entradaId?: string;                  // Filtrar por entrada específica
   fechaInicio?: string;                // Fecha inicio (YYYY-MM-DD)
   fechaFin?: string;                   // Fecha fin (YYYY-MM-DD)

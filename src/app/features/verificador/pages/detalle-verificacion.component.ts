@@ -176,8 +176,10 @@ import { ClasificacionMiel } from '../../../core/models/entrada-miel.model';
                           <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
                                 [class.bg-green-100]="tambor.tamborOriginal.clasificacionDeclarada === 'EXPORTACION'"
                                 [class.text-green-800]="tambor.tamborOriginal.clasificacionDeclarada === 'EXPORTACION'"
-                                [class.bg-orange-100]="tambor.tamborOriginal.clasificacionDeclarada === 'NACIONAL'"
-                                [class.text-orange-800]="tambor.tamborOriginal.clasificacionDeclarada === 'NACIONAL'">
+                                [class.bg-blue-100]="tambor.tamborOriginal.clasificacionDeclarada === 'NACIONAL'"
+                                [class.text-blue-800]="tambor.tamborOriginal.clasificacionDeclarada === 'NACIONAL'"
+                                [class.bg-amber-100]="tambor.tamborOriginal.clasificacionDeclarada === 'INDUSTRIA'"
+                                [class.text-amber-800]="tambor.tamborOriginal.clasificacionDeclarada === 'INDUSTRIA'">
                             {{ tambor.tamborOriginal.clasificacionDeclarada }}
                           </span>
                         </div>
@@ -233,8 +235,10 @@ import { ClasificacionMiel } from '../../../core/models/entrada-miel.model';
                           <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
                                 [class.bg-green-100]="getClasificacionVerificada(tambor) === 'EXPORTACION'"
                                 [class.text-green-800]="getClasificacionVerificada(tambor) === 'EXPORTACION'"
-                                [class.bg-orange-100]="getClasificacionVerificada(tambor) === 'NACIONAL'"
-                                [class.text-orange-800]="getClasificacionVerificada(tambor) === 'NACIONAL'">
+                                [class.bg-blue-100]="getClasificacionVerificada(tambor) === 'NACIONAL'"
+                                [class.text-blue-800]="getClasificacionVerificada(tambor) === 'NACIONAL'"
+                                [class.bg-amber-100]="getClasificacionVerificada(tambor) === 'INDUSTRIA'"
+                                [class.text-amber-800]="getClasificacionVerificada(tambor) === 'INDUSTRIA'">
                             {{ getClasificacionVerificada(tambor) }}
                             @if (tambor.diferencias!.cambioClasificacion) {
                               <span class="ml-1">(Cambió)</span>
@@ -287,8 +291,10 @@ import { ClasificacionMiel } from '../../../core/models/entrada-miel.model';
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold"
                               [class.bg-green-100]="tambor.datosFinales.clasificacion === 'EXPORTACION'"
                               [class.text-green-800]="tambor.datosFinales.clasificacion === 'EXPORTACION'"
-                              [class.bg-orange-100]="tambor.datosFinales.clasificacion === 'NACIONAL'"
-                              [class.text-orange-800]="tambor.datosFinales.clasificacion === 'NACIONAL'">
+                              [class.bg-blue-100]="tambor.datosFinales.clasificacion === 'NACIONAL'"
+                              [class.text-blue-800]="tambor.datosFinales.clasificacion === 'NACIONAL'"
+                              [class.bg-amber-100]="tambor.datosFinales.clasificacion === 'INDUSTRIA'"
+                              [class.text-amber-800]="tambor.datosFinales.clasificacion === 'INDUSTRIA'">
                           {{ tambor.datosFinales.clasificacion }}
                         </span>
                       </div>
@@ -358,8 +364,10 @@ import { ClasificacionMiel } from '../../../core/models/entrada-miel.model';
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold"
                               [class.bg-green-100]="tambor.datosFinales.clasificacion === 'EXPORTACION'"
                               [class.text-green-800]="tambor.datosFinales.clasificacion === 'EXPORTACION'"
-                              [class.bg-orange-100]="tambor.datosFinales.clasificacion === 'NACIONAL'"
-                              [class.text-orange-800]="tambor.datosFinales.clasificacion === 'NACIONAL'">
+                              [class.bg-blue-100]="tambor.datosFinales.clasificacion === 'NACIONAL'"
+                              [class.text-blue-800]="tambor.datosFinales.clasificacion === 'NACIONAL'"
+                              [class.bg-amber-100]="tambor.datosFinales.clasificacion === 'INDUSTRIA'"
+                              [class.text-amber-800]="tambor.datosFinales.clasificacion === 'INDUSTRIA'">
                           {{ tambor.datosFinales.clasificacion }}
                         </span>
                       </div>

@@ -11,7 +11,7 @@ export interface TipoMielPrecio {
   id: string;  // CUID
   tipoMielId: number;
   tipoMielNombre: string;
-  clasificacion: 'EXPORTACION' | 'NACIONAL';
+  clasificacion: 'EXPORTACION' | 'NACIONAL' | 'INDUSTRIA';
   precio: number;
   fechaUltimaActualizacion: string;
   usuarioActualizador: string | null;

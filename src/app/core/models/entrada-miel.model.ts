@@ -29,7 +29,8 @@
  */
 export enum ClasificacionMiel {
     EXPORTACION = 'EXPORTACION',   // Humedad ≤ 20%
-    NACIONAL = 'NACIONAL'          // Humedad > 20%
+    NACIONAL = 'NACIONAL',         // Humedad > 20% y ≠ 22%
+    INDUSTRIA = 'INDUSTRIA'        // Humedad = 22% exactamente
 }
 
 /**
