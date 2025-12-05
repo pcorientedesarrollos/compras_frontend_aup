@@ -32,6 +32,7 @@ import {
 
 // Servicios
 import { EntradaMielService } from '../../../../core/services/entrada-miel.service';
+import { PdfService } from '../../../../core/services/pdf.service';
 
 @Component({
     selector: 'app-entradas-miel-list',
@@ -47,6 +48,7 @@ import { EntradaMielService } from '../../../../core/services/entrada-miel.servi
 })
 export class EntradasMielListComponent implements OnInit {
     private entradaMielService = inject(EntradaMielService);
+    private pdfService = inject(PdfService);
     private router = inject(Router);
     private destroyRef = inject(DestroyRef);
 
@@ -488,5 +490,35 @@ export class EntradasMielListComponent implements OnInit {
             default:
                 return clasificacion;
         }
+    }
+
+    // ============================================================================
+    // PDF GENERATION
+    // ============================================================================
+
+    /**
+     * Generar PDF del detalle de entrada actual
+     */
+    generarPdfEntrada(): void {
+        const entrada = this.entradaDetalle();
+        if (!entrada) return;
+
+        this.pdfService.generarPdfEntrada(entrada);
+    }
+
+    /**
+     * Generar PDF desde la tabla (carga detalle primero)
+     */
+    generarPdfDesdeTabla(id: string): void {
+        this.entradaMielService.getEntradaById(id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (detalle) => {
+                    this.pdfService.generarPdfEntrada(detalle);
+                },
+                error: () => {
+                    alert('Error al generar PDF');
+                }
+            });
     }
 }

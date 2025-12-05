@@ -198,6 +198,13 @@
                                     <app-icon name="eye" size="sm" />
                                 </button>
 
+                                <!-- Generar PDF -->
+                                <button (click)="generarPdfDesdeTabla(entrada.id)"
+                                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    title="Descargar PDF">
+                                    <app-icon name="document-arrow-down" size="sm" />
+                                </button>
+
                                 <!-- Editar (solo si está ACTIVO y tiene detalles disponibles) -->
                                 @if (puedeEditarEntrada(entrada)) {
                                 <button (click)="editarEntrada(entrada.id)"
@@ -428,11 +435,21 @@
                         }
                     </div>
 
-                    <!-- Botón Cerrar -->
-                    <button (click)="cerrarDetalle()"
-                        class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors font-semibold">
-                        Cerrar
-                    </button>
+                    <!-- Botones derecha -->
+                    <div class="flex items-center gap-3">
+                        <!-- Botón Generar PDF -->
+                        <button (click)="generarPdfEntrada()"
+                            class="px-6 py-2 bg-honey-primary hover:bg-honey-dark text-white rounded-lg transition-colors font-semibold flex items-center gap-2">
+                            <app-icon name="document-arrow-down" size="sm" color="text-white" />
+                            Descargar PDF
+                        </button>
+
+                        <!-- Botón Cerrar -->
+                        <button (click)="cerrarDetalle()"
+                            class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors font-semibold">
+                            Cerrar
+                        </button>
+                    </div>
                 </div>
             </div>
 
