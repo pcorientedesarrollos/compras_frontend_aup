@@ -15,10 +15,10 @@
 
 @if (isOpen()) {
 <!-- Backdrop / Overlay -->
-<div class="modal-backdrop" (click)="onBackdropClick($event)" [@fadeIn]>
+<div class="modal-backdrop" (click)="onBackdropClick($event)">
 
     <!-- Modal Container -->
-    <div [class]="modalClasses()" (click)="onModalContentClick($event)" [@slideIn]>
+    <div [class]="modalClasses()" (click)="onModalContentClick($event)">
 
         <!-- HEADER -->
         <div class="modal-header">

@@ -32,6 +32,7 @@ import { Observable } from 'rxjs';
 
 // Componentes reutilizables
 import { IconComponent } from '../../../../shared/components/ui/icon/icon.component';
+import { ModalComponent } from '../../../../shared/components/ui/modal/modal.component';
 
 // Modelos
 import {
@@ -44,7 +45,8 @@ import {
     estadosToOptions,
     municipiosToOptions,
     EstadoOption,
-    MunicipioOption
+    MunicipioOption,
+    CreateApiarioRequest
 } from '../../../../core/models/index';
 
 // Servicios
@@ -53,6 +55,8 @@ import { ProveedorService } from '../../../../core/services/proveedor.service';
 import { EstadoService } from '../../../../core/services/estado.service';
 import { MunicipioService } from '../../../../core/services/municipio.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ApiarioService } from '../../../../core/services/apiario.service';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 type FormMode = 'create' | 'edit';
 
@@ -63,6 +67,7 @@ type FormMode = 'create' | 'edit';
         CommonModule,
         ReactiveFormsModule,
         IconComponent,
+        ModalComponent,
     ],
     templateUrl: './apicultor-detail.component.html',
     styleUrl: './apicultor-detail.component.css'
@@ -74,6 +79,8 @@ export class ApicultorDetailComponent implements OnInit {
     private estadoService = inject(EstadoService);
     private municipioService = inject(MunicipioService);
     private authService = inject(AuthService);
+    private apiarioService = inject(ApiarioService);
+    private notificationService = inject(NotificationService);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
     private destroyRef = inject(DestroyRef);
@@ -122,10 +129,27 @@ export class ApicultorDetailComponent implements OnInit {
     municipios = signal<MunicipioOption[]>([]);
 
     // ============================================================================
+    // APIARIO INICIAL (Solo en modo CREATE)
+    // ============================================================================
+
+    /** Toggle para mostrar/ocultar sección de apiario inicial */
+    includeApiario = signal<boolean>(true);
+
+    /** Estado de obtención de ubicación GPS */
+    isGettingLocation = signal<boolean>(false);
+
+    /** Modal de confirmación para cancelar */
+    showCancelModal = signal<boolean>(false);
+
+    /** Producción anual calculada (colmenas × producción por colmena) */
+    produccionAnualCalculada = signal<number>(0);
+
+    // ============================================================================
     // FORM
     // ============================================================================
 
     apicultorForm!: FormGroup;
+    apiarioForm!: FormGroup;
 
     // ============================================================================
     // COMPUTED
@@ -224,11 +248,55 @@ export class ApicultorDetailComponent implements OnInit {
         this.apicultorForm.statusChanges
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => {
-                this.isFormValid.set(this.apicultorForm.valid);
+                this.updateFormValidity();
             });
 
+        // Inicializar formulario de apiario (para modo CREATE)
+        this.initApiarioForm();
+
         // Actualizar estado inicial
-        this.isFormValid.set(this.apicultorForm.valid);
+        this.updateFormValidity();
+    }
+
+    /**
+     * Inicializar formulario de apiario inicial (opcional en CREATE)
+     */
+    private initApiarioForm(): void {
+        this.apiarioForm = this.fb.group({
+            nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(255)]],
+            colmenas: [null, [Validators.required, Validators.min(1), Validators.max(10000)]],
+            produccion: [null, [Validators.required, Validators.min(0.01), Validators.max(1000)]],
+            latitud: [null, [Validators.required, Validators.min(-90), Validators.max(90)]],
+            longitud: [null, [Validators.required, Validators.min(-180), Validators.max(180)]]
+        });
+
+        // Escuchar cambios en el formulario de apiario para actualizar validez
+        this.apiarioForm.statusChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => {
+                this.updateFormValidity();
+            });
+
+        // Escuchar cambios en colmenas y producción para calcular producción anual
+        this.apiarioForm.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((values) => {
+                const colmenas = values.colmenas || 0;
+                const produccion = values.produccion || 0;
+                this.produccionAnualCalculada.set(colmenas * produccion);
+            });
+    }
+
+    /**
+     * Actualizar validez del formulario combinado
+     * Si includeApiario está activo, ambos formularios deben ser válidos
+     */
+    private updateFormValidity(): void {
+        if (this.includeApiario()) {
+            this.isFormValid.set(this.apicultorForm.valid && this.apiarioForm.valid);
+        } else {
+            this.isFormValid.set(this.apicultorForm.valid);
+        }
     }
 
     /**
@@ -347,7 +415,8 @@ export class ApicultorDetailComponent implements OnInit {
                 },
                 error: (error) => {
                     console.error('Error al cargar apicultor:', error);
-                    this.router.navigate(['/admin/apicultores']);
+                    this.notificationService.error('Error', 'No se pudo cargar la información del apicultor.');
+                    this.navigateToList();
                     this.isLoading.set(false);
                 }
             });
@@ -400,6 +469,12 @@ export class ApicultorDetailComponent implements OnInit {
             return;
         }
 
+        // Validar apiario si está incluido
+        if (this.includeApiario() && !this.apiarioForm.valid) {
+            this.apiarioForm.markAllAsTouched();
+            return;
+        }
+
         if (this.mode() === 'create') {
             this.createApicultor();
         } else {
@@ -422,7 +497,10 @@ export class ApicultorDetailComponent implements OnInit {
             .subscribe({
                 next: (isDuplicate) => {
                     if (isDuplicate) {
-                        alert('Ya existe un apicultor con el mismo CURP o nombre completo.');
+                        this.notificationService.error(
+                            'Duplicado detectado',
+                            'Ya existe un apicultor con el mismo CURP o nombre completo.'
+                        );
                         this.isSaving.set(false);
                         return;
                     }
@@ -450,8 +528,14 @@ export class ApicultorDetailComponent implements OnInit {
                         .pipe(takeUntilDestroyed(this.destroyRef))
                         .subscribe({
                             next: (apicultor) => {
-                                this.router.navigate(['/admin/apicultores']);
-                                this.isSaving.set(false);
+                                // Si se incluyó apiario, crearlo después
+                                if (this.includeApiario()) {
+                                    this.createApiarioForApicultor(apicultor.id);
+                                } else {
+                                    this.notificationService.success('Apicultor creado', 'El apicultor se ha creado correctamente.');
+                                    this.navigateToList();
+                                    this.isSaving.set(false);
+                                }
                             },
                             error: (error) => {
                                 console.error('Error al crear apicultor:', error);
@@ -461,6 +545,40 @@ export class ApicultorDetailComponent implements OnInit {
                 },
                 error: (error) => {
                     console.error('Error al validar duplicados:', error);
+                    this.isSaving.set(false);
+                }
+            });
+    }
+
+    /**
+     * Crear apiario inicial para el apicultor recién creado
+     */
+    private createApiarioForApicultor(apicultorId: string): void {
+        const apiarioFormValue = this.apiarioForm.getRawValue();
+
+        const apiarioRequest: CreateApiarioRequest = {
+            apicultorId: apicultorId,
+            nombre: apiarioFormValue.nombre,
+            colmenas: apiarioFormValue.colmenas,
+            produccion: apiarioFormValue.produccion,
+            latitud: apiarioFormValue.latitud,
+            longitud: apiarioFormValue.longitud
+        };
+
+        this.apiarioService
+            .createApiario(apiarioRequest)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: () => {
+                    this.notificationService.success('Apicultor creado', 'El apicultor y su apiario se han creado correctamente.');
+                    this.navigateToList();
+                    this.isSaving.set(false);
+                },
+                error: (error) => {
+                    console.error('Error al crear apiario:', error);
+                    // El apicultor ya fue creado, navegar de todos modos
+                    this.notificationService.warning('Apicultor creado', 'El apicultor se creó pero hubo un error al crear el apiario.');
+                    this.navigateToList();
                     this.isSaving.set(false);
                 }
             });
@@ -489,7 +607,10 @@ export class ApicultorDetailComponent implements OnInit {
             .subscribe({
                 next: (isDuplicate) => {
                     if (isDuplicate) {
-                        alert('Ya existe otro apicultor con el mismo nombre completo.');
+                        this.notificationService.error(
+                            'Duplicado detectado',
+                            'Ya existe otro apicultor con el mismo nombre completo.'
+                        );
                         this.isSaving.set(false);
                         return;
                     }
@@ -513,8 +634,9 @@ export class ApicultorDetailComponent implements OnInit {
                         .updateApicultor(this.apicultorId()!, request)
                         .pipe(takeUntilDestroyed(this.destroyRef))
                         .subscribe({
-                            next: (apicultor) => {
-                                this.router.navigate(['/admin/apicultores']);
+                            next: () => {
+                                this.notificationService.success('Apicultor actualizado', 'Los cambios se han guardado correctamente.');
+                                this.navigateToList();
                                 this.isSaving.set(false);
                             },
                             error: (error) => {
@@ -685,6 +807,96 @@ export class ApicultorDetailComponent implements OnInit {
     }
 
     // ============================================================================
+    // APIARIO HELPERS
+    // ============================================================================
+
+    /**
+     * Toggle para incluir/excluir apiario inicial
+     */
+    toggleIncludeApiario(): void {
+        this.includeApiario.set(!this.includeApiario());
+        this.updateFormValidity();
+    }
+
+    /**
+     * Verificar si un campo del apiario tiene error
+     */
+    hasApiarioError(fieldName: string, errorType: string): boolean {
+        const field = this.apiarioForm.get(fieldName);
+        return !!(field?.hasError(errorType) && field?.touched);
+    }
+
+    /**
+     * Obtener mensaje de error para campo de apiario
+     */
+    getApiarioErrorMessage(fieldName: string): string {
+        const field = this.apiarioForm.get(fieldName);
+
+        if (!field || !field.errors || !field.touched) {
+            return '';
+        }
+
+        if (field.hasError('required')) {
+            return 'Este campo es obligatorio';
+        }
+
+        if (field.hasError('min')) {
+            const min = field.errors['min'].min;
+            return `Valor mínimo: ${min}`;
+        }
+
+        if (field.hasError('max')) {
+            const max = field.errors['max'].max;
+            return `Valor máximo: ${max}`;
+        }
+
+        if (field.hasError('minlength')) {
+            const minLength = field.errors['minlength'].requiredLength;
+            return `Mínimo ${minLength} caracteres`;
+        }
+
+        if (field.hasError('maxlength')) {
+            const maxLength = field.errors['maxlength'].requiredLength;
+            return `Máximo ${maxLength} caracteres`;
+        }
+
+        return 'Campo inválido';
+    }
+
+    /**
+     * Obtener ubicación GPS actual usando Geolocation API
+     */
+    getCurrentLocation(): void {
+        if (!navigator.geolocation) {
+            console.error('Geolocalización no soportada por el navegador');
+            return;
+        }
+
+        this.isGettingLocation.set(true);
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                this.apiarioForm.patchValue({
+                    latitud: parseFloat(position.coords.latitude.toFixed(6)),
+                    longitud: parseFloat(position.coords.longitude.toFixed(6))
+                });
+                this.apiarioForm.get('latitud')?.markAsTouched();
+                this.apiarioForm.get('longitud')?.markAsTouched();
+                this.isGettingLocation.set(false);
+            },
+            (error) => {
+                console.error('Error al obtener ubicación:', error);
+                this.isGettingLocation.set(false);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    }
+
+    // ============================================================================
     // NAVIGATION
     // ============================================================================
 
@@ -692,7 +904,32 @@ export class ApicultorDetailComponent implements OnInit {
      * Cancelar y volver al listado
      */
     cancel(): void {
-        if (confirm('¿Deseas cancelar? Los cambios no guardados se perderán.')) {
+        this.showCancelModal.set(true);
+    }
+
+    /**
+     * Confirmar cancelación y navegar al listado
+     */
+    confirmCancel(): void {
+        this.showCancelModal.set(false);
+        this.navigateToList();
+    }
+
+    /**
+     * Cerrar modal de cancelación
+     */
+    closeCancelModal(): void {
+        this.showCancelModal.set(false);
+    }
+
+    /**
+     * Navegar al listado según el rol del usuario
+     */
+    private navigateToList(): void {
+        const user = this.authService.getCurrentUser();
+        if (user?.role === 'ACOPIADOR') {
+            this.router.navigate(['/acopiador/apicultores']);
+        } else {
             this.router.navigate(['/admin/apicultores']);
         }
     }

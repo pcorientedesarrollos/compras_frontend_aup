@@ -281,3 +281,112 @@ select.form-input {
         @apply flex-col;
     }
 }
+/* ============================================================================
+   APIARIO SECTION
+   ============================================================================ */
+
+.apiario-section {
+    @apply border-2 border-dashed border-gray-300 bg-gray-50/50;
+}
+
+.section-header-toggle {
+    @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-200;
+}
+
+.badge-optional {
+    @apply ml-2 px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-600 rounded-full;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    @apply flex items-center space-x-3 cursor-pointer;
+}
+
+.toggle-switch input {
+    @apply sr-only;
+}
+
+.toggle-slider {
+    @apply relative w-12 h-6 bg-gray-300 rounded-full transition-colors;
+}
+
+.toggle-slider::after {
+    content: '';
+    @apply absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    @apply bg-honey-primary;
+}
+
+.toggle-switch input:checked + .toggle-slider::after {
+    transform: translateX(24px);
+}
+
+.toggle-label {
+    @apply text-sm font-medium text-gray-700;
+}
+
+/* Apiario Form Container */
+.apiario-form-container {
+    @apply mt-4 p-4 bg-white rounded-lg border border-gray-200;
+}
+
+.section-description {
+    @apply text-sm text-gray-600 mb-4;
+}
+
+.section-description.muted {
+    @apply text-gray-400 italic mt-2;
+}
+
+/* Produccion Card */
+.produccion-card {
+    @apply bg-gradient-to-br from-honey-primary/10 to-amber-50 rounded-lg p-4 text-center border border-honey-primary/20;
+}
+
+.produccion-label {
+    @apply text-sm font-medium text-gray-600 mb-1;
+}
+
+.produccion-value {
+    @apply text-2xl font-bold text-honey-dark;
+}
+
+.produccion-formula {
+    @apply text-xs text-gray-500 mt-1;
+}
+
+/* GPS Header */
+.gps-header {
+    @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3;
+}
+
+.btn-gps {
+    @apply flex items-center space-x-2 px-4 py-2 text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-gps .spinner-small {
+    @apply border-blue-700 border-t-transparent;
+}
+
+/* ============================================================================
+   SECONDARY BUTTON
+   ============================================================================ */
+
+.btn-secondary {
+    @apply flex items-center space-x-2 px-4 py-2 text-sm font-medium bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition-all;
+}
+
+/* Search Box */
+.search-box {
+    @apply mt-3;
+}
+
+/* ============================================================================
+   MODAL CONFIRM CANCEL BUTTON
+   ============================================================================ */
+
+.btn-confirm-cancel {
+    @apply flex items-center justify-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-all;
+}

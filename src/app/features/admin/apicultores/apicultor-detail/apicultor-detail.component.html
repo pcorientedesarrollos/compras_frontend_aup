@@ -275,7 +275,129 @@
             </div>
         </div>
 
-     
+        <!-- Sección 4: Apiario Inicial (Solo en modo CREATE) -->
+        @if (mode() === 'create') {
+        <div class="form-section apiario-section">
+            <div class="section-header-toggle">
+                <h2 class="section-title">
+                    <app-icon name="map-pin" size="md" color="text-honey-primary" />
+                    <span>Apiario Inicial</span>
+                    <span class="badge-optional">Opcional</span>
+                </h2>
+                <label class="toggle-switch">
+                    <input type="checkbox" [checked]="includeApiario()" (change)="toggleIncludeApiario()">
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">{{ includeApiario() ? 'Incluido' : 'No incluir' }}</span>
+                </label>
+            </div>
+
+            @if (includeApiario()) {
+            <div class="apiario-form-container" [formGroup]="apiarioForm">
+                <p class="section-description">
+                    Agrega un apiario inicial para este apicultor. Podrás agregar más apiarios después.
+                </p>
+
+                <div class="form-grid">
+                    <!-- Nombre del Apiario -->
+                    <div class="form-group col-span-2">
+                        <label for="apiario-nombre" class="form-label">
+                            Nombre del Apiario <span class="required">*</span>
+                        </label>
+                        <input id="apiario-nombre" type="text" formControlName="nombre" class="form-input"
+                            placeholder="Ej: Apiario Principal, Rancho Los Pinos"
+                            [class.error]="hasApiarioError('nombre', 'required') || hasApiarioError('nombre', 'minlength')">
+                        @if (hasApiarioError('nombre', 'required') || hasApiarioError('nombre', 'minlength') || hasApiarioError('nombre', 'maxlength')) {
+                        <span class="error-message">{{ getApiarioErrorMessage('nombre') }}</span>
+                        }
+                    </div>
+
+                    <!-- Colmenas -->
+                    <div class="form-group">
+                        <label for="apiario-colmenas" class="form-label">
+                            Número de Colmenas <span class="required">*</span>
+                        </label>
+                        <input id="apiario-colmenas" type="number" formControlName="colmenas" class="form-input"
+                            placeholder="Ej: 50" min="1" max="10000"
+                            [class.error]="hasApiarioError('colmenas', 'required') || hasApiarioError('colmenas', 'min') || hasApiarioError('colmenas', 'max')">
+                        @if (hasApiarioError('colmenas', 'required') || hasApiarioError('colmenas', 'min') || hasApiarioError('colmenas', 'max')) {
+                        <span class="error-message">{{ getApiarioErrorMessage('colmenas') }}</span>
+                        }
+                    </div>
+
+                    <!-- Producción por colmena -->
+                    <div class="form-group">
+                        <label for="apiario-produccion" class="form-label">
+                            Producción por Colmena (kg) <span class="required">*</span>
+                        </label>
+                        <input id="apiario-produccion" type="number" formControlName="produccion" class="form-input"
+                            placeholder="Ej: 25" min="0.01" max="1000" step="0.01"
+                            [class.error]="hasApiarioError('produccion', 'required') || hasApiarioError('produccion', 'min') || hasApiarioError('produccion', 'max')">
+                        @if (hasApiarioError('produccion', 'required') || hasApiarioError('produccion', 'min') || hasApiarioError('produccion', 'max')) {
+                        <span class="error-message">{{ getApiarioErrorMessage('produccion') }}</span>
+                        }
+                    </div>
+
+                    <!-- Card de Producción Anual Calculada -->
+                    <div class="form-group col-span-2">
+                        <div class="produccion-card">
+                            <div class="produccion-label">Producción Anual Estimada</div>
+                            <div class="produccion-value">{{ produccionAnualCalculada() | number:'1.2-2' }} kg</div>
+                            <div class="produccion-formula">= Colmenas × Producción por colmena</div>
+                        </div>
+                    </div>
+
+                    <!-- Ubicación GPS -->
+                    <div class="form-group col-span-2">
+                        <div class="gps-header">
+                            <label class="form-label">
+                                Ubicación GPS <span class="required">*</span>
+                            </label>
+                            <button type="button" class="btn-gps" (click)="getCurrentLocation()" [disabled]="isGettingLocation()">
+                                @if (isGettingLocation()) {
+                                <div class="spinner-small"></div>
+                                <span>Obteniendo...</span>
+                                } @else {
+                                <app-icon name="map-pin" size="sm" />
+                                <span>Usar mi ubicación</span>
+                                }
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Latitud -->
+                    <div class="form-group">
+                        <label for="apiario-latitud" class="form-label">
+                            Latitud <span class="required">*</span>
+                        </label>
+                        <input id="apiario-latitud" type="number" formControlName="latitud" class="form-input"
+                            placeholder="Ej: 17.0732" min="-90" max="90" step="0.000001"
+                            [class.error]="hasApiarioError('latitud', 'required') || hasApiarioError('latitud', 'min') || hasApiarioError('latitud', 'max')">
+                        @if (hasApiarioError('latitud', 'required') || hasApiarioError('latitud', 'min') || hasApiarioError('latitud', 'max')) {
+                        <span class="error-message">{{ getApiarioErrorMessage('latitud') }}</span>
+                        }
+                    </div>
+
+                    <!-- Longitud -->
+                    <div class="form-group">
+                        <label for="apiario-longitud" class="form-label">
+                            Longitud <span class="required">*</span>
+                        </label>
+                        <input id="apiario-longitud" type="number" formControlName="longitud" class="form-input"
+                            placeholder="Ej: -96.7266" min="-180" max="180" step="0.000001"
+                            [class.error]="hasApiarioError('longitud', 'required') || hasApiarioError('longitud', 'min') || hasApiarioError('longitud', 'max')">
+                        @if (hasApiarioError('longitud', 'required') || hasApiarioError('longitud', 'min') || hasApiarioError('longitud', 'max')) {
+                        <span class="error-message">{{ getApiarioErrorMessage('longitud') }}</span>
+                        }
+                    </div>
+                </div>
+            </div>
+            } @else {
+            <p class="section-description muted">
+                Activa esta opción para agregar un apiario al momento de crear el apicultor.
+            </p>
+            }
+        </div>
+        }
 
         <!-- Botones de acción -->
         <div class="form-actions">
@@ -297,3 +419,27 @@
     </form>
     }
 </div>
+
+<!-- Modal de Confirmación para Cancelar -->
+<app-modal [isOpen]="showCancelModal()" (closed)="closeCancelModal()" size="sm">
+    <div modal-header>
+        <div class="flex items-center space-x-2 text-amber-600">
+            <app-icon name="exclamation-triangle" size="md" />
+            <span class="font-semibold">Confirmar cancelación</span>
+        </div>
+    </div>
+    <div modal-body>
+        <p class="text-gray-600">
+            ¿Deseas cancelar? Los cambios no guardados se perderán.
+        </p>
+    </div>
+    <div modal-footer class="flex justify-end space-x-3">
+        <button type="button" class="btn-cancel" (click)="closeCancelModal()">
+            <span>No, continuar editando</span>
+        </button>
+        <button type="button" class="btn-confirm-cancel" (click)="confirmCancel()">
+            <app-icon name="x-mark" size="sm" />
+            <span>Sí, cancelar</span>
+        </button>
+    </div>
+</app-modal>
