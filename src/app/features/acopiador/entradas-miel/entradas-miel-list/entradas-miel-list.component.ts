@@ -70,18 +70,20 @@ export class EntradasMielListComponent implements OnInit {
             );
         }
 
-        // Filtro por estado
-        if (this.filterEstado()) {
-            filtered = filtered.filter(e => e.estado === this.filterEstado());
+        // Filtro por estado ('' = Todos)
+        const estado = this.filterEstado();
+        if (estado !== '') {
+            filtered = filtered.filter(e => e.estado === estado);
         }
 
-        // Filtro por estado de uso (DISPONIBLES / ASIGNADOS)
+        // Filtro por estado de uso (TODOS / DISPONIBLES / ASIGNADOS)
         const estadoUso = this.filterEstadoUso();
         if (estadoUso === 'DISPONIBLES') {
             filtered = filtered.filter(e => e.todosDetallesUsados === false);
         } else if (estadoUso === 'ASIGNADOS') {
             filtered = filtered.filter(e => e.todosDetallesUsados === true);
         }
+        // Si es 'TODOS', no se aplica filtro
 
         return filtered;
     });
@@ -97,8 +99,8 @@ export class EntradasMielListComponent implements OnInit {
 
     /** Filtros */
     searchTerm = signal('');
-    filterEstado = signal<EstadoEntrada>(EstadoEntrada.ACTIVO);
-    filterEstadoUso = signal<'DISPONIBLES' | 'ASIGNADOS'>('DISPONIBLES'); // Por defecto DISPONIBLES
+    filterEstado = signal<EstadoEntrada | ''>(''); // '' = Todos
+    filterEstadoUso = signal<'TODOS' | 'DISPONIBLES' | 'ASIGNADOS'>('TODOS'); // Por defecto TODOS
 
     /** Detalle seleccionado (para modal) */
     entradaDetalle = signal<EntradaMielDetailAPI | null>(null);
@@ -191,8 +193,8 @@ export class EntradasMielListComponent implements OnInit {
      */
     clearFilters(): void {
         this.searchTerm.set('');
-        this.filterEstado.set(EstadoEntrada.ACTIVO); // Default: ACTIVO
-        this.filterEstadoUso.set('DISPONIBLES'); // Default: DISPONIBLES
+        this.filterEstado.set(''); // Default: Todos
+        this.filterEstadoUso.set('TODOS'); // Default: TODOS
         this.currentPage.set(1);
     }
 

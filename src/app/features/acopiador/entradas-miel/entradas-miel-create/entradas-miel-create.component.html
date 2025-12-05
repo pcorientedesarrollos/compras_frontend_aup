@@ -329,3 +329,31 @@
     </form>
 
 </div>
+
+<!-- Modal de Confirmación para Cancelar -->
+<app-modal [isOpen]="showCancelModal()" (closed)="closeCancelModal()" size="sm">
+    <div modal-header>
+        <div class="flex items-center space-x-2 text-amber-600">
+            <app-icon name="exclamation-triangle" size="md" />
+            <span class="font-semibold">Confirmar cancelación</span>
+        </div>
+    </div>
+    <div modal-body>
+        <p class="text-gray-600">
+            ¿Desea cancelar? Se perderán los datos ingresados.
+        </p>
+    </div>
+    <div modal-footer class="flex justify-end space-x-3">
+        <button type="button"
+            class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors font-semibold"
+            (click)="closeCancelModal()">
+            <span>No, continuar</span>
+        </button>
+        <button type="button"
+            class="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-all"
+            (click)="confirmCancel()">
+            <app-icon name="x-mark" size="sm" />
+            <span>Sí, cancelar</span>
+        </button>
+    </div>
+</app-modal>

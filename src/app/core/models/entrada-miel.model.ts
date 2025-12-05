@@ -462,6 +462,7 @@ export interface ApicultorOption {
     id: string;
     nombre: string;
     codigo: string;
+    cantidadApiarios?: number; // Número de apiarios del apicultor
 }
 
 /**

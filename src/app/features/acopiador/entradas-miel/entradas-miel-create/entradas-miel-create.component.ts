@@ -25,6 +25,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 // Componentes reutilizables
 import { IconComponent } from '../../../../shared/components/ui/icon/icon.component';
 import { AutocompleteSelectComponent } from '../../../../shared/components/ui/autocomplete-select/autocomplete-select.component';
+import { ModalComponent } from '../../../../shared/components/ui/modal/modal.component';
 
 // Modelos
 import {
@@ -47,6 +48,7 @@ import { EntradaMielService } from '../../../../core/services/entrada-miel.servi
 import { ProveedorService } from '../../../../core/services/proveedor.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ListaPreciosService } from '../../../lista-precios/services/lista-precios.service';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
     selector: 'app-entradas-miel-create',
@@ -55,7 +57,8 @@ import { ListaPreciosService } from '../../../lista-precios/services/lista-preci
         CommonModule,
         ReactiveFormsModule,
         IconComponent,
-        AutocompleteSelectComponent
+        AutocompleteSelectComponent,
+        ModalComponent
     ],
     templateUrl: './entradas-miel-create.component.html',
     styleUrl: './entradas-miel-create.component.css'
@@ -69,6 +72,7 @@ export class EntradasMielCreateComponent implements OnInit {
     private route = inject(ActivatedRoute);
     private destroyRef = inject(DestroyRef);
     private listaPreciosService = inject(ListaPreciosService);
+    private notificationService = inject(NotificationService);
 
     // ============================================================================
     // STATE - SIGNALS
@@ -180,19 +184,20 @@ export class EntradasMielCreateComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (response) => {
-                    // Filtrar solo ACTIVOS y mapear a opciones
+                    // Filtrar solo ACTIVOS y mapear a opciones (incluir cantidadApiarios)
                     const opciones = response.data
                         .filter(a => a.estatus === 'ACTIVO' && a.estatusVinculo === 'ACTIVO')
                         .map(a => ({
                             id: a.apicultorId,
                             nombre: a.apicultorNombre,
-                            codigo: a.apicultorCodigo
+                            codigo: a.apicultorCodigo,
+                            cantidadApiarios: a.cantidadApiarios
                         }));
 
                     this.apicultores.set(opciones);
                 },
                 error: () => {
-                    alert('Error al cargar apicultores');
+                    this.notificationService.error('Error', 'No se pudieron cargar los apicultores');
                 }
             });
     }
@@ -614,24 +619,38 @@ export class EntradasMielCreateComponent implements OnInit {
     onSubmit(): void {
         if (this.form.invalid) {
             this.form.markAllAsTouched();
-            alert('Por favor complete todos los campos requeridos correctamente');
+            this.notificationService.warning('Formulario incompleto', 'Por favor complete todos los campos requeridos correctamente');
             return;
         }
 
         if (!this.proveedorId() && !this.isEditMode()) {
-            alert('Error: No se encontró el proveedor del usuario');
+            this.notificationService.error('Error', 'No se encontró el proveedor del usuario');
             return;
         }
 
         if (this.tamboresArray.length === 0) {
-            alert('Debe ingresar al menos un tambor');
+            this.notificationService.warning('Sin registros', 'Debe ingresar al menos un tambor');
             return;
+        }
+
+        // Validar que el apicultor tenga apiarios (solo en modo creación)
+        if (!this.isEditMode()) {
+            const apicultorId = this.form.get('apicultorId')?.value;
+            const apicultorSeleccionado = this.apicultores().find(a => a.id === apicultorId);
+
+            if (apicultorSeleccionado && (apicultorSeleccionado.cantidadApiarios === 0 || apicultorSeleccionado.cantidadApiarios === undefined)) {
+                this.notificationService.error(
+                    'Apicultor sin apiarios',
+                    `El apicultor "${apicultorSeleccionado.nombre}" no tiene apiarios registrados. Debe tener al menos un apiario para poder generar entradas de miel.`
+                );
+                return;
+            }
         }
 
         // Validar que todos los PB > T
         for (let i = 0; i < this.tamboresArray.length; i++) {
             if (!this.validarPesos(i)) {
-                alert(`Tambor #${i + 1}: El Peso Bruto debe ser mayor que la Tara`);
+                this.notificationService.warning('Error en pesos', `Tambor #${i + 1}: El Peso Bruto debe ser mayor que la Tara`);
                 return;
             }
         }
@@ -691,13 +710,13 @@ export class EntradasMielCreateComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (response) => {
-                    alert(`Entrada creada exitosamente. Folio: ${response.folio}`);
+                    this.notificationService.success('Entrada creada', `Folio: ${response.folio}`);
                     this.router.navigate(['/acopiador/entradas-miel']);
                 },
                 error: (error) => {
                     this.loading.set(false);
                     console.error('Error al crear entrada:', error);
-                    alert('Error al crear la entrada de miel');
+                    this.notificationService.error('Error', 'No se pudo crear la entrada de miel');
                 }
             });
     }
@@ -711,7 +730,7 @@ export class EntradasMielCreateComponent implements OnInit {
         const id = this.entradaId();
         if (!id) {
             this.loading.set(false);
-            alert('Error: ID de entrada no encontrado');
+            this.notificationService.error('Error', 'ID de entrada no encontrado');
             return;
         }
 
@@ -766,21 +785,31 @@ export class EntradasMielCreateComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (response) => {
-                    alert(`Entrada actualizada exitosamente. Folio: ${response.folio}`);
+                    this.notificationService.success('Entrada actualizada', `Folio: ${response.folio}`);
                     this.router.navigate(['/acopiador/entradas-miel']);
                 },
                 error: (error) => {
                     this.loading.set(false);
                     console.error('Error al actualizar entrada:', error);
-                    alert('Error al actualizar la entrada de miel');
+                    this.notificationService.error('Error', 'No se pudo actualizar la entrada de miel');
                 }
             });
     }
 
+    /** Modal de confirmación para cancelar */
+    showCancelModal = signal<boolean>(false);
+
     onCancel(): void {
-        if (confirm('¿Desea cancelar? Se perderán los datos ingresados.')) {
-            this.router.navigate(['/acopiador/entradas-miel']);
-        }
+        this.showCancelModal.set(true);
+    }
+
+    confirmCancel(): void {
+        this.showCancelModal.set(false);
+        this.router.navigate(['/acopiador/entradas-miel']);
+    }
+
+    closeCancelModal(): void {
+        this.showCancelModal.set(false);
     }
 
     /**
