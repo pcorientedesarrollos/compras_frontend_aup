@@ -55,9 +55,10 @@
                 <select [value]="filtroClasificacion()" (change)="onFiltroClasificacionChange($any($event.target).value)"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-honey-primary">
                     <option value="">Todas</option>
-                    <option value="EXPORTACION">Exportación</option>
-                    <option value="NACIONAL">Nacional</option>
-                    <option value="INDUSTRIA">Industria</option>
+                    <option value="EXPORTACION_1">Exportación 1 (0-19%)</option>
+                    <option value="EXPORTACION_2">Exportación 2 (20%)</option>
+                    <option value="NACIONAL">Nacional (21%)</option>
+                    <option value="INDUSTRIA">Industria (22%+)</option>
                 </select>
             </div>
 

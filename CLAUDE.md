@@ -297,6 +297,70 @@ src/app/
 
 ---
 
+## 🍯 Sistema de Clasificación de Miel (Diciembre 2024)
+
+### Clasificación por Humedad
+La miel se clasifica según su porcentaje de humedad:
+
+| Clasificación | Humedad | Color Badge | Descripción |
+|--------------|---------|-------------|-------------|
+| **EXPORTACION_1** | 0-19% | Verde (`bg-green-100 text-green-800`) | Mejor calidad, apta para exportación premium |
+| **EXPORTACION_2** | 20% | Azul (`bg-blue-100 text-blue-800`) | Calidad exportación estándar |
+| **NACIONAL** | 21% | Ámbar (`bg-amber-100 text-amber-800`) | Mercado nacional |
+| **INDUSTRIA** | 22%+ | Rojo (`bg-red-100 text-red-800`) | Uso industrial |
+
+### Enum TypeScript
+```typescript
+enum ClasificacionMiel {
+  EXPORTACION_1 = 'EXPORTACION_1',
+  EXPORTACION_2 = 'EXPORTACION_2',
+  NACIONAL = 'NACIONAL',
+  INDUSTRIA = 'INDUSTRIA'
+}
+```
+
+### Función de Cálculo
+```typescript
+function calcularClasificacion(humedad: number): ClasificacionMiel {
+  if (humedad >= 22) return ClasificacionMiel.INDUSTRIA;
+  if (humedad === 21) return ClasificacionMiel.NACIONAL;
+  if (humedad === 20) return ClasificacionMiel.EXPORTACION_2;
+  return ClasificacionMiel.EXPORTACION_1; // 0-19%
+}
+```
+
+### Helper Methods (usar en componentes)
+```typescript
+getClasificacionBadgeClass(clasificacion: string): string {
+  switch (clasificacion) {
+    case 'EXPORTACION_1': return 'bg-green-100 text-green-800';
+    case 'EXPORTACION_2': return 'bg-blue-100 text-blue-800';
+    case 'NACIONAL': return 'bg-amber-100 text-amber-800';
+    case 'INDUSTRIA': return 'bg-red-100 text-red-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+}
+
+getClasificacionLabel(clasificacion: string): string {
+  switch (clasificacion) {
+    case 'EXPORTACION_1': return 'EXPORTACIÓN 1';
+    case 'EXPORTACION_2': return 'EXPORTACIÓN 2';
+    case 'NACIONAL': return 'NACIONAL';
+    case 'INDUSTRIA': return 'INDUSTRIA';
+    default: return clasificacion;
+  }
+}
+```
+
+### Archivos Relacionados
+- `core/models/entrada-miel.model.ts` - Enum y funciones base
+- `core/models/lista-precios.model.ts` - ClasificacionPrecio type
+- `core/models/diferencias-precio.model.ts` - Tipos de clasificación
+- `core/services/lista-precios.service.ts` - Servicio de precios
+- Componentes con helpers: entradas-miel-list, asignacion-tambores-list, salidas-miel-create, tambores-disponibles, diferencias-precio, detalle-llegada
+
+---
+
 ## 🌐 Endpoints del Backend (Puerto 3000)
 ```
 Base URL: http://localhost:3000/api/v1
@@ -324,31 +388,29 @@ Base URL: http://localhost:3000/api/v1
 - ✅ Tailwind CSS v3 instalado y funcionando
 - ✅ Estructura de carpetas creada
 - ✅ Variables de entorno configuradas
+- ✅ Servicios HTTP base (API, Auth, Storage)
+- ✅ Interceptores (JWT, Errores)
+- ✅ Guards de autenticación por rol
+- ✅ Modelos TypeScript completos
+- ✅ Layout principal (Navbar, Sidebar)
+- ✅ Módulo de Login
+- ✅ Dashboards por rol (Admin, Acopiador, Verificador)
+- ✅ CRUD Apicultores completo
+- ✅ CRUD Apiarios + Mapa Leaflet
+- ✅ Vinculación Proveedor-Apicultor
+- ✅ Sistema de Entradas de Miel
+- ✅ Sistema de Tambores (asignación, disponibles)
+- ✅ Sistema de Salidas de Miel
+- ✅ Módulo Verificador (llegadas, verificación)
+- ✅ Lista de Precios por clasificación
+- ✅ Diferencias de Precio (auditoría)
+- ✅ Sistema de Clasificación de Miel (4 niveles: EXPORTACION_1/2, NACIONAL, INDUSTRIA)
+- ✅ NotificationService (toast) y ModalComponent
+- ✅ Migración a sistema legacy
 
-### Pendiente
-- ⏳ Servicios HTTP base (API, Auth)
-- ⏳ Interceptores (JWT, Errores)
-- ⏳ Guards de autenticación
-- ⏳ Modelos TypeScript (interfaces)
-- ⏳ Layout principal (Navbar, Sidebar)
-- ⏳ Módulo de Login
-- ⏳ Dashboards por rol
-- ⏳ CRUD Apicultores
-- ⏳ CRUD Apiarios + Mapa
-- ⏳ Vinculación Proveedor-Apicultor
-- ⏳ Sistema de reportes/auditoría
-
----
-
-## 🚀 Próximos Pasos
-
-1. Crear servicios core (HTTP, Auth, Storage)
-2. Implementar interceptores HTTP
-3. Crear guards de autenticación
-4. Definir modelos TypeScript
-5. Construir layout principal
-6. Desarrollar módulo de login
-7. Crear dashboards diferenciados por rol
+### En Desarrollo
+- 🔄 Reportes y estadísticas avanzadas
+- 🔄 Optimizaciones de rendimiento
 
 ---
 

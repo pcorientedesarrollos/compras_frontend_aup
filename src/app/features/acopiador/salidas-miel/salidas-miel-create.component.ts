@@ -256,10 +256,8 @@ export class SalidasMielCreateComponent implements OnInit {
     }
 
     get totalKilos(): number {
-        return this.tamboresSeleccionados.reduce((sum, t) => {
-            const kilosBrutos = t.totalKilos + t.taraCapturada; // En SALIDAS: PN + Tara = PB
-            return sum + kilosBrutos;
-        }, 0);
+        // Total de kilos NETOS (peso del tambor sin tara)
+        return this.tamboresSeleccionados.reduce((sum, t) => sum + t.totalKilos, 0);
     }
 
     get totalCompra(): number {

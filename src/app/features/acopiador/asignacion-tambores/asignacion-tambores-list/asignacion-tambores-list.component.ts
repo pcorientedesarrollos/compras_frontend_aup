@@ -395,12 +395,11 @@ export class AsignacionTamboresListComponent implements OnInit {
         const totalKilos = detallesSeleccionados.reduce((sum, d) => sum + d.kilos, 0);
         const totalCosto = detallesSeleccionados.reduce((sum, d) => sum + d.costoTotal, 0);
 
-        // VALIDACIÓN: No exceder kilos máximos de un tambor (350kg recomendado)
+        // VALIDACIÓN ESTRICTA: No exceder 350kg por tambor
         const MAX_KILOS_TAMBOR = 350;
         if (totalKilos > MAX_KILOS_TAMBOR) {
-            if (!confirm(`⚠️ ADVERTENCIA: El tambor tendrá ${totalKilos.toFixed(2)} kg, excediendo el límite recomendado de ${MAX_KILOS_TAMBOR} kg.\n\n¿Desea continuar de todos modos?`)) {
-                return;
-            }
+            alert(`❌ LÍMITE EXCEDIDO: El tambor tendría ${totalKilos.toFixed(2)} kg.\n\nEl límite máximo es de ${MAX_KILOS_TAMBOR} kg por tambor.\n\nPor favor, deseleccione algunos detalles para reducir el peso.`);
+            return;
         }
 
         // Crear tambor borrador
@@ -430,21 +429,6 @@ export class AsignacionTamboresListComponent implements OnInit {
         this.tamboresBorrador.update(tambores =>
             tambores.filter(t => t.id !== tamborId)
         );
-    }
-
-    /**
-     * Editar tambor borrador (regresar detalles a disponibles)
-     */
-    editarTamborBorrador(tamborId: string): void {
-        const tambor = this.tamboresBorrador().find(t => t.id === tamborId);
-        if (!tambor) return;
-
-        if (!confirm('¿Desea editar este tambor? Los detalles regresarán a la lista disponible.')) {
-            return;
-        }
-
-        // Eliminar tambor
-        this.eliminarTamborBorrador(tamborId);
     }
 
     /**
