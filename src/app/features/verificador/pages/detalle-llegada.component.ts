@@ -267,11 +267,8 @@ import { BeeLoaderComponent } from '../../../shared/components/bee-loader/bee-lo
                                     <td class="px-4 py-3 whitespace-nowrap text-center">
                                       <span
                                         class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
-                                        [class.bg-green-100]="(tambor.clasificacionVerificada || tambor.clasificacion) === 'EXPORTACION'"
-                                        [class.text-green-800]="(tambor.clasificacionVerificada || tambor.clasificacion) === 'EXPORTACION'"
-                                        [class.bg-blue-100]="(tambor.clasificacionVerificada || tambor.clasificacion) === 'NACIONAL'"
-                                        [class.text-blue-800]="(tambor.clasificacionVerificada || tambor.clasificacion) === 'NACIONAL'">
-                                        {{ tambor.clasificacionVerificada || tambor.clasificacion }}
+                                        [class]="getClasificacionBadgeClass(tambor.clasificacionVerificada || tambor.clasificacion)">
+                                        {{ getClasificacionLabel(tambor.clasificacionVerificada || tambor.clasificacion) }}
                                       </span>
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-center">
@@ -972,5 +969,41 @@ export class DetalleLlegadaComponent implements OnInit {
           error: (error) => reject(error)
         });
     });
+  }
+
+  /**
+   * Clase CSS para badge de clasificación
+   */
+  getClasificacionBadgeClass(clasificacion: string): string {
+    switch (clasificacion) {
+      case 'EXPORTACION_1':
+        return 'bg-green-100 text-green-800';
+      case 'EXPORTACION_2':
+        return 'bg-blue-100 text-blue-800';
+      case 'NACIONAL':
+        return 'bg-amber-100 text-amber-800';
+      case 'INDUSTRIA':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  }
+
+  /**
+   * Etiqueta legible para clasificación
+   */
+  getClasificacionLabel(clasificacion: string): string {
+    switch (clasificacion) {
+      case 'EXPORTACION_1':
+        return 'EXPORTACIÓN 1';
+      case 'EXPORTACION_2':
+        return 'EXPORTACIÓN 2';
+      case 'NACIONAL':
+        return 'NACIONAL';
+      case 'INDUSTRIA':
+        return 'INDUSTRIA';
+      default:
+        return clasificacion;
+    }
   }
 }

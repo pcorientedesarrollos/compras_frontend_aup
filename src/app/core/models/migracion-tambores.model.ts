@@ -25,7 +25,7 @@ export interface TamborMigrado {
   tamborId: string;
   consecutivo: string;
   tipoMiel: string;
-  clasificacion: 'EXPORTACION' | 'NACIONAL';
+  clasificacion: 'EXPORTACION_1' | 'EXPORTACION_2' | 'NACIONAL' | 'INDUSTRIA';
   pesoNeto: number;
   pesoBruto: number;
   tara: number;

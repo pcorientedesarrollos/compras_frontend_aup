@@ -75,7 +75,7 @@ export class InventarioService {
      * @returns Observable con detalles de entradas disponibles
      * 
      * @example
-     * const params = { tipoMielId: 1, clasificacion: ClasificacionMiel.EXPORTACION };
+     * const params = { tipoMielId: 1, clasificacion: ClasificacionMiel.EXPORTACION_1 };
      * this.inventarioService.getDetallesInventario(params).subscribe(response => {
      *   console.log('Stock disponible:', response.totalKilosDisponibles);
      *   this.entradasDisponibles = response.detalles;
@@ -100,15 +100,15 @@ export class InventarioService {
      * Validar si hay suficiente stock para una salida
      *
      * @param tipoMielId - ID del tipo de miel
-     * @param clasificacion - Clasificación (EXPORTACION/NACIONAL)
+     * @param clasificacion - Clasificación (EXPORTACION_1/EXPORTACION_2/NACIONAL/INDUSTRIA)
      * @param kilosSolicitados - Cantidad de kilos a sacar
      * @returns Observable<StockDisponibleDisplay> con validación
      *
      * @example
-     * this.inventarioService.validarStock(1, ClasificacionMiel.EXPORTACION, 500)
+     * this.inventarioService.validarStock(1, ClasificacionMiel.EXPORTACION_1, 500)
      *   .subscribe(stock => {
      *     if (!stock.suficiente) {
-     *       alert(`Solo hay ${stock.kilosDisponibles}kg disponibles`);
+     *       console.log(`Solo hay ${stock.kilosDisponibles}kg disponibles`);
      *     }
      *   });
      */
@@ -141,11 +141,11 @@ export class InventarioService {
      * (sin validar cantidad, solo mostrar disponibilidad)
      *
      * @param tipoMielId - ID del tipo de miel
-     * @param clasificacion - Clasificación (EXPORTACION/NACIONAL)
+     * @param clasificacion - Clasificación (EXPORTACION_1/EXPORTACION_2/NACIONAL/INDUSTRIA)
      * @returns Observable con kilos disponibles
      *
      * @example
-     * this.inventarioService.getStockDisponible(1, ClasificacionMiel.EXPORTACION)
+     * this.inventarioService.getStockDisponible(1, ClasificacionMiel.EXPORTACION_1)
      *   .subscribe(kilos => {
      *     this.stockDisponibleText = `Disponible: ${kilos}kg`;
      *   });

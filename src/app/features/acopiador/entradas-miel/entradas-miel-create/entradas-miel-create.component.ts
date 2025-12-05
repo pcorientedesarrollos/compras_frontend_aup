@@ -463,10 +463,11 @@ export class EntradasMielCreateComponent implements OnInit {
     }
 
     /**
-     * Obtener clasificación según humedad
-     * EXPORTACION: humedad ≤ 20%
-     * INDUSTRIA: humedad = 22% exactamente
-     * NACIONAL: humedad > 20% y ≠ 22%
+     * Obtener clasificación según humedad (NUEVA CLASIFICACIÓN Dic 2024)
+     * EXPORTACION_1: humedad 0-19%
+     * EXPORTACION_2: humedad = 20%
+     * NACIONAL: humedad = 21%
+     * INDUSTRIA: humedad >= 22%
      */
     getClasificacion(index: number): ClasificacionMiel | null {
         const tambor = this.tamboresArray.at(index);
@@ -474,16 +475,19 @@ export class EntradasMielCreateComponent implements OnInit {
 
         if (humedad === null || humedad === undefined || isNaN(humedad)) return null;
 
-        if (humedad <= 20) return ClasificacionMiel.EXPORTACION;
-        if (humedad === 22) return ClasificacionMiel.INDUSTRIA;
-        return ClasificacionMiel.NACIONAL;
+        if (humedad >= 22) return ClasificacionMiel.INDUSTRIA;
+        if (humedad === 21) return ClasificacionMiel.NACIONAL;
+        if (humedad === 20) return ClasificacionMiel.EXPORTACION_2;
+        return ClasificacionMiel.EXPORTACION_1;
     }
 
     /**
      * Auto-rellenar precio según tipo de miel y clasificación (basado en humedad)
-     * EXPORTACION: humedad ≤ 20%
-     * INDUSTRIA: humedad = 22% exactamente
-     * NACIONAL: humedad > 20% y ≠ 22%
+     * NUEVA CLASIFICACIÓN (Dic 2024):
+     * EXPORTACION_1: humedad 0-19%
+     * EXPORTACION_2: humedad = 20%
+     * NACIONAL: humedad = 21%
+     * INDUSTRIA: humedad >= 22%
      */
     autoRellenarPrecio(index: number): void {
         const tipoMielId = this.form.get('tipoMielId')?.value;
@@ -495,14 +499,16 @@ export class EntradasMielCreateComponent implements OnInit {
             return;
         }
 
-        // Determinar clasificación según humedad
-        let clasificacion: 'EXPORTACION' | 'NACIONAL' | 'INDUSTRIA';
-        if (humedad <= 20) {
-            clasificacion = 'EXPORTACION';
-        } else if (humedad === 22) {
+        // Determinar clasificación según humedad (nueva clasificación)
+        let clasificacion: 'EXPORTACION_1' | 'EXPORTACION_2' | 'NACIONAL' | 'INDUSTRIA';
+        if (humedad >= 22) {
             clasificacion = 'INDUSTRIA';
-        } else {
+        } else if (humedad === 21) {
             clasificacion = 'NACIONAL';
+        } else if (humedad === 20) {
+            clasificacion = 'EXPORTACION_2';
+        } else {
+            clasificacion = 'EXPORTACION_1';
         }
 
         // Buscar precio en la lista de precios
@@ -522,23 +528,27 @@ export class EntradasMielCreateComponent implements OnInit {
     }
 
     /**
-     * Clase CSS para badge de clasificación
-     * EXPORTACION: Verde
-     * NACIONAL: Azul
-     * INDUSTRIA: Ámbar/Naranja
+     * Clase CSS para badge de clasificación (NUEVA CLASIFICACIÓN Dic 2024)
+     * EXPORTACION_1: Verde (mejor calidad)
+     * EXPORTACION_2: Azul
+     * NACIONAL: Ámbar
+     * INDUSTRIA: Rojo
      */
     getClasificacionBadgeClass(index: number): string {
         const clasificacion = this.getClasificacion(index);
         if (!clasificacion) return 'bg-gray-100 text-gray-800';
 
         switch (clasificacion) {
-            case ClasificacionMiel.EXPORTACION:
+            case ClasificacionMiel.EXPORTACION_1:
                 return 'bg-green-100 text-green-800';
-            case ClasificacionMiel.INDUSTRIA:
-                return 'bg-amber-100 text-amber-800';
-            case ClasificacionMiel.NACIONAL:
-            default:
+            case ClasificacionMiel.EXPORTACION_2:
                 return 'bg-blue-100 text-blue-800';
+            case ClasificacionMiel.NACIONAL:
+                return 'bg-amber-100 text-amber-800';
+            case ClasificacionMiel.INDUSTRIA:
+                return 'bg-red-100 text-red-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
         }
     }
 

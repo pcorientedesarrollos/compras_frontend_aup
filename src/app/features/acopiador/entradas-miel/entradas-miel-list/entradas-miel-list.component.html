@@ -360,10 +360,8 @@
                                     <td class="px-3 py-2 text-gray-700">{{ detalle.colorNombre || '-' }}</td>
                                     <td class="px-3 py-2 text-right text-gray-900">{{ detalle.humedad.toFixed(1) }}%</td>
                                     <td class="px-3 py-2 text-center">
-                                        <span [class]="detalle.clasificacion === 'EXPORTACION'
-                                            ? 'px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800'
-                                            : 'px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800'">
-                                            {{ detalle.clasificacion }}
+                                        <span [class]="'px-2 py-0.5 rounded-full text-xs font-semibold ' + getClasificacionBadgeClass(detalle.clasificacion)">
+                                            {{ getClasificacionLabel(detalle.clasificacion) }}
                                         </span>
                                     </td>
                                     <td class="px-3 py-2 text-right text-gray-900">{{ detalle.bruto?.toFixed(2) || '-' }}</td>

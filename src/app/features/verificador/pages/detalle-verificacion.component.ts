@@ -174,13 +174,8 @@ import { ClasificacionMiel } from '../../../core/models/entrada-miel.model';
                         <div class="flex justify-between">
                           <span class="text-gray-600">Clasificación:</span>
                           <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                                [class.bg-green-100]="tambor.tamborOriginal.clasificacionDeclarada === 'EXPORTACION'"
-                                [class.text-green-800]="tambor.tamborOriginal.clasificacionDeclarada === 'EXPORTACION'"
-                                [class.bg-blue-100]="tambor.tamborOriginal.clasificacionDeclarada === 'NACIONAL'"
-                                [class.text-blue-800]="tambor.tamborOriginal.clasificacionDeclarada === 'NACIONAL'"
-                                [class.bg-amber-100]="tambor.tamborOriginal.clasificacionDeclarada === 'INDUSTRIA'"
-                                [class.text-amber-800]="tambor.tamborOriginal.clasificacionDeclarada === 'INDUSTRIA'">
-                            {{ tambor.tamborOriginal.clasificacionDeclarada }}
+                                [class]="getClasificacionBadgeClass(tambor.tamborOriginal.clasificacionDeclarada)">
+                            {{ getClasificacionLabel(tambor.tamborOriginal.clasificacionDeclarada) }}
                           </span>
                         </div>
                       </div>
@@ -233,13 +228,8 @@ import { ClasificacionMiel } from '../../../core/models/entrada-miel.model';
                         <div class="flex justify-between">
                           <span class="text-gray-600">Clasificación:</span>
                           <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                                [class.bg-green-100]="getClasificacionVerificada(tambor) === 'EXPORTACION'"
-                                [class.text-green-800]="getClasificacionVerificada(tambor) === 'EXPORTACION'"
-                                [class.bg-blue-100]="getClasificacionVerificada(tambor) === 'NACIONAL'"
-                                [class.text-blue-800]="getClasificacionVerificada(tambor) === 'NACIONAL'"
-                                [class.bg-amber-100]="getClasificacionVerificada(tambor) === 'INDUSTRIA'"
-                                [class.text-amber-800]="getClasificacionVerificada(tambor) === 'INDUSTRIA'">
-                            {{ getClasificacionVerificada(tambor) }}
+                                [class]="getClasificacionBadgeClass(getClasificacionVerificada(tambor))">
+                            {{ getClasificacionLabel(getClasificacionVerificada(tambor)) }}
                             @if (tambor.diferencias!.cambioClasificacion) {
                               <span class="ml-1">(Cambió)</span>
                             }
@@ -289,18 +279,13 @@ import { ClasificacionMiel } from '../../../core/models/entrada-miel.model';
                       <div class="bg-white rounded-md p-2">
                         <p class="text-gray-600 text-xs">Clasificación</p>
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold"
-                              [class.bg-green-100]="tambor.datosFinales.clasificacion === 'EXPORTACION'"
-                              [class.text-green-800]="tambor.datosFinales.clasificacion === 'EXPORTACION'"
-                              [class.bg-blue-100]="tambor.datosFinales.clasificacion === 'NACIONAL'"
-                              [class.text-blue-800]="tambor.datosFinales.clasificacion === 'NACIONAL'"
-                              [class.bg-amber-100]="tambor.datosFinales.clasificacion === 'INDUSTRIA'"
-                              [class.text-amber-800]="tambor.datosFinales.clasificacion === 'INDUSTRIA'">
-                          {{ tambor.datosFinales.clasificacion }}
+                              [class]="getClasificacionBadgeClass(tambor.datosFinales.clasificacion)">
+                          {{ getClasificacionLabel(tambor.datosFinales.clasificacion) }}
                         </span>
                       </div>
                     </div>
                     <p class="text-xs text-gray-600 mt-2 italic">
-                      💡 Estos son los datos reales verificados. Usar para migrar a AUP.
+                      Estos son los datos reales verificados. Usar para migrar a AUP.
                     </p>
                   </div>
 
@@ -315,14 +300,14 @@ import { ClasificacionMiel } from '../../../core/models/entrada-miel.model';
                   <!-- Sin diferencias -->
                   <div class="text-center py-4 mb-4">
                     <p class="text-gray-600">
-                      ✅ Este tambor fue verificado sin diferencias. Los datos declarados coinciden con los datos reales.
+                      Este tambor fue verificado sin diferencias. Los datos declarados coinciden con los datos reales.
                     </p>
                     @if (tambor.observacionesVerificador) {
                       <p class="text-sm text-gray-500 mt-2">{{ tambor.observacionesVerificador }}</p>
                     }
                   </div>
 
-                  <!-- ⭐ DATOS FINALES PARA MIGRACIÓN (Sin diferencias) -->
+                  <!-- DATOS FINALES PARA MIGRACIÓN (Sin diferencias) -->
                   <div class="bg-gradient-to-r from-honey-primary/10 to-amber-100/50 border-2 border-honey-primary rounded-lg p-4">
                     <div class="flex items-center gap-2 mb-3">
                       <svg class="w-5 h-5 text-honey-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -362,18 +347,13 @@ import { ClasificacionMiel } from '../../../core/models/entrada-miel.model';
                       <div class="bg-white rounded-md p-2">
                         <p class="text-gray-600 text-xs">Clasificación</p>
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold"
-                              [class.bg-green-100]="tambor.datosFinales.clasificacion === 'EXPORTACION'"
-                              [class.text-green-800]="tambor.datosFinales.clasificacion === 'EXPORTACION'"
-                              [class.bg-blue-100]="tambor.datosFinales.clasificacion === 'NACIONAL'"
-                              [class.text-blue-800]="tambor.datosFinales.clasificacion === 'NACIONAL'"
-                              [class.bg-amber-100]="tambor.datosFinales.clasificacion === 'INDUSTRIA'"
-                              [class.text-amber-800]="tambor.datosFinales.clasificacion === 'INDUSTRIA'">
-                          {{ tambor.datosFinales.clasificacion }}
+                              [class]="getClasificacionBadgeClass(tambor.datosFinales.clasificacion)">
+                          {{ getClasificacionLabel(tambor.datosFinales.clasificacion) }}
                         </span>
                       </div>
                     </div>
                     <p class="text-xs text-gray-600 mt-2 italic">
-                      💡 Estos son los datos reales verificados. Usar para migrar a AUP.
+                      Estos son los datos reales verificados. Usar para migrar a AUP.
                     </p>
                   </div>
                 }
@@ -493,5 +473,49 @@ export class DetalleVerificacionComponent implements OnInit {
     }
     // Si no cambió, es la misma
     return tambor.tamborOriginal.clasificacionDeclarada;
+  }
+
+  /**
+   * Clase CSS para badge de clasificación (NUEVA CLASIFICACIÓN Dic 2024)
+   */
+  getClasificacionBadgeClass(clasificacion: ClasificacionMiel | string): string {
+    switch (clasificacion) {
+      case ClasificacionMiel.EXPORTACION_1:
+      case 'EXPORTACION_1':
+        return 'bg-green-100 text-green-800';
+      case ClasificacionMiel.EXPORTACION_2:
+      case 'EXPORTACION_2':
+        return 'bg-blue-100 text-blue-800';
+      case ClasificacionMiel.NACIONAL:
+      case 'NACIONAL':
+        return 'bg-amber-100 text-amber-800';
+      case ClasificacionMiel.INDUSTRIA:
+      case 'INDUSTRIA':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  }
+
+  /**
+   * Label para clasificación
+   */
+  getClasificacionLabel(clasificacion: ClasificacionMiel | string): string {
+    switch (clasificacion) {
+      case ClasificacionMiel.EXPORTACION_1:
+      case 'EXPORTACION_1':
+        return 'Exportación 1';
+      case ClasificacionMiel.EXPORTACION_2:
+      case 'EXPORTACION_2':
+        return 'Exportación 2';
+      case ClasificacionMiel.NACIONAL:
+      case 'NACIONAL':
+        return 'Nacional';
+      case ClasificacionMiel.INDUSTRIA:
+      case 'INDUSTRIA':
+        return 'Industria';
+      default:
+        return String(clasificacion);
+    }
   }
 }

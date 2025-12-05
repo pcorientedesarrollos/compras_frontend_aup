@@ -357,9 +357,9 @@
                             <!-- Clasificación -->
                             <td class="px-4 py-3 text-sm">
                                 <span
-                                    [class]="tambor.clasificacion === 'EXPORTACION' ? 'text-green-700 bg-green-100' : tambor.clasificacion === 'INDUSTRIA' ? 'text-amber-700 bg-amber-100' : 'text-blue-700 bg-blue-100'"
+                                    [class]="getClasificacionBadgeClass(tambor.clasificacion)"
                                     class="px-2 py-1 rounded text-xs font-medium">
-                                    {{ tambor.clasificacion }}
+                                    {{ getClasificacionLabel(tambor.clasificacion) }}
                                 </span>
                             </td>
 

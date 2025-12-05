@@ -61,11 +61,15 @@ export class ListaPreciosService {
 
   /**
    * Obtener precio por tipo de miel y clasificación
+   * NUEVA CLASIFICACIÓN (Dic 2024):
    * @param tipoMielId - ID del tipo de miel
-   * @param clasificacion - 'EXPORTACION', 'NACIONAL' o 'INDUSTRIA'
+   * @param clasificacion - 'EXPORTACION_1', 'EXPORTACION_2', 'NACIONAL' o 'INDUSTRIA'
    * @returns Precio encontrado o null si no existe
    */
-  getPrecioPorTipoYClasificacion(tipoMielId: number, clasificacion: 'EXPORTACION' | 'NACIONAL' | 'INDUSTRIA'): Observable<number | null> {
+  getPrecioPorTipoYClasificacion(
+    tipoMielId: number,
+    clasificacion: 'EXPORTACION_1' | 'EXPORTACION_2' | 'NACIONAL' | 'INDUSTRIA'
+  ): Observable<number | null> {
     return this.getListaPrecios().pipe(
       map(precios => {
         const precioEncontrado = precios.find(

@@ -102,7 +102,7 @@ export class DiferenciasPrecioComponent implements OnInit {
   // Valores temporales para los filtros del formulario
   filtroProveedorId = signal<number | null>(null);
   filtroTipoMielId = signal<number | null>(null);
-  filtroClasificacion = signal<'EXPORTACION' | 'NACIONAL' | 'INDUSTRIA' | null>(null);
+  filtroClasificacion = signal<'EXPORTACION_1' | 'EXPORTACION_2' | 'NACIONAL' | 'INDUSTRIA' | null>(null);
   filtroFechaInicio = signal<string>('');
   filtroFechaFin = signal<string>('');
 
@@ -251,20 +251,24 @@ export class DiferenciasPrecioComponent implements OnInit {
   // ============================================================================
 
   /**
-   * Clase CSS para badge de clasificación
-   * EXPORTACION: Verde
-   * NACIONAL: Azul
-   * INDUSTRIA: Ámbar/Naranja
+   * Clase CSS para badge de clasificación (NUEVA CLASIFICACIÓN Dic 2024)
+   * EXPORTACION_1: Verde (mejor calidad)
+   * EXPORTACION_2: Azul
+   * NACIONAL: Ámbar
+   * INDUSTRIA: Rojo
    */
-  getClasificacionBadgeClass(clasificacion: 'EXPORTACION' | 'NACIONAL' | 'INDUSTRIA'): string {
+  getClasificacionBadgeClass(clasificacion: 'EXPORTACION_1' | 'EXPORTACION_2' | 'NACIONAL' | 'INDUSTRIA'): string {
     switch (clasificacion) {
-      case 'EXPORTACION':
+      case 'EXPORTACION_1':
         return 'bg-green-100 text-green-800';
-      case 'INDUSTRIA':
-        return 'bg-amber-100 text-amber-800';
-      case 'NACIONAL':
-      default:
+      case 'EXPORTACION_2':
         return 'bg-blue-100 text-blue-800';
+      case 'NACIONAL':
+        return 'bg-amber-100 text-amber-800';
+      case 'INDUSTRIA':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   }
 
@@ -282,6 +286,24 @@ export class DiferenciasPrecioComponent implements OnInit {
    */
   isCritica(porcentaje: number): boolean {
     return Math.abs(porcentaje) > 10;
+  }
+
+  /**
+   * Etiqueta legible para clasificación
+   */
+  getClasificacionLabel(clasificacion: string): string {
+    switch (clasificacion) {
+      case 'EXPORTACION_1':
+        return 'EXPORTACIÓN 1';
+      case 'EXPORTACION_2':
+        return 'EXPORTACIÓN 2';
+      case 'NACIONAL':
+        return 'NACIONAL';
+      case 'INDUSTRIA':
+        return 'INDUSTRIA';
+      default:
+        return clasificacion;
+    }
   }
 
   /**

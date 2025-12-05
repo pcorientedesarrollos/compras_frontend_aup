@@ -550,4 +550,40 @@ export class SalidasMielCreateComponent implements OnInit {
     formatKilos(kilos: number): string {
         return this.salidaMielService.formatKilos(kilos);
     }
+
+    /**
+     * Clase CSS para badge de clasificación
+     */
+    getClasificacionBadgeClass(clasificacion: string): string {
+        switch (clasificacion) {
+            case 'EXPORTACION_1':
+                return 'text-green-700 bg-green-100';
+            case 'EXPORTACION_2':
+                return 'text-blue-700 bg-blue-100';
+            case 'NACIONAL':
+                return 'text-amber-700 bg-amber-100';
+            case 'INDUSTRIA':
+                return 'text-red-700 bg-red-100';
+            default:
+                return 'text-gray-700 bg-gray-100';
+        }
+    }
+
+    /**
+     * Etiqueta legible para clasificación
+     */
+    getClasificacionLabel(clasificacion: string): string {
+        switch (clasificacion) {
+            case 'EXPORTACION_1':
+                return 'EXPORTACIÓN 1';
+            case 'EXPORTACION_2':
+                return 'EXPORTACIÓN 2';
+            case 'NACIONAL':
+                return 'NACIONAL';
+            case 'INDUSTRIA':
+                return 'INDUSTRIA';
+            default:
+                return clasificacion;
+        }
+    }
 }

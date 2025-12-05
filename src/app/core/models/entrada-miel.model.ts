@@ -26,11 +26,47 @@
 
 /**
  * Clasificación de miel según porcentaje de humedad
+ * NUEVA CLASIFICACIÓN (Diciembre 2024):
+ * - EXPORTACION_1: 0-19% humedad (mejor calidad)
+ * - EXPORTACION_2: 20% humedad
+ * - NACIONAL: 21% humedad
+ * - INDUSTRIA: 22%+ humedad
  */
 export enum ClasificacionMiel {
-    EXPORTACION = 'EXPORTACION',   // Humedad ≤ 20%
-    NACIONAL = 'NACIONAL',         // Humedad > 20% y ≠ 22%
-    INDUSTRIA = 'INDUSTRIA'        // Humedad = 22% exactamente
+    EXPORTACION_1 = 'EXPORTACION_1',   // Humedad 0-19%
+    EXPORTACION_2 = 'EXPORTACION_2',   // Humedad = 20%
+    NACIONAL = 'NACIONAL',              // Humedad = 21%
+    INDUSTRIA = 'INDUSTRIA'             // Humedad >= 22%
+}
+
+/**
+ * Labels para mostrar clasificación en UI
+ */
+export const CLASIFICACION_LABELS: Record<ClasificacionMiel, string> = {
+    [ClasificacionMiel.EXPORTACION_1]: 'Exportación 1',
+    [ClasificacionMiel.EXPORTACION_2]: 'Exportación 2',
+    [ClasificacionMiel.NACIONAL]: 'Nacional',
+    [ClasificacionMiel.INDUSTRIA]: 'Industria'
+};
+
+/**
+ * Colores para badges de clasificación
+ */
+export const CLASIFICACION_COLORS: Record<ClasificacionMiel, string> = {
+    [ClasificacionMiel.EXPORTACION_1]: 'bg-green-100 text-green-800',
+    [ClasificacionMiel.EXPORTACION_2]: 'bg-blue-100 text-blue-800',
+    [ClasificacionMiel.NACIONAL]: 'bg-amber-100 text-amber-800',
+    [ClasificacionMiel.INDUSTRIA]: 'bg-red-100 text-red-800'
+};
+
+/**
+ * Calcula la clasificación basada en la humedad
+ */
+export function calcularClasificacion(humedad: number): ClasificacionMiel {
+    if (humedad >= 22) return ClasificacionMiel.INDUSTRIA;
+    if (humedad === 21) return ClasificacionMiel.NACIONAL;
+    if (humedad === 20) return ClasificacionMiel.EXPORTACION_2;
+    return ClasificacionMiel.EXPORTACION_1;
 }
 
 /**

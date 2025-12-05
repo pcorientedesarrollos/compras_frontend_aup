@@ -153,8 +153,8 @@
                         <td class="px-4 py-3 text-center">
                             <div class="flex items-center justify-center gap-2">
                                 <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold"
-                                    [class]="detalle.clasificacion === 'EXPORTACION' ? 'bg-green-100 text-green-800' : detalle.clasificacion === 'INDUSTRIA' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'">
-                                    {{ detalle.clasificacion }}
+                                    [class]="getClasificacionBadgeClass(detalle.clasificacion)">
+                                    {{ getClasificacionLabel(detalle.clasificacion) }}
                                 </span>
                                 @if (!detalleEsCompatible()(detalle) && detallesSeleccionados().length > 0) {
                                 <span class="text-xs text-red-600 font-semibold whitespace-nowrap" title="No compatible con selección actual">
