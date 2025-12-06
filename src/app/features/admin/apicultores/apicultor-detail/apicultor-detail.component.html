@@ -275,127 +275,134 @@
             </div>
         </div>
 
-        <!-- Sección 4: Apiario Inicial (Solo en modo CREATE) -->
+        <!-- Sección 4: Relación de Colmenas / Apiarios (Solo en modo CREATE) -->
         @if (mode() === 'create') {
         <div class="form-section apiario-section">
-            <div class="section-header-toggle">
-                <h2 class="section-title">
-                    <app-icon name="map-pin" size="md" color="text-honey-primary" />
-                    <span>Apiario Inicial</span>
-                    <span class="badge-optional">Opcional</span>
-                </h2>
-                <label class="toggle-switch">
-                    <input type="checkbox" [checked]="includeApiario()" (change)="toggleIncludeApiario()">
-                    <span class="toggle-slider"></span>
-                    <span class="toggle-label">{{ includeApiario() ? 'Incluido' : 'No incluir' }}</span>
-                </label>
-            </div>
+            <h2 class="section-title">
+                <app-icon name="map-pin" size="md" color="text-honey-primary" />
+                <span>Relación de Colmenas</span>
+                <span class="badge-required">Mínimo 1</span>
+            </h2>
 
-            @if (includeApiario()) {
-            <div class="apiario-form-container" [formGroup]="apiarioForm">
-                <p class="section-description">
-                    Agrega un apiario inicial para este apicultor. Podrás agregar más apiarios después.
-                </p>
+            <div class="apiarios-table-container" [formGroup]="apiariosForm">
+                <!-- Header con nombre del apicultor -->
+                <div class="apiarios-header">
+                    <span class="apicultor-name">
+                        {{ apicultorForm.get('nombre')?.value || 'Nombre' }}
+                        {{ apicultorForm.get('apellidoPaterno')?.value || 'Apellido' }}
+                    </span>
+                </div>
 
-                <div class="form-grid">
-                    <!-- Nombre del Apiario -->
-                    <div class="form-group col-span-2">
-                        <label for="apiario-nombre" class="form-label">
-                            Nombre del Apiario <span class="required">*</span>
-                        </label>
-                        <input id="apiario-nombre" type="text" formControlName="nombre" class="form-input"
-                            placeholder="Ej: Apiario Principal, Rancho Los Pinos"
-                            [class.error]="hasApiarioError('nombre', 'required') || hasApiarioError('nombre', 'minlength')">
-                        @if (hasApiarioError('nombre', 'required') || hasApiarioError('nombre', 'minlength') || hasApiarioError('nombre', 'maxlength')) {
-                        <span class="error-message">{{ getApiarioErrorMessage('nombre') }}</span>
-                        }
-                    </div>
+                <!-- Fila de inputs para agregar -->
+                <div class="apiarios-add-row">
+                    <span class="add-row-label">Nombre del apiario</span>
+                    <span class="add-row-label">No. de colmenas</span>
+                    <span class="add-row-label">Producción (kg)</span>
+                    <span class="add-row-label">Latitud</span>
+                    <span class="add-row-label">Longitud</span>
+                    <button type="button" class="btn-add-apiario" (click)="addApiario()" title="Agregar apiario">
+                        <app-icon name="plus" size="sm" />
+                    </button>
+                </div>
 
-                    <!-- Colmenas -->
-                    <div class="form-group">
-                        <label for="apiario-colmenas" class="form-label">
-                            Número de Colmenas <span class="required">*</span>
-                        </label>
-                        <input id="apiario-colmenas" type="number" formControlName="colmenas" class="form-input"
-                            placeholder="Ej: 50" min="1" max="10000"
-                            [class.error]="hasApiarioError('colmenas', 'required') || hasApiarioError('colmenas', 'min') || hasApiarioError('colmenas', 'max')">
-                        @if (hasApiarioError('colmenas', 'required') || hasApiarioError('colmenas', 'min') || hasApiarioError('colmenas', 'max')) {
-                        <span class="error-message">{{ getApiarioErrorMessage('colmenas') }}</span>
-                        }
-                    </div>
+                <!-- Tabla de apiarios -->
+                <div class="apiarios-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col-no">NO.</th>
+                                <th class="col-nombre">APIARIO</th>
+                                <th class="col-colmenas">COLMENAS</th>
+                                <th class="col-prodxcol">PRODxCOL</th>
+                                <th class="col-prodanual">PRODxANUAL</th>
+                                <th class="col-ubicacion">UBICACIÓN</th>
+                                <th class="col-acciones">ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody formArrayName="apiarios">
+                            @for (apiario of apiariosArray.controls; track $index; let i = $index) {
+                            <tr [formGroupName]="i" [class.has-error]="hasApiarioErrors(i)">
+                                <!-- Número -->
+                                <td class="col-no">{{ i + 1 }}</td>
 
-                    <!-- Producción por colmena -->
-                    <div class="form-group">
-                        <label for="apiario-produccion" class="form-label">
-                            Producción por Colmena (kg) <span class="required">*</span>
-                        </label>
-                        <input id="apiario-produccion" type="number" formControlName="produccion" class="form-input"
-                            placeholder="Ej: 25" min="0.01" max="1000" step="0.01"
-                            [class.error]="hasApiarioError('produccion', 'required') || hasApiarioError('produccion', 'min') || hasApiarioError('produccion', 'max')">
-                        @if (hasApiarioError('produccion', 'required') || hasApiarioError('produccion', 'min') || hasApiarioError('produccion', 'max')) {
-                        <span class="error-message">{{ getApiarioErrorMessage('produccion') }}</span>
-                        }
-                    </div>
+                                <!-- Nombre -->
+                                <td class="col-nombre">
+                                    <input type="text" formControlName="nombre"
+                                        class="table-input"
+                                        placeholder="Nombre del apiario"
+                                        [class.error]="hasApiarioError(i, 'nombre', 'required')">
+                                </td>
 
-                    <!-- Card de Producción Anual Calculada -->
-                    <div class="form-group col-span-2">
-                        <div class="produccion-card">
-                            <div class="produccion-label">Producción Anual Estimada</div>
-                            <div class="produccion-value">{{ produccionAnualCalculada() | number:'1.2-2' }} kg</div>
-                            <div class="produccion-formula">= Colmenas × Producción por colmena</div>
-                        </div>
-                    </div>
+                                <!-- Colmenas -->
+                                <td class="col-colmenas">
+                                    <input type="number" formControlName="colmenas"
+                                        class="table-input"
+                                        placeholder="0" min="1" max="10000"
+                                        [class.error]="hasApiarioError(i, 'colmenas', 'required')">
+                                </td>
 
-                    <!-- Ubicación GPS -->
-                    <div class="form-group col-span-2">
-                        <div class="gps-header">
-                            <label class="form-label">
-                                Ubicación GPS <span class="required">*</span>
-                            </label>
-                            <button type="button" class="btn-gps" (click)="getCurrentLocation()" [disabled]="isGettingLocation()">
-                                @if (isGettingLocation()) {
-                                <div class="spinner-small"></div>
-                                <span>Obteniendo...</span>
-                                } @else {
-                                <app-icon name="map-pin" size="sm" />
-                                <span>Usar mi ubicación</span>
-                                }
-                            </button>
-                        </div>
-                    </div>
+                                <!-- Producción por colmena -->
+                                <td class="col-prodxcol">
+                                    <input type="number" formControlName="produccion"
+                                        class="table-input"
+                                        placeholder="0" min="0.01" max="1000" step="0.01"
+                                        [class.error]="hasApiarioError(i, 'produccion', 'required')">
+                                </td>
 
-                    <!-- Latitud -->
-                    <div class="form-group">
-                        <label for="apiario-latitud" class="form-label">
-                            Latitud <span class="required">*</span>
-                        </label>
-                        <input id="apiario-latitud" type="number" formControlName="latitud" class="form-input"
-                            placeholder="Ej: 17.0732" min="-90" max="90" step="0.000001"
-                            [class.error]="hasApiarioError('latitud', 'required') || hasApiarioError('latitud', 'min') || hasApiarioError('latitud', 'max')">
-                        @if (hasApiarioError('latitud', 'required') || hasApiarioError('latitud', 'min') || hasApiarioError('latitud', 'max')) {
-                        <span class="error-message">{{ getApiarioErrorMessage('latitud') }}</span>
-                        }
-                    </div>
+                                <!-- Producción anual calculada -->
+                                <td class="col-prodanual">
+                                    <span class="calculated-value">{{ getProduccionAnual(i) | number:'1.0-0' }}</span>
+                                </td>
 
-                    <!-- Longitud -->
-                    <div class="form-group">
-                        <label for="apiario-longitud" class="form-label">
-                            Longitud <span class="required">*</span>
-                        </label>
-                        <input id="apiario-longitud" type="number" formControlName="longitud" class="form-input"
-                            placeholder="Ej: -96.7266" min="-180" max="180" step="0.000001"
-                            [class.error]="hasApiarioError('longitud', 'required') || hasApiarioError('longitud', 'min') || hasApiarioError('longitud', 'max')">
-                        @if (hasApiarioError('longitud', 'required') || hasApiarioError('longitud', 'min') || hasApiarioError('longitud', 'max')) {
-                        <span class="error-message">{{ getApiarioErrorMessage('longitud') }}</span>
-                        }
-                    </div>
+                                <!-- Ubicación (lat, long) -->
+                                <td class="col-ubicacion">
+                                    <div class="ubicacion-inputs">
+                                        <input type="number" formControlName="latitud"
+                                            class="table-input-small"
+                                            placeholder="Lat" min="-90" max="90" step="0.000001"
+                                            [class.error]="hasApiarioError(i, 'latitud', 'required')">
+                                        <span class="ubicacion-separator">,</span>
+                                        <input type="number" formControlName="longitud"
+                                            class="table-input-small"
+                                            placeholder="Long" min="-180" max="180" step="0.000001"
+                                            [class.error]="hasApiarioError(i, 'longitud', 'required')">
+                                        <button type="button" class="btn-gps-small"
+                                            (click)="getCurrentLocation(i)"
+                                            [disabled]="isGettingLocationFor(i)"
+                                            title="Usar mi ubicación">
+                                            @if (isGettingLocationFor(i)) {
+                                            <div class="spinner-xs"></div>
+                                            } @else {
+                                            <app-icon name="map-pin" size="xs" />
+                                            }
+                                        </button>
+                                    </div>
+                                </td>
+
+                                <!-- Acciones -->
+                                <td class="col-acciones">
+                                    <button type="button" class="btn-delete-row"
+                                        (click)="removeApiario(i)"
+                                        [disabled]="apiariosArray.length === 1"
+                                        title="Eliminar apiario">
+                                        <app-icon name="trash" size="sm" />
+                                    </button>
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="totals-row">
+                                <td colspan="2" class="totals-label">TOTALES</td>
+                                <td class="totals-value">{{ totalColmenas() | number:'1.0-0' }}</td>
+                                <td></td>
+                                <td class="totals-value">{{ totalProduccionAnual() | number:'1.0-0' }} KGS</td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </div>
-            } @else {
-            <p class="section-description muted">
-                Activa esta opción para agregar un apiario al momento de crear el apicultor.
-            </p>
-            }
         </div>
         }
 
@@ -443,3 +450,28 @@
         </button>
     </div>
 </app-modal>
+
+<!-- Modal de Progreso para Guardado de Apiarios -->
+@if (showProgressModal()) {
+<div class="progress-modal-overlay">
+    <div class="progress-modal">
+        <div class="progress-modal-content">
+            <div class="progress-icon">
+                <app-icon name="bee" size="xl" color="text-honey-primary" />
+            </div>
+            <h3 class="progress-title">Guardando apiarios...</h3>
+            <p class="progress-message">{{ progressMessage() }}</p>
+
+            <div class="progress-counter">
+                {{ apiariosSaved() }}/{{ apiariosTotal() }}
+            </div>
+
+            <div class="progress-bar-container">
+                <div class="progress-bar" [style.width.%]="progressPercent()"></div>
+            </div>
+
+            <div class="progress-percent">{{ progressPercent() }}%</div>
+        </div>
+    </div>
+</div>
+}

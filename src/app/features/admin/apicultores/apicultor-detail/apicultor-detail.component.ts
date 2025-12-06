@@ -26,9 +26,10 @@
 import { Component, computed, signal, inject, DestroyRef, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 // Componentes reutilizables
 import { IconComponent } from '../../../../shared/components/ui/icon/icon.component';
@@ -129,27 +130,52 @@ export class ApicultorDetailComponent implements OnInit {
     municipios = signal<MunicipioOption[]>([]);
 
     // ============================================================================
-    // APIARIO INICIAL (Solo en modo CREATE)
+    // APIARIOS (Solo en modo CREATE) - Tabla dinámica
     // ============================================================================
-
-    /** Toggle para mostrar/ocultar sección de apiario inicial */
-    includeApiario = signal<boolean>(true);
 
     /** Estado de obtención de ubicación GPS */
     isGettingLocation = signal<boolean>(false);
 
+    /** Índice del apiario al que se le está obteniendo ubicación */
+    gettingLocationIndex = signal<number>(-1);
+
     /** Modal de confirmación para cancelar */
     showCancelModal = signal<boolean>(false);
 
-    /** Producción anual calculada (colmenas × producción por colmena) */
-    produccionAnualCalculada = signal<number>(0);
+    /** Totales calculados de apiarios */
+    totalColmenas = signal<number>(0);
+    totalProduccionAnual = signal<number>(0);
+
+    // ============================================================================
+    // MODAL DE PROGRESO (Guardado de apiarios)
+    // ============================================================================
+
+    /** Mostrar modal de progreso */
+    showProgressModal = signal<boolean>(false);
+
+    /** Progreso actual (0-100) */
+    progressPercent = signal<number>(0);
+
+    /** Contador de apiarios guardados */
+    apiariosSaved = signal<number>(0);
+
+    /** Total de apiarios a guardar */
+    apiariosTotal = signal<number>(0);
+
+    /** Mensaje de progreso actual */
+    progressMessage = signal<string>('');
 
     // ============================================================================
     // FORM
     // ============================================================================
 
     apicultorForm!: FormGroup;
-    apiarioForm!: FormGroup;
+    apiariosForm!: FormGroup; // Contiene FormArray de apiarios
+
+    /** Getter para el FormArray de apiarios */
+    get apiariosArray(): FormArray {
+        return this.apiariosForm.get('apiarios') as FormArray;
+    }
 
     // ============================================================================
     // COMPUTED
@@ -251,49 +277,102 @@ export class ApicultorDetailComponent implements OnInit {
                 this.updateFormValidity();
             });
 
-        // Inicializar formulario de apiario (para modo CREATE)
-        this.initApiarioForm();
+        // Inicializar formulario de apiarios (para modo CREATE)
+        this.initApiariosForm();
 
         // Actualizar estado inicial
         this.updateFormValidity();
     }
 
     /**
-     * Inicializar formulario de apiario inicial (opcional en CREATE)
+     * Inicializar formulario con FormArray de apiarios (tabla dinámica)
      */
-    private initApiarioForm(): void {
-        this.apiarioForm = this.fb.group({
+    private initApiariosForm(): void {
+        this.apiariosForm = this.fb.group({
+            apiarios: this.fb.array([])
+        });
+
+        // Agregar un apiario inicial vacío
+        this.addApiario();
+
+        // Escuchar cambios en el FormArray para actualizar totales y validez
+        this.apiariosForm.valueChanges
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => {
+                this.updateTotales();
+                this.updateFormValidity();
+            });
+    }
+
+    /**
+     * Crear un FormGroup para un apiario individual
+     */
+    private createApiarioFormGroup(): FormGroup {
+        return this.fb.group({
             nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(255)]],
             colmenas: [null, [Validators.required, Validators.min(1), Validators.max(10000)]],
             produccion: [null, [Validators.required, Validators.min(0.01), Validators.max(1000)]],
             latitud: [null, [Validators.required, Validators.min(-90), Validators.max(90)]],
             longitud: [null, [Validators.required, Validators.min(-180), Validators.max(180)]]
         });
+    }
 
-        // Escuchar cambios en el formulario de apiario para actualizar validez
-        this.apiarioForm.statusChanges
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(() => {
-                this.updateFormValidity();
-            });
+    /**
+     * Agregar un nuevo apiario a la tabla
+     */
+    addApiario(): void {
+        this.apiariosArray.push(this.createApiarioFormGroup());
+    }
 
-        // Escuchar cambios en colmenas y producción para calcular producción anual
-        this.apiarioForm.valueChanges
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe((values) => {
-                const colmenas = values.colmenas || 0;
-                const produccion = values.produccion || 0;
-                this.produccionAnualCalculada.set(colmenas * produccion);
-            });
+    /**
+     * Eliminar un apiario de la tabla
+     */
+    removeApiario(index: number): void {
+        if (this.apiariosArray.length > 1) {
+            this.apiariosArray.removeAt(index);
+        } else {
+            this.notificationService.warning('Mínimo requerido', 'Debe tener al menos un apiario.');
+        }
+    }
+
+    /**
+     * Actualizar totales de colmenas y producción anual
+     */
+    private updateTotales(): void {
+        const apiarios = this.apiariosArray.value;
+        let totalCol = 0;
+        let totalProd = 0;
+
+        apiarios.forEach((apiario: { colmenas: number; produccion: number }) => {
+            const colmenas = apiario.colmenas || 0;
+            const produccion = apiario.produccion || 0;
+            totalCol += colmenas;
+            totalProd += colmenas * produccion;
+        });
+
+        this.totalColmenas.set(totalCol);
+        this.totalProduccionAnual.set(totalProd);
+    }
+
+    /**
+     * Calcular producción anual de un apiario específico
+     */
+    getProduccionAnual(index: number): number {
+        const apiario = this.apiariosArray.at(index);
+        const colmenas = apiario.get('colmenas')?.value || 0;
+        const produccion = apiario.get('produccion')?.value || 0;
+        return colmenas * produccion;
     }
 
     /**
      * Actualizar validez del formulario combinado
-     * Si includeApiario está activo, ambos formularios deben ser válidos
+     * En modo CREATE: apicultorForm + al menos 1 apiario válido
+     * En modo EDIT: solo apicultorForm
      */
     private updateFormValidity(): void {
-        if (this.includeApiario()) {
-            this.isFormValid.set(this.apicultorForm.valid && this.apiarioForm.valid);
+        if (this.mode() === 'create') {
+            const apiariosValid = this.apiariosArray.length > 0 && this.apiariosArray.valid;
+            this.isFormValid.set(this.apicultorForm.valid && apiariosValid);
         } else {
             this.isFormValid.set(this.apicultorForm.valid);
         }
@@ -469,10 +548,19 @@ export class ApicultorDetailComponent implements OnInit {
             return;
         }
 
-        // Validar apiario si está incluido
-        if (this.includeApiario() && !this.apiarioForm.valid) {
-            this.apiarioForm.markAllAsTouched();
-            return;
+        // Validar apiarios en modo CREATE
+        if (this.mode() === 'create') {
+            if (this.apiariosArray.length === 0) {
+                this.notificationService.warning('Apiarios requeridos', 'Debe agregar al menos un apiario.');
+                return;
+            }
+            if (!this.apiariosArray.valid) {
+                this.apiariosArray.controls.forEach(control => {
+                    (control as FormGroup).markAllAsTouched();
+                });
+                this.notificationService.warning('Datos incompletos', 'Complete todos los campos de los apiarios.');
+                return;
+            }
         }
 
         if (this.mode() === 'create') {
@@ -528,14 +616,8 @@ export class ApicultorDetailComponent implements OnInit {
                         .pipe(takeUntilDestroyed(this.destroyRef))
                         .subscribe({
                             next: (apicultor) => {
-                                // Si se incluyó apiario, crearlo después
-                                if (this.includeApiario()) {
-                                    this.createApiarioForApicultor(apicultor.id);
-                                } else {
-                                    this.notificationService.success('Apicultor creado', 'El apicultor se ha creado correctamente.');
-                                    this.navigateToList();
-                                    this.isSaving.set(false);
-                                }
+                                // Crear los apiarios con barra de progreso
+                                this.createApiariosForApicultor(apicultor.id);
                             },
                             error: (error) => {
                                 console.error('Error al crear apicultor:', error);
@@ -551,37 +633,115 @@ export class ApicultorDetailComponent implements OnInit {
     }
 
     /**
-     * Crear apiario inicial para el apicultor recién creado
+     * Crear múltiples apiarios con barra de progreso
      */
-    private createApiarioForApicultor(apicultorId: string): void {
-        const apiarioFormValue = this.apiarioForm.getRawValue();
+    private createApiariosForApicultor(apicultorId: string): void {
+        const apiarios = this.apiariosArray.value;
+        const total = apiarios.length;
 
-        const apiarioRequest: CreateApiarioRequest = {
-            apicultorId: apicultorId,
-            nombre: apiarioFormValue.nombre,
-            colmenas: apiarioFormValue.colmenas,
-            produccion: apiarioFormValue.produccion,
-            latitud: apiarioFormValue.latitud,
-            longitud: apiarioFormValue.longitud
-        };
+        // Inicializar modal de progreso
+        this.apiariosTotal.set(total);
+        this.apiariosSaved.set(0);
+        this.progressPercent.set(0);
+        this.progressMessage.set('Iniciando...');
+        this.showProgressModal.set(true);
 
-        this.apiarioService
-            .createApiario(apiarioRequest)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-                next: () => {
-                    this.notificationService.success('Apicultor creado', 'El apicultor y su apiario se han creado correctamente.');
-                    this.navigateToList();
-                    this.isSaving.set(false);
-                },
-                error: (error) => {
-                    console.error('Error al crear apiario:', error);
-                    // El apicultor ya fue creado, navegar de todos modos
-                    this.notificationService.warning('Apicultor creado', 'El apicultor se creó pero hubo un error al crear el apiario.');
-                    this.navigateToList();
-                    this.isSaving.set(false);
+        // Crear observables para cada apiario
+        const apiarioRequests: Observable<unknown>[] = apiarios.map(
+            (apiario: { nombre: string; colmenas: number; produccion: number; latitud: number; longitud: number }) => {
+                const request: CreateApiarioRequest = {
+                    apicultorId: apicultorId,
+                    nombre: apiario.nombre,
+                    colmenas: apiario.colmenas,
+                    produccion: apiario.produccion,
+                    latitud: apiario.latitud,
+                    longitud: apiario.longitud
+                };
+                return this.apiarioService.createApiario(request).pipe(
+                    catchError(error => {
+                        console.error(`Error al crear apiario ${apiario.nombre}:`, error);
+                        return of({ error: true, nombre: apiario.nombre });
+                    })
+                );
+            }
+        );
+
+        // Ejecutar secuencialmente para mostrar progreso
+        this.executeApiariosSequentially(apiarioRequests, 0, total, []);
+    }
+
+    /**
+     * Ejecutar creación de apiarios secuencialmente
+     */
+    private executeApiariosSequentially(
+        requests: Observable<unknown>[],
+        index: number,
+        total: number,
+        errors: string[]
+    ): void {
+        if (index >= requests.length) {
+            // Todos completados
+            this.finishApiariosCreation(errors, total);
+            return;
+        }
+
+        const apiarioNombre = this.apiariosArray.at(index).get('nombre')?.value || `Apiario ${index + 1}`;
+        this.progressMessage.set(`Guardando: ${apiarioNombre}`);
+
+        requests[index].pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+            next: (result) => {
+                const saved = index + 1;
+                this.apiariosSaved.set(saved);
+                this.progressPercent.set(Math.round((saved / total) * 100));
+
+                // Verificar si hubo error
+                if (result && typeof result === 'object' && 'error' in result && 'nombre' in result) {
+                    errors.push(result.nombre as string);
                 }
-            });
+
+                // Continuar con el siguiente
+                this.executeApiariosSequentially(requests, index + 1, total, errors);
+            },
+            error: () => {
+                errors.push(apiarioNombre);
+                const saved = index + 1;
+                this.apiariosSaved.set(saved);
+                this.progressPercent.set(Math.round((saved / total) * 100));
+                this.executeApiariosSequentially(requests, index + 1, total, errors);
+            }
+        });
+    }
+
+    /**
+     * Finalizar creación de apiarios
+     */
+    private finishApiariosCreation(errors: string[], total: number): void {
+        this.progressMessage.set('¡Completado!');
+        this.isSaving.set(false);
+
+        // Esperar un momento para que el usuario vea el 100%
+        setTimeout(() => {
+            this.showProgressModal.set(false);
+
+            if (errors.length === 0) {
+                this.notificationService.success(
+                    'Apicultor creado',
+                    `El apicultor y sus ${total} apiario(s) se han creado correctamente.`
+                );
+            } else if (errors.length < total) {
+                this.notificationService.warning(
+                    'Creación parcial',
+                    `El apicultor se creó. ${total - errors.length} de ${total} apiarios guardados. Errores en: ${errors.join(', ')}`
+                );
+            } else {
+                this.notificationService.warning(
+                    'Apicultor creado',
+                    'El apicultor se creó pero hubo errores al crear los apiarios.'
+                );
+            }
+
+            this.navigateToList();
+        }, 500);
     }
 
     /**
@@ -807,86 +967,93 @@ export class ApicultorDetailComponent implements OnInit {
     }
 
     // ============================================================================
-    // APIARIO HELPERS
+    // APIARIO HELPERS (Tabla dinámica)
     // ============================================================================
-
-    /**
-     * Toggle para incluir/excluir apiario inicial
-     */
-    toggleIncludeApiario(): void {
-        this.includeApiario.set(!this.includeApiario());
-        this.updateFormValidity();
-    }
 
     /**
      * Verificar si un campo del apiario tiene error
      */
-    hasApiarioError(fieldName: string, errorType: string): boolean {
-        const field = this.apiarioForm.get(fieldName);
+    hasApiarioError(index: number, fieldName: string, errorType: string): boolean {
+        const apiario = this.apiariosArray.at(index);
+        const field = apiario?.get(fieldName);
         return !!(field?.hasError(errorType) && field?.touched);
     }
 
     /**
      * Obtener mensaje de error para campo de apiario
      */
-    getApiarioErrorMessage(fieldName: string): string {
-        const field = this.apiarioForm.get(fieldName);
+    getApiarioErrorMessage(index: number, fieldName: string): string {
+        const apiario = this.apiariosArray.at(index);
+        const field = apiario?.get(fieldName);
 
         if (!field || !field.errors || !field.touched) {
             return '';
         }
 
         if (field.hasError('required')) {
-            return 'Este campo es obligatorio';
+            return 'Requerido';
         }
 
         if (field.hasError('min')) {
             const min = field.errors['min'].min;
-            return `Valor mínimo: ${min}`;
+            return `Mín: ${min}`;
         }
 
         if (field.hasError('max')) {
             const max = field.errors['max'].max;
-            return `Valor máximo: ${max}`;
+            return `Máx: ${max}`;
         }
 
         if (field.hasError('minlength')) {
             const minLength = field.errors['minlength'].requiredLength;
-            return `Mínimo ${minLength} caracteres`;
+            return `Mín ${minLength} chars`;
         }
 
         if (field.hasError('maxlength')) {
             const maxLength = field.errors['maxlength'].requiredLength;
-            return `Máximo ${maxLength} caracteres`;
+            return `Máx ${maxLength} chars`;
         }
 
-        return 'Campo inválido';
+        return 'Inválido';
     }
 
     /**
-     * Obtener ubicación GPS actual usando Geolocation API
+     * Verificar si un apiario tiene algún error
      */
-    getCurrentLocation(): void {
+    hasApiarioErrors(index: number): boolean {
+        const apiario = this.apiariosArray.at(index);
+        return apiario?.invalid && apiario?.touched;
+    }
+
+    /**
+     * Obtener ubicación GPS actual para un apiario específico
+     */
+    getCurrentLocation(index: number): void {
         if (!navigator.geolocation) {
-            console.error('Geolocalización no soportada por el navegador');
+            this.notificationService.error('No soportado', 'Geolocalización no soportada por el navegador');
             return;
         }
 
         this.isGettingLocation.set(true);
+        this.gettingLocationIndex.set(index);
 
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                this.apiarioForm.patchValue({
+                const apiario = this.apiariosArray.at(index);
+                apiario.patchValue({
                     latitud: parseFloat(position.coords.latitude.toFixed(6)),
                     longitud: parseFloat(position.coords.longitude.toFixed(6))
                 });
-                this.apiarioForm.get('latitud')?.markAsTouched();
-                this.apiarioForm.get('longitud')?.markAsTouched();
+                apiario.get('latitud')?.markAsTouched();
+                apiario.get('longitud')?.markAsTouched();
                 this.isGettingLocation.set(false);
+                this.gettingLocationIndex.set(-1);
             },
             (error) => {
                 console.error('Error al obtener ubicación:', error);
+                this.notificationService.error('Error GPS', 'No se pudo obtener la ubicación');
                 this.isGettingLocation.set(false);
+                this.gettingLocationIndex.set(-1);
             },
             {
                 enableHighAccuracy: true,
@@ -894,6 +1061,13 @@ export class ApicultorDetailComponent implements OnInit {
                 maximumAge: 0
             }
         );
+    }
+
+    /**
+     * Verificar si se está obteniendo ubicación para un índice específico
+     */
+    isGettingLocationFor(index: number): boolean {
+        return this.isGettingLocation() && this.gettingLocationIndex() === index;
     }
 
     // ============================================================================
