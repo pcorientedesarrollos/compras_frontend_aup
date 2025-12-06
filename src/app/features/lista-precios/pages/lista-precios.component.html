@@ -1,5 +1,7 @@
 <!-- ============================================================================ -->
-<!-- 💰 LISTA DE PRECIOS - TEMPLATE -->
+<!-- 💰 LISTA DE PRECIOS - TEMPLATE (API v2.0) -->
+<!-- Nivel 1: Lista de tipos de miel -->
+<!-- Nivel 2: Modal con precios por clasificación -->
 <!-- ============================================================================ -->
 
 <div class="container mx-auto px-4 py-8">
@@ -9,7 +11,7 @@
       Lista de Precios por Tipo de Miel
     </h1>
     <p class="text-gray-600">
-      Configure los precios por kilogramo para cada tipo de miel
+      Configure los precios por kilogramo para cada tipo de miel y clasificación
     </p>
   </div>
 
@@ -20,7 +22,9 @@
     </div>
   }
 
-  <!-- Lista de Precios -->
+  <!-- ============================================================================ -->
+  <!-- NIVEL 1: Lista de Tipos de Miel -->
+  <!-- ============================================================================ -->
   @else if (tiposMiel().length > 0) {
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
       <div class="overflow-x-auto">
@@ -29,16 +33,16 @@
           <thead class="bg-gray-50">
             <tr>
               <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                No.
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                F. Modificación
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Tipo de Miel
               </th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Clasificación
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Precio ($)
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Última Actualización
+                Asignados
               </th>
               <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Acciones
@@ -48,8 +52,26 @@
 
           <!-- Table Body -->
           <tbody class="bg-white divide-y divide-gray-200">
-            @for (tipo of tiposMiel(); track tipo.id) {
+            @for (tipo of tiposMiel(); track tipo.tipoMielId) {
               <tr class="hover:bg-gray-50 transition-colors">
+                <!-- No. -->
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-500">
+                    {{ tipo.no }}
+                  </div>
+                </td>
+
+                <!-- Fecha Modificación -->
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-600">
+                    @if (tipo.fechaUltimaModificacion) {
+                      {{ tipo.fechaUltimaModificacion | date:'d/MMM/yy' | uppercase }}
+                    } @else {
+                      <span class="text-gray-400">-</span>
+                    }
+                  </div>
+                </td>
+
                 <!-- Nombre -->
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900">
@@ -57,94 +79,36 @@
                   </div>
                 </td>
 
-                <!-- Clasificación (Nueva clasificación Dic 2024) -->
-                <td class="px-6 py-4">
-                  @switch (tipo.clasificacion) {
-                    @case ('EXPORTACION_1') {
-                      <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        EXPORTACIÓN 1
-                      </span>
-                      <span class="text-xs text-gray-500 ml-1">(0-19%)</span>
-                    }
-                    @case ('EXPORTACION_2') {
-                      <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        EXPORTACIÓN 2
-                      </span>
-                      <span class="text-xs text-gray-500 ml-1">(20%)</span>
-                    }
-                    @case ('NACIONAL') {
-                      <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
-                        NACIONAL
-                      </span>
-                      <span class="text-xs text-gray-500 ml-1">(21%)</span>
-                    }
-                    @case ('INDUSTRIA') {
-                      <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                        INDUSTRIA
-                      </span>
-                      <span class="text-xs text-gray-500 ml-1">(22%+)</span>
-                    }
-                    @default {
-                      <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                        {{ tipo.clasificacion }}
-                      </span>
-                    }
-                  }
-                </td>
-
-                <!-- Precio Input -->
+                <!-- Asignados -->
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
-                    <span class="text-gray-500 mr-2">$</span>
-                    <input
-                      type="number"
-                      [value]="tipo.precio || 0"
-                      (input)="onPrecioChange(tipo, $event)"
-                      min="0"
-                      step="0.01"
-                      class="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-transparent transition-all"
-                      [disabled]="isSaving(tipo.id)"
-                    />
-                  </div>
-                </td>
-
-                <!-- Última Actualización -->
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-600">
-                    {{ tipo.fechaUltimaActualizacion | date:'short' }}
+                    @if (tipo.asignados === 4) {
+                      <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        {{ tipo.asignados }}/4
+                      </span>
+                    } @else if (tipo.asignados > 0) {
+                      <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
+                        {{ tipo.asignados }}/4
+                      </span>
+                    } @else {
+                      <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                        {{ tipo.asignados }}/4
+                      </span>
+                    }
                   </div>
                 </td>
 
                 <!-- Acciones -->
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center space-x-2">
-                    <button
-                      (click)="guardarPrecio(tipo)"
-                      [disabled]="isSaving(tipo.id)"
-                      class="bg-honey-primary hover:bg-honey-dark text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                    >
-                      @if (isSaving(tipo.id)) {
-                        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span>Guardando...</span>
-                      } @else {
-                        <span>Guardar</span>
-                      }
-                    </button>
-
-                    <button
-                      (click)="verHistorial(tipo)"
-                      class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-                      title="Ver historial de cambios"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                      <span>Historial</span>
-                    </button>
-                  </div>
+                  <button
+                    (click)="verPrecios(tipo)"
+                    class="bg-honey-primary hover:bg-honey-dark text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    <span>Editar</span>
+                  </button>
                 </td>
               </tr>
             }
@@ -178,10 +142,191 @@
 </div>
 
 <!-- ============================================================================ -->
+<!-- MODAL NIVEL 2: Precios por Clasificación -->
+<!-- ============================================================================ -->
+@if (showPreciosModal()) {
+  <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-precios" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      <div
+        class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+        (click)="cerrarPrecios()"
+      ></div>
+
+      <!-- Modal Panel -->
+      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+        <!-- Header -->
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-medium text-gray-900" id="modal-precios">
+              Precios - {{ selectedTipoMiel()?.tipoMielNombre }}
+            </h3>
+            <button
+              (click)="cerrarPrecios()"
+              class="text-gray-400 hover:text-gray-500 focus:outline-none"
+            >
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="bg-white px-6 py-4">
+          @if (preciosLoading()) {
+            <!-- Loading -->
+            <div class="flex justify-center items-center py-8">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-honey-primary"></div>
+            </div>
+          } @else if (preciosData().length > 0) {
+            <!-- Tabla de precios -->
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      No.
+                    </th>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Clasificación
+                    </th>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Precio ($)
+                    </th>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Última Actualización
+                    </th>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  @for (precio of preciosData(); track precio.no) {
+                    <tr class="hover:bg-gray-50">
+                      <!-- No. -->
+                      <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        {{ precio.no }}
+                      </td>
+
+                      <!-- Clasificación -->
+                      <td class="px-4 py-3 whitespace-nowrap">
+                        <span [class]="'px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ' + getClasificacionBadgeClass(precio.clasificacion)">
+                          {{ precio.clasificacionNombre }}
+                        </span>
+                        @switch (precio.clasificacion) {
+                          @case ('EXPORTACION_1') {
+                            <span class="text-xs text-gray-500 ml-1">(0-19%)</span>
+                          }
+                          @case ('EXPORTACION_2') {
+                            <span class="text-xs text-gray-500 ml-1">(20%)</span>
+                          }
+                          @case ('NACIONAL') {
+                            <span class="text-xs text-gray-500 ml-1">(21%)</span>
+                          }
+                          @case ('INDUSTRIA') {
+                            <span class="text-xs text-gray-500 ml-1">(22%+)</span>
+                          }
+                        }
+                      </td>
+
+                      <!-- Precio Input -->
+                      <td class="px-4 py-3 whitespace-nowrap">
+                        <div class="flex items-center">
+                          <span class="text-gray-500 mr-2">$</span>
+                          <input
+                            type="number"
+                            [value]="precio.precio || 0"
+                            (input)="onPrecioChange(precio, $event)"
+                            min="0"
+                            step="0.01"
+                            class="w-28 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-honey-primary focus:border-transparent transition-all"
+                            [disabled]="isSaving(precio.id) || !precio.existeRegistro"
+                          />
+                        </div>
+                      </td>
+
+                      <!-- Última Actualización -->
+                      <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                        @if (precio.fechaInicio) {
+                          {{ precio.fechaInicio | date:'d/MMM/yy' | uppercase }}
+                        } @else {
+                          <span class="text-gray-400">-</span>
+                        }
+                      </td>
+
+                      <!-- Acciones -->
+                      <td class="px-4 py-3 whitespace-nowrap">
+                        <div class="flex items-center space-x-2">
+                          <!-- Botón Guardar -->
+                          <button
+                            (click)="guardarPrecio(precio)"
+                            [disabled]="isSaving(precio.id) || !precio.existeRegistro"
+                            class="bg-honey-primary hover:bg-honey-dark text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1 text-sm"
+                          >
+                            @if (isSaving(precio.id)) {
+                              <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              <span>Guardando...</span>
+                            } @else {
+                              <span>Guardar</span>
+                            }
+                          </button>
+
+                          <!-- Botón Historial -->
+                          <button
+                            (click)="verHistorial(precio)"
+                            [disabled]="!precio.existeRegistro"
+                            class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition-colors flex items-center space-x-1 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Ver historial de cambios"
+                          >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>Historial</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <!-- Empty State -->
+            <div class="text-center py-8">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">Sin precios configurados</h3>
+              <p class="mt-1 text-sm text-gray-500">No hay precios disponibles para este tipo de miel</p>
+            </div>
+          }
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-gray-50 px-6 py-3 sm:flex sm:flex-row-reverse border-t border-gray-200">
+          <button
+            type="button"
+            (click)="cerrarPrecios()"
+            class="w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ============================================================================ -->
 <!-- MODAL DE HISTORIAL -->
 <!-- ============================================================================ -->
 @if (showHistorialModal()) {
-  <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="fixed inset-0 z-[60] overflow-y-auto" aria-labelledby="modal-historial" role="dialog" aria-modal="true">
     <!-- Backdrop -->
     <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
       <div
@@ -190,12 +335,12 @@
       ></div>
 
       <!-- Modal Panel -->
-      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
         <!-- Header -->
         <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
           <div class="flex items-center justify-between">
-            <h3 class="text-lg font-medium text-gray-900" id="modal-title">
-              Historial de Cambios - {{ selectedTipo()?.tipoMielNombre }} ({{ selectedTipo()?.clasificacion }})
+            <h3 class="text-lg font-medium text-gray-900" id="modal-historial">
+              Historial de Cambios - {{ selectedPrecio()?.clasificacionNombre }}
             </h3>
             <button
               (click)="cerrarHistorial()"
@@ -242,7 +387,7 @@
                   @for (item of historialData(); track item.id) {
                     <tr class="hover:bg-gray-50">
                       <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                        {{ item.fechaCambio | date:'short' }}
+                        {{ item.fechaCambio | date:'d/MMM/yy HH:mm' | uppercase }}
                       </td>
                       <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                         ${{ item.precioAnterior | number:'1.2-2' }}

@@ -1,6 +1,7 @@
 /**
  * Service: Lista de Precios
  * Fecha: 2025-11-17
+ * Actualizado: Diciembre 2024 - API v2.0 con estructura de 2 niveles
  * Descripción: Gestión de precios por tipo de miel
  */
 
@@ -9,9 +10,11 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { HttpService } from '../../../core/services/http.service';
 import {
-  TipoMielPrecio,
-  UpdatePrecioDto,
-  HistorialPrecio
+  TipoMielResumen,
+  PrecioDetalle,
+  PrecioActualizado,
+  HistorialPrecio,
+  ClasificacionPrecio
 } from '../../../core/models/lista-precios.model';
 import { ApiResponse } from '../../../core/models/user.model';
 
@@ -23,23 +26,36 @@ export class ListaPreciosService {
   private endpoint = 'lista-precios';
 
   /**
-   * Obtener todos los tipos de miel con sus precios
+   * Nivel 1: Obtener lista de tipos de miel con conteo de precios asignados
    */
-  getListaPrecios(): Observable<TipoMielPrecio[]> {
-    return this.httpService.get<ApiResponse<TipoMielPrecio[]>>(this.endpoint)
+  getTiposMiel(): Observable<TipoMielResumen[]> {
+    return this.httpService.get<ApiResponse<TipoMielResumen[]>>(`${this.endpoint}/tipos-miel`)
       .pipe(
         map(response => response.data)
       );
   }
 
   /**
+   * Nivel 2: Obtener los 4 precios de un tipo de miel específico
+   * @param tipoMielId - ID del tipo de miel
+   */
+  getPreciosPorTipo(tipoMielId: number): Observable<PrecioDetalle[]> {
+    return this.httpService.get<ApiResponse<PrecioDetalle[]>>(
+      `${this.endpoint}/tipo-miel/${tipoMielId}`
+    ).pipe(
+      map(response => response.data)
+    );
+  }
+
+  /**
    * Actualizar precio de un tipo de miel específico
    * @param id - ID del registro de precio (CUID)
    * @param precio - Nuevo precio
+   * @param motivoCambio - Motivo del cambio (opcional)
    */
-  updatePrecio(id: string, precio: number): Observable<TipoMielPrecio> {
-    const dto: UpdatePrecioDto = { precio };
-    return this.httpService.put<ApiResponse<TipoMielPrecio>>(
+  updatePrecio(id: string, precio: number, motivoCambio?: string): Observable<PrecioActualizado> {
+    const dto = { precio, ...(motivoCambio && { motivoCambio }) };
+    return this.httpService.put<ApiResponse<PrecioActualizado>>(
       `${this.endpoint}/${id}`,
       dto
     ).pipe(
@@ -61,19 +77,18 @@ export class ListaPreciosService {
 
   /**
    * Obtener precio por tipo de miel y clasificación
-   * NUEVA CLASIFICACIÓN (Dic 2024):
    * @param tipoMielId - ID del tipo de miel
-   * @param clasificacion - 'EXPORTACION_1', 'EXPORTACION_2', 'NACIONAL' o 'INDUSTRIA'
+   * @param clasificacion - Clasificación de la miel
    * @returns Precio encontrado o null si no existe
    */
   getPrecioPorTipoYClasificacion(
     tipoMielId: number,
-    clasificacion: 'EXPORTACION_1' | 'EXPORTACION_2' | 'NACIONAL' | 'INDUSTRIA'
+    clasificacion: ClasificacionPrecio
   ): Observable<number | null> {
-    return this.getListaPrecios().pipe(
+    return this.getPreciosPorTipo(tipoMielId).pipe(
       map(precios => {
         const precioEncontrado = precios.find(
-          p => p.tipoMielId === tipoMielId && p.clasificacion === clasificacion
+          p => p.clasificacion === clasificacion && p.existeRegistro
         );
         return precioEncontrado ? precioEncontrado.precio : null;
       })

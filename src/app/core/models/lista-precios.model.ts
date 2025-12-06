@@ -1,7 +1,7 @@
 /**
  * Modelo: Lista de Precios por Tipo de Miel
  * Fecha: 2025-11-17
- * Actualizado: Diciembre 2024 - Nueva clasificación de humedad
+ * Actualizado: Diciembre 2024 - API v2.0 con estructura de 2 niveles
  * Descripción: Interfaces para gestión de precios de tipos de miel
  */
 
@@ -15,10 +15,92 @@
 export type ClasificacionPrecio = 'EXPORTACION_1' | 'EXPORTACION_2' | 'NACIONAL' | 'INDUSTRIA';
 
 /**
- * Tipo de Miel con su precio (respuesta del API)
+ * Nivel 1: Resumen de tipo de miel con conteo de precios asignados
+ * Endpoint: GET /lista-precios/tipos-miel
+ */
+export interface TipoMielResumen {
+  no: number;
+  tipoMielId: number;
+  tipoMielNombre: string;
+  asignados: number; // 0-4
+  fechaUltimaModificacion: string | null;
+}
+
+/**
+ * Nivel 2: Detalle de precio por clasificación
+ * Endpoint: GET /lista-precios/tipo-miel/:tipoMielId
+ */
+export interface PrecioDetalle {
+  no: number;
+  id: string | null;
+  tipoMielId: number;
+  tipoMielNombre: string;
+  clasificacion: ClasificacionPrecio;
+  clasificacionNombre: string;
+  precio: number;
+  fechaInicio: string | null;
+  fechaFin: string | null;
+  existeRegistro: boolean;
+}
+
+/**
+ * DTO para actualizar precio de un tipo de miel
+ * Endpoint: PUT /lista-precios/:id
+ */
+export interface UpdatePrecioDto {
+  precio: number;
+  motivoCambio?: string;
+}
+
+/**
+ * Respuesta de actualización de precio
+ */
+export interface PrecioActualizado {
+  id: string;
+  tipoMielId: number;
+  tipoMielNombre: string;
+  clasificacion: ClasificacionPrecio;
+  precio: number;
+  fechaUltimaActualizacion: string;
+  usuarioActualizador: {
+    id: string;
+    nombre: string;
+  };
+}
+
+/**
+ * DTO para inicializar precios de un tipo de miel nuevo
+ * Endpoint: POST /lista-precios/tipo-miel/:tipoMielId/inicializar
+ */
+export interface InicializarPreciosDto {
+  exportacion1: number;
+  exportacion2: number;
+  nacional: number;
+  industria: number;
+}
+
+/**
+ * Historial de cambios de precio
+ */
+export interface HistorialPrecio {
+  id: string;
+  listaPrecioId: string;
+  precioAnterior: number;
+  precioNuevo: number;
+  usuarioId: string;
+  usuarioNombre: string;
+  fechaCambio: string;
+}
+
+// ============================================
+// INTERFACES LEGACY (mantener compatibilidad)
+// ============================================
+
+/**
+ * @deprecated Usar TipoMielResumen y PrecioDetalle
  */
 export interface TipoMielPrecio {
-  id: string;  // CUID
+  id: string;
   tipoMielId: number;
   tipoMielNombre: string;
   clasificacion: ClasificacionPrecio;
@@ -28,7 +110,7 @@ export interface TipoMielPrecio {
 }
 
 /**
- * Precio por clasificación (para vista agrupada)
+ * @deprecated Usar PrecioDetalle
  */
 export interface PrecioClasificacionInfo {
   id: string;
@@ -37,7 +119,7 @@ export interface PrecioClasificacionInfo {
 }
 
 /**
- * Tipo de miel con precios agrupados por clasificación
+ * @deprecated Usar TipoMielResumen + PrecioDetalle
  */
 export interface TipoMielPreciosAgrupados {
   tipoMielId: number;
@@ -48,24 +130,4 @@ export interface TipoMielPreciosAgrupados {
     nacional: PrecioClasificacionInfo | null;
     industria: PrecioClasificacionInfo | null;
   };
-}
-
-/**
- * DTO para actualizar precio de un tipo de miel
- */
-export interface UpdatePrecioDto {
-  precio: number;
-}
-
-/**
- * Historial de cambios de precio
- */
-export interface HistorialPrecio {
-  id: string;  // CUID
-  listaPrecioId: string;
-  precioAnterior: number;
-  precioNuevo: number;
-  usuarioId: string;
-  usuarioNombre: string;
-  fechaCambio: string;
 }

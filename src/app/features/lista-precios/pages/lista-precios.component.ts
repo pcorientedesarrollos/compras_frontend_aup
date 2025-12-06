@@ -4,6 +4,7 @@
  * ============================================================================
  *
  * Componente para gestionar precios por tipo de miel
+ * API v2.0: Estructura de 2 niveles (tipos de miel → precios por clasificación)
  * Solo accesible para ADMINISTRADORES
  *
  * ============================================================================
@@ -15,7 +16,11 @@ import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ListaPreciosService } from '../services/lista-precios.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { TipoMielPrecio, HistorialPrecio } from '../../../core/models/lista-precios.model';
+import {
+  TipoMielResumen,
+  PrecioDetalle,
+  HistorialPrecio
+} from '../../../core/models/lista-precios.model';
 
 @Component({
   selector: 'app-lista-precios',
@@ -28,45 +33,53 @@ export class ListaPreciosComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private destroyRef = inject(DestroyRef);
 
-  // Signals privados
-  private tiposMielSignal = signal<TipoMielPrecio[]>([]);
-
-  // Signals públicos
+  // =====================
+  // NIVEL 1: Tipos de miel
+  // =====================
+  private tiposMielSignal = signal<TipoMielResumen[]>([]);
   tiposMiel = computed(() => this.tiposMielSignal() ?? []);
   loading = signal<boolean>(false);
+
+  // =====================
+  // NIVEL 2: Modal de precios por tipo
+  // =====================
+  showPreciosModal = signal<boolean>(false);
+  preciosLoading = signal<boolean>(false);
+  preciosData = signal<PrecioDetalle[]>([]);
+  selectedTipoMiel = signal<TipoMielResumen | null>(null);
   savingIds = signal<Set<string>>(new Set());
 
+  // =====================
   // Modal de historial
+  // =====================
   showHistorialModal = signal<boolean>(false);
   historialLoading = signal<boolean>(false);
   historialData = signal<HistorialPrecio[]>([]);
-  selectedTipo = signal<TipoMielPrecio | null>(null);
+  selectedPrecio = signal<PrecioDetalle | null>(null);
 
   ngOnInit(): void {
-    this.loadListaPrecios();
+    this.loadTiposMiel();
   }
 
   /**
-   * Cargar lista de precios
+   * Nivel 1: Cargar lista de tipos de miel
    */
-  loadListaPrecios(): void {
+  loadTiposMiel(): void {
     this.loading.set(true);
 
-    this.listaPreciosService.getListaPrecios()
+    this.listaPreciosService.getTiposMiel()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (tipos) => {
-          // Asegurar que siempre sea un array
           this.tiposMielSignal.set(tipos || []);
           this.loading.set(false);
         },
         error: (error) => {
-          console.error('Error al cargar lista de precios:', error);
+          console.error('Error al cargar tipos de miel:', error);
           this.notificationService.error(
             'Error al cargar',
-            'No se pudo obtener la lista de precios'
+            'No se pudo obtener la lista de tipos de miel'
           );
-          // Asegurar que el array esté vacío en caso de error
           this.tiposMielSignal.set([]);
           this.loading.set(false);
         }
@@ -74,11 +87,56 @@ export class ListaPreciosComponent implements OnInit {
   }
 
   /**
-   * Guardar precio de un tipo de miel
+   * Nivel 2: Abrir modal de precios de un tipo de miel
    */
-  guardarPrecio(tipo: TipoMielPrecio): void {
-    // Validar precio
-    if (tipo.precio < 0) {
+  verPrecios(tipo: TipoMielResumen): void {
+    this.selectedTipoMiel.set(tipo);
+    this.showPreciosModal.set(true);
+    this.preciosLoading.set(true);
+    this.preciosData.set([]);
+
+    this.listaPreciosService.getPreciosPorTipo(tipo.tipoMielId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (precios) => {
+          this.preciosData.set(precios || []);
+          this.preciosLoading.set(false);
+        },
+        error: (error) => {
+          console.error('Error al cargar precios:', error);
+          this.notificationService.error(
+            'Error al cargar',
+            'No se pudo obtener los precios del tipo de miel'
+          );
+          this.preciosLoading.set(false);
+        }
+      });
+  }
+
+  /**
+   * Cerrar modal de precios
+   */
+  cerrarPrecios(): void {
+    this.showPreciosModal.set(false);
+    this.selectedTipoMiel.set(null);
+    this.preciosData.set([]);
+    // Recargar lista de tipos por si hubo cambios
+    this.loadTiposMiel();
+  }
+
+  /**
+   * Guardar precio individual
+   */
+  guardarPrecio(precio: PrecioDetalle): void {
+    if (!precio.id) {
+      this.notificationService.warning(
+        'Sin registro',
+        'Este precio no tiene registro. Contacte al administrador.'
+      );
+      return;
+    }
+
+    if (precio.precio < 0) {
       this.notificationService.warning(
         'Precio inválido',
         'El precio no puede ser negativo'
@@ -86,27 +144,28 @@ export class ListaPreciosComponent implements OnInit {
       return;
     }
 
-    // Marcar como guardando
-    this.savingIds.update(ids => new Set(ids).add(tipo.id));
+    this.savingIds.update(ids => new Set(ids).add(precio.id!));
 
-    this.listaPreciosService.updatePrecio(tipo.id, tipo.precio)
+    this.listaPreciosService.updatePrecio(precio.id, precio.precio)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (tipoActualizado) => {
-          // Actualizar en la lista
-          this.tiposMielSignal.update(tipos =>
-            tipos.map(t => t.id === tipoActualizado.id ? tipoActualizado : t)
+        next: (precioActualizado) => {
+          // Actualizar en la lista de precios del modal
+          this.preciosData.update(precios =>
+            precios.map(p => p.id === precioActualizado.id
+              ? { ...p, precio: precioActualizado.precio, fechaInicio: precioActualizado.fechaUltimaActualizacion }
+              : p
+            )
           );
 
           this.notificationService.success(
             'Precio actualizado',
-            `Precio de ${tipo.tipoMielNombre} - ${tipo.clasificacion} guardado correctamente`
+            `${precio.clasificacionNombre} guardado correctamente`
           );
 
-          // Remover del set de guardando
           this.savingIds.update(ids => {
             const newIds = new Set(ids);
-            newIds.delete(tipo.id);
+            newIds.delete(precio.id!);
             return newIds;
           });
         },
@@ -114,13 +173,12 @@ export class ListaPreciosComponent implements OnInit {
           console.error('Error al guardar precio:', error);
           this.notificationService.error(
             'Error al guardar',
-            `No se pudo actualizar el precio de ${tipo.tipoMielNombre}`
+            `No se pudo actualizar el precio de ${precio.clasificacionNombre}`
           );
 
-          // Remover del set de guardando
           this.savingIds.update(ids => {
             const newIds = new Set(ids);
-            newIds.delete(tipo.id);
+            newIds.delete(precio.id!);
             return newIds;
           });
         }
@@ -128,25 +186,24 @@ export class ListaPreciosComponent implements OnInit {
   }
 
   /**
-   * Verificar si un tipo está guardando
+   * Verificar si un precio está guardando
    */
-  isSaving(id: string): boolean {
+  isSaving(id: string | null): boolean {
+    if (!id) return false;
     return this.savingIds().has(id);
   }
 
   /**
    * Manejar cambio en input de precio
    */
-  onPrecioChange(tipo: TipoMielPrecio, event: Event): void {
+  onPrecioChange(precio: PrecioDetalle, event: Event): void {
     const input = event.target as HTMLInputElement;
     const value = parseFloat(input.value);
 
-    // Si el valor es válido, actualizar
     if (!isNaN(value)) {
-      tipo.precio = value;
+      precio.precio = value;
     } else {
-      // Si está vacío o inválido, resetear a 0
-      tipo.precio = 0;
+      precio.precio = 0;
       input.value = '0';
     }
   }
@@ -154,13 +211,21 @@ export class ListaPreciosComponent implements OnInit {
   /**
    * Abrir modal de historial
    */
-  verHistorial(tipo: TipoMielPrecio): void {
-    this.selectedTipo.set(tipo);
+  verHistorial(precio: PrecioDetalle): void {
+    if (!precio.id) {
+      this.notificationService.warning(
+        'Sin historial',
+        'Este precio no tiene registro de historial'
+      );
+      return;
+    }
+
+    this.selectedPrecio.set(precio);
     this.showHistorialModal.set(true);
     this.historialLoading.set(true);
     this.historialData.set([]);
 
-    this.listaPreciosService.getHistorial(tipo.id)
+    this.listaPreciosService.getHistorial(precio.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (historial) => {
@@ -183,7 +248,20 @@ export class ListaPreciosComponent implements OnInit {
    */
   cerrarHistorial(): void {
     this.showHistorialModal.set(false);
-    this.selectedTipo.set(null);
+    this.selectedPrecio.set(null);
     this.historialData.set([]);
+  }
+
+  /**
+   * Obtener clase CSS para badge de clasificación
+   */
+  getClasificacionBadgeClass(clasificacion: string): string {
+    switch (clasificacion) {
+      case 'EXPORTACION_1': return 'bg-green-100 text-green-800';
+      case 'EXPORTACION_2': return 'bg-blue-100 text-blue-800';
+      case 'NACIONAL': return 'bg-amber-100 text-amber-800';
+      case 'INDUSTRIA': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   }
 }
