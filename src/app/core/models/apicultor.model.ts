@@ -96,6 +96,8 @@ export interface ApicultorApiario {
     id: string;                          // CUID del apiario
     nombre: string;                      // Nombre del apiario
     colmenas: number;                    // Número de colmenas
+    produccion: number;                  // Producción por colmena (kg)
+    produccionAnual: number;             // Producción anual total (kg)
     latitud: string | null;              // Coordenada GPS (string en DB)
     longitud: string | null;             // Coordenada GPS (string en DB)
 }

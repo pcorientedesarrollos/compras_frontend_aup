@@ -1,0 +1,249 @@
+<!-- ============================================================================
+     APIARIO FORM MODAL - TEMPLATE
+     ============================================================================ -->
+
+@if (isOpen()) {
+<div class="modal-overlay" (click)="onClose()" (keydown)="onKeydown($event)">
+    <div class="modal-container" (click)="onModalClick($event)">
+
+        <!-- Header -->
+        <div class="modal-header">
+            <div class="header-content">
+                <div class="icon-wrapper">
+                    <app-icon name="home" size="xl" color="text-honey-primary" />
+                </div>
+                <div>
+                    <h2 class="modal-title">{{ modalTitle() }}</h2>
+                    <p class="modal-subtitle">
+                        {{ modalSubtitle() }}
+                        <span class="separator">•</span>
+                        <span class="apicultor-name">{{ apicultorNombre() }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <button
+                type="button"
+                class="close-button"
+                (click)="onClose()"
+                [disabled]="isSaving()"
+                title="Cerrar (Esc)">
+                <app-icon name="x-mark" size="md" />
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+            <form [formGroup]="apiarioForm" (ngSubmit)="onSubmit()" id="apiarioForm">
+
+                <!-- Sección: Información del Apiario -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <app-icon name="document-text" size="sm" color="text-honey-primary" />
+                        <span>Información del Apiario</span>
+                    </h3>
+
+                    <div class="form-grid">
+                        <!-- Nombre del Apiario -->
+                        <div class="form-group col-span-2">
+                            <label for="nombre" class="form-label">
+                                Nombre del Apiario <span class="required">*</span>
+                            </label>
+                            <input
+                                id="nombre"
+                                type="text"
+                                formControlName="nombre"
+                                class="form-input"
+                                placeholder="Ej: Apiario Principal"
+                                [class.error]="hasError('nombre', 'required') || hasError('nombre', 'minlength') || hasError('nombre', 'maxlength')">
+                            @if (hasError('nombre', 'required') || hasError('nombre', 'minlength') || hasError('nombre', 'maxlength')) {
+                                <span class="error-message">{{ getErrorMessage('nombre') }}</span>
+                            }
+                        </div>
+
+                        <!-- Número de Colmenas -->
+                        <div class="form-group">
+                            <label for="colmenas" class="form-label">
+                                Número de Colmenas <span class="required">*</span>
+                            </label>
+                            <input
+                                id="colmenas"
+                                type="number"
+                                formControlName="colmenas"
+                                class="form-input"
+                                min="1"
+                                max="10000"
+                                placeholder="Ej: 50"
+                                [class.error]="hasError('colmenas', 'required') || hasError('colmenas', 'min') || hasError('colmenas', 'max')">
+                            @if (hasError('colmenas', 'required') || hasError('colmenas', 'min') || hasError('colmenas', 'max')) {
+                                <span class="error-message">{{ getErrorMessage('colmenas') }}</span>
+                            }
+                            <p class="help-text">Valor entre 1 y 10,000</p>
+                        </div>
+
+                        <!-- Producción por Colmena -->
+                        <div class="form-group">
+                            <label for="produccion" class="form-label">
+                                Producción por Colmena (kg) <span class="required">*</span>
+                            </label>
+                            <input
+                                id="produccion"
+                                type="number"
+                                formControlName="produccion"
+                                class="form-input"
+                                min="0.01"
+                                max="1000"
+                                step="0.01"
+                                placeholder="Ej: 25.5"
+                                [class.error]="hasError('produccion', 'required') || hasError('produccion', 'min') || hasError('produccion', 'max')">
+                            @if (hasError('produccion', 'required') || hasError('produccion', 'min') || hasError('produccion', 'max')) {
+                                <span class="error-message">{{ getErrorMessage('produccion') }}</span>
+                            }
+                            <p class="help-text">Producción por colmena (0.01 - 1,000 kg)</p>
+                        </div>
+                    </div>
+
+                    <!-- Card: Producción Anual Calculada -->
+                    @if (produccionAnualCalculada() > 0) {
+                    <div class="produccion-anual-card">
+                        <div class="produccion-content">
+                            <div class="icon-produccion">
+                                <app-icon name="chart-bar" size="lg" color="text-honey-primary" />
+                            </div>
+                            <div>
+                                <p class="produccion-label">Producción Anual Total</p>
+                                <p class="produccion-value">
+                                    {{ produccionAnualCalculada() | number:'1.2-2' }} kg
+                                </p>
+                                <p class="produccion-formula">
+                                    {{ apiarioForm.get('colmenas')?.value || 0 }} colmenas ×
+                                    {{ apiarioForm.get('produccion')?.value || 0 }} kg/colmena
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    }
+                </div>
+
+                <!-- Sección: Ubicación GPS -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <app-icon name="map-pin" size="sm" color="text-honey-primary" />
+                        <span>Ubicación GPS</span>
+                    </h3>
+
+                    <!-- Botón Geolocalización -->
+                    <div class="geolocation-wrapper">
+                        <button
+                            type="button"
+                            class="btn-geolocation"
+                            (click)="getCurrentLocation()"
+                            [disabled]="isGettingLocation()">
+                            @if (isGettingLocation()) {
+                                <div class="spinner-small"></div>
+                                <span>Obteniendo ubicación...</span>
+                            } @else {
+                                <app-icon name="map" size="sm" />
+                                <span>Usar mi ubicación actual</span>
+                            }
+                        </button>
+
+                        @if (geolocationError()) {
+                        <div class="geolocation-error">
+                            <app-icon name="exclamation-circle" size="sm" />
+                            <span>{{ geolocationError() }}</span>
+                        </div>
+                        }
+                    </div>
+
+                    <div class="form-grid">
+                        <!-- Latitud -->
+                        <div class="form-group">
+                            <label for="latitud" class="form-label">
+                                Latitud <span class="required">*</span>
+                            </label>
+                            <input
+                                id="latitud"
+                                type="number"
+                                formControlName="latitud"
+                                class="form-input"
+                                step="0.000001"
+                                placeholder="Ej: 17.0654"
+                                [class.error]="hasError('latitud', 'required') || hasError('latitud', 'min') || hasError('latitud', 'max')">
+                            @if (hasError('latitud', 'required') || hasError('latitud', 'min') || hasError('latitud', 'max')) {
+                                <span class="error-message">{{ getErrorMessage('latitud') }}</span>
+                            }
+                            <p class="help-text">Valor entre -90 y 90</p>
+                        </div>
+
+                        <!-- Longitud -->
+                        <div class="form-group">
+                            <label for="longitud" class="form-label">
+                                Longitud <span class="required">*</span>
+                            </label>
+                            <input
+                                id="longitud"
+                                type="number"
+                                formControlName="longitud"
+                                class="form-input"
+                                step="0.000001"
+                                placeholder="Ej: -96.7236"
+                                [class.error]="hasError('longitud', 'required') || hasError('longitud', 'min') || hasError('longitud', 'max')">
+                            @if (hasError('longitud', 'required') || hasError('longitud', 'min') || hasError('longitud', 'max')) {
+                                <span class="error-message">{{ getErrorMessage('longitud') }}</span>
+                            }
+                            <p class="help-text">Valor entre -180 y 180</p>
+                        </div>
+                    </div>
+
+                    <!-- Preview de mapa -->
+                    @if (apiarioForm.get('latitud')?.valid && apiarioForm.get('longitud')?.valid) {
+                    <div class="map-preview">
+                        <p class="map-preview-text">
+                            <app-icon name="map" size="sm" />
+                            <span>
+                                Ubicación: {{ apiarioForm.get('latitud')?.value | number:'1.6-6' }},
+                                {{ apiarioForm.get('longitud')?.value | number:'1.6-6' }}
+                            </span>
+                        </p>
+                        <a
+                            href="https://www.google.com/maps?q={{ apiarioForm.get('latitud')?.value }},{{ apiarioForm.get('longitud')?.value }}"
+                            target="_blank"
+                            class="map-preview-link">
+                            Ver en Google Maps
+                            <app-icon name="arrow-up-tray" size="sm" />
+                        </a>
+                    </div>
+                    }
+                </div>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+            <button
+                type="button"
+                class="btn-cancel"
+                (click)="onClose()"
+                [disabled]="isSaving()">
+                <app-icon name="x-mark" size="sm" />
+                <span>Cancelar</span>
+            </button>
+
+            <button
+                type="submit"
+                form="apiarioForm"
+                class="btn-submit"
+                [disabled]="!isFormValid() || isSaving()">
+                @if (isSaving()) {
+                    <div class="spinner-small"></div>
+                    <span>Guardando...</span>
+                } @else {
+                    <app-icon name="check" size="sm" />
+                    <span>{{ submitButtonText() }}</span>
+                }
+            </button>
+        </div>
+    </div>
+</div>
+}

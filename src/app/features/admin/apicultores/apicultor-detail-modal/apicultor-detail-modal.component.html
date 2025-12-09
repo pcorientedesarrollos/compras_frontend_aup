@@ -165,7 +165,12 @@
                     </button>
                 </div>
 
-                <app-honey-table [columns]="apiariosColumns()" [data]="apiarios()" [config]="apiariosTableConfig()"
+                <app-honey-table
+                    [columns]="apiariosColumns()"
+                    [data]="apiarios()"
+                    [config]="apiariosTableConfig()"
+                    [rowActions]="apiariosRowActions()"
+                    (actionClick)="onApiarioAction($event)"
                     rowKey="id">
                 </app-honey-table>
             </div>
@@ -203,4 +208,14 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de Apiario (Crear/Editar) -->
+<app-apiario-form-modal
+    [isOpen]="isApiarioModalOpen()"
+    [apicultorId]="apicultor().id"
+    [apicultorNombre]="apicultor().nombreCompleto"
+    [apiario]="selectedApiarioForEdit()"
+    (close)="onApiarioModalClose()"
+    (saved)="onApiarioSaved()">
+</app-apiario-form-modal>
 }

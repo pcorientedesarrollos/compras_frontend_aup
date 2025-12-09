@@ -16,12 +16,12 @@
 import { Component, computed, signal, inject, DestroyRef, input, output, effect } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 
 // Componentes reutilizables
 import { IconComponent } from '../../../../shared/components/ui/icon/icon.component';
 import { BadgeComponent } from '../../../../shared/components/ui/badge/badge.component';
 import { HoneyTableComponent } from '../../../../shared/components/data/honey-table/honey-table.component';
+import { ApiarioFormModalComponent } from '../../../admin/apiarios/apiario-form-modal/apiario-form-modal.component';
 
 // Tipos y modelos
 import { TableColumn, TableConfig } from '../../../../shared/components/data/honey-table/types/table.types';
@@ -40,6 +40,7 @@ import { EstadoService } from '../../../../core/services/estado.service';
 import { MunicipioService } from '../../../../core/services/municipio.service';
 import { IconName } from '../../../../shared/components/ui/icon';
 import { EntradaMielAPI } from '../../../../core/models/entrada-miel.model';
+import { ActionMenuConfig } from '../../../../shared/components/data/honey-table/types/action.types';
 
 type TabId = 'general' | 'proveedores' | 'apiarios' | 'mielPorTipo';
 
@@ -57,7 +58,8 @@ interface Tab {
         CommonModule,
         IconComponent,
         BadgeComponent,
-        HoneyTableComponent
+        HoneyTableComponent,
+        ApiarioFormModalComponent
     ],
     templateUrl: './apicultor-detail-modal.component.html',
     styleUrl: './apicultor-detail-modal.component.css'
@@ -68,7 +70,6 @@ export class ApicultorDetailModalComponent {
     private entradaMielService = inject(EntradaMielService);
     private estadoService = inject(EstadoService);
     private municipioService = inject(MunicipioService);
-    private router = inject(Router);
     private destroyRef = inject(DestroyRef);
 
     // ============================================================================
@@ -106,6 +107,10 @@ export class ApicultorDetailModalComponent {
     /** Mapas de catálogos */
     private estadosMap = signal<Map<string, string>>(new Map());
     private municipiosMap = signal<Map<string, string>>(new Map());
+
+    /** Modal de apiario */
+    isApiarioModalOpen = signal<boolean>(false);
+    selectedApiarioForEdit = signal<ApicultorApiario | null>(null);
 
     // ============================================================================
     // COMPUTED
@@ -163,7 +168,7 @@ export class ApicultorDetailModalComponent {
             },
             {
                 id: 'mielPorTipo' as TabId,
-                label: 'Miel por Tipo',
+                label: 'Entradas de miel',
                 icon: 'shopping-bag' as IconName,
                 visible: !!(apic.mielPorTipo && apic.mielPorTipo.length > 0)
             }
@@ -299,9 +304,29 @@ export class ApicultorDetailModalComponent {
         loadingMessage: 'Cargando apiarios...',
         emptyMessage: 'Este apicultor no tiene apiarios registrados',
         striped: true,
-        hoverable: false,
+        hoverable: true,
         stickyHeader: false,
         size: 'sm'
+    }));
+
+    /**
+     * Acciones para tabla de apiarios
+     */
+    apiariosRowActions = computed<ActionMenuConfig>(() => ({
+        items: [
+            {
+                key: 'edit',
+                label: 'Editar',
+                icon: 'pencil',
+                variant: 'primary'
+            },
+            {
+                key: 'map',
+                label: 'Ver en mapa',
+                icon: 'map-pin',
+                variant: 'info'
+            }
+        ]
     }));
 
     /**
@@ -512,27 +537,61 @@ export class ApicultorDetailModalComponent {
     }
 
     /**
-     * Crear nuevo apiario (navega con apicultorId pre-seleccionado)
-     * ✅ Usa ruta dinámica según el rol del usuario
+     * Crear nuevo apiario - Abre modal de formulario
      */
     crearNuevoApiario(): void {
-        const apicultorId = this.apicultor().id;
-        const baseRoute = this.getBaseRoute();
-
-        // ✅ Navegar primero y luego cerrar modal cuando la navegación se complete
-        this.router.navigate([`${baseRoute}/apiarios/nuevo`], {
-            queryParams: { apicultorId }
-        }).then(() => {
-            this.onClose(); // Cerrar modal DESPUÉS de navegar
-        });
+        this.selectedApiarioForEdit.set(null);
+        this.isApiarioModalOpen.set(true);
     }
 
     /**
-     * ✅ Obtener ruta base según el rol del usuario
+     * Editar apiario - Abre modal de formulario con datos
      */
-    private getBaseRoute(): string {
-        const currentUser = this.authService.getCurrentUser();
-        return currentUser?.role === 'ACOPIADOR' ? '/acopiador' : '/admin';
+    editarApiario(apiario: ApicultorApiario): void {
+        this.selectedApiarioForEdit.set(apiario);
+        this.isApiarioModalOpen.set(true);
+    }
+
+    /**
+     * Manejar acciones de la tabla de apiarios
+     */
+    onApiarioAction(event: { action: string; row: ApicultorApiario; index: number }): void {
+        const { action, row } = event;
+
+        switch (action) {
+            case 'edit':
+                this.editarApiario(row);
+                break;
+            case 'map':
+                this.verEnMapa(row);
+                break;
+        }
+    }
+
+    /**
+     * Ver apiario en Google Maps
+     */
+    private verEnMapa(apiario: ApicultorApiario): void {
+        if (apiario.latitud && apiario.longitud) {
+            const url = `https://www.google.com/maps?q=${apiario.latitud},${apiario.longitud}`;
+            window.open(url, '_blank');
+        }
+    }
+
+    /**
+     * Cerrar modal de apiario
+     */
+    onApiarioModalClose(): void {
+        this.isApiarioModalOpen.set(false);
+        this.selectedApiarioForEdit.set(null);
+    }
+
+    /**
+     * Manejar guardado exitoso del apiario
+     */
+    onApiarioSaved(): void {
+        // Recargar el detalle del apicultor para refrescar la lista de apiarios
+        this.loadApicultorDetalle();
     }
 
     /**

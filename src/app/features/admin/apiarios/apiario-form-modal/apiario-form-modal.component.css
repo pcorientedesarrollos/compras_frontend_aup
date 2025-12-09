@@ -1,0 +1,306 @@
+/**
+ * ============================================================================
+ * APIARIO FORM MODAL - STYLES
+ * ============================================================================
+ */
+
+/* ============================================================================
+   OVERLAY
+   ============================================================================ */
+
+.modal-overlay {
+    @apply fixed inset-0 flex items-center justify-center;
+    @apply bg-black bg-opacity-50 backdrop-blur-sm;
+    @apply p-4;
+    z-index: 60; /* Mayor que el modal de apicultor (z-50) */
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ============================================================================
+   CONTAINER
+   ============================================================================ */
+
+.modal-container {
+    @apply bg-white rounded-xl shadow-2xl;
+    @apply w-full max-w-2xl max-h-[90vh];
+    @apply flex flex-col;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ============================================================================
+   HEADER
+   ============================================================================ */
+
+.modal-header {
+    @apply flex items-center justify-between;
+    @apply px-6 py-5 border-b border-gray-200;
+    @apply bg-gradient-to-r from-amber-50 to-orange-50;
+    @apply rounded-t-xl;
+}
+
+.header-content {
+    @apply flex items-center space-x-4;
+}
+
+.icon-wrapper {
+    @apply w-12 h-12 rounded-full;
+    @apply bg-white shadow-md;
+    @apply flex items-center justify-center;
+}
+
+.modal-title {
+    @apply text-xl font-bold text-gray-900;
+}
+
+.modal-subtitle {
+    @apply text-sm text-gray-600 mt-1;
+}
+
+.separator {
+    @apply mx-2 text-gray-400;
+}
+
+.apicultor-name {
+    @apply font-semibold text-honey-primary;
+}
+
+.close-button {
+    @apply w-10 h-10 rounded-full;
+    @apply hover:bg-gray-200 transition-colors;
+    @apply flex items-center justify-center;
+    @apply text-gray-500 hover:text-gray-700;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* ============================================================================
+   BODY
+   ============================================================================ */
+
+.modal-body {
+    @apply flex-1 overflow-y-auto;
+    @apply px-6 py-5;
+}
+
+/* ============================================================================
+   FORM SECTIONS
+   ============================================================================ */
+
+.form-section {
+    @apply bg-gray-50 rounded-lg p-5 mb-5;
+    @apply border border-gray-200;
+}
+
+.form-section:last-child {
+    @apply mb-0;
+}
+
+.section-title {
+    @apply flex items-center space-x-2;
+    @apply text-base font-semibold text-gray-800 mb-4;
+    @apply pb-3 border-b border-gray-200;
+}
+
+/* ============================================================================
+   FORM GRID
+   ============================================================================ */
+
+.form-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+.form-group {
+    @apply flex flex-col space-y-1.5;
+}
+
+.form-group.col-span-2 {
+    grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+    .form-group.col-span-2 {
+        grid-column: span 2;
+    }
+}
+
+/* ============================================================================
+   FORM INPUTS
+   ============================================================================ */
+
+.form-label {
+    @apply text-sm font-semibold text-gray-700;
+}
+
+.form-label .required {
+    @apply text-red-500;
+}
+
+.form-input {
+    @apply px-4 py-2.5 border border-gray-300 rounded-lg;
+    @apply focus:ring-2 focus:ring-honey-primary focus:border-honey-primary;
+    @apply transition-all text-gray-900 placeholder-gray-400;
+}
+
+.form-input:disabled {
+    @apply bg-gray-100 text-gray-500 cursor-not-allowed;
+}
+
+.form-input.error {
+    @apply border-red-500 focus:ring-red-500 focus:border-red-500;
+}
+
+/* ============================================================================
+   FORM MESSAGES
+   ============================================================================ */
+
+.error-message {
+    @apply text-xs text-red-600 font-medium;
+}
+
+.help-text {
+    @apply text-xs text-gray-500;
+}
+
+/* ============================================================================
+   PRODUCCIÓN ANUAL CARD
+   ============================================================================ */
+
+.produccion-anual-card {
+    @apply mt-4 p-4 bg-gradient-to-br from-honey-primary/10 to-amber-50;
+    @apply border-2 border-honey-primary/30 rounded-xl;
+}
+
+.produccion-content {
+    @apply flex items-center space-x-4;
+}
+
+.icon-produccion {
+    @apply w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-md;
+}
+
+.produccion-label {
+    @apply text-sm text-gray-600 font-medium;
+}
+
+.produccion-value {
+    @apply text-2xl font-bold text-honey-primary;
+}
+
+.produccion-formula {
+    @apply text-xs text-gray-500 mt-1;
+}
+
+/* ============================================================================
+   GEOLOCALIZACIÓN
+   ============================================================================ */
+
+.geolocation-wrapper {
+    @apply space-y-3 mb-4;
+}
+
+.btn-geolocation {
+    @apply w-full md:w-auto flex items-center justify-center space-x-2;
+    @apply px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white;
+    @apply font-medium rounded-lg transition-all;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.geolocation-error {
+    @apply flex items-center space-x-2;
+    @apply p-3 bg-red-50 border border-red-200 rounded-lg;
+    @apply text-sm text-red-700;
+}
+
+.map-preview {
+    @apply mt-4 p-4 bg-white border border-gray-200 rounded-lg;
+    @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3;
+}
+
+.map-preview-text {
+    @apply flex items-center space-x-2 text-sm text-gray-700 font-medium;
+}
+
+.map-preview-link {
+    @apply inline-flex items-center space-x-2;
+    @apply text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors;
+}
+
+/* ============================================================================
+   FOOTER
+   ============================================================================ */
+
+.modal-footer {
+    @apply flex justify-end items-center space-x-3;
+    @apply px-6 py-4 border-t border-gray-200;
+    @apply bg-gray-50 rounded-b-xl;
+}
+
+.btn-cancel,
+.btn-submit {
+    @apply flex items-center justify-center space-x-2;
+    @apply px-5 py-2.5 font-medium rounded-lg transition-all;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-cancel {
+    @apply bg-white hover:bg-gray-100 text-gray-700;
+    @apply border border-gray-300;
+}
+
+.btn-submit {
+    @apply bg-honey-primary hover:bg-honey-dark text-white;
+}
+
+/* ============================================================================
+   SPINNER
+   ============================================================================ */
+
+.spinner-small {
+    @apply w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 640px) {
+    .modal-container {
+        @apply max-h-[95vh];
+    }
+
+    .modal-header {
+        @apply px-4 py-4;
+    }
+
+    .modal-body {
+        @apply px-4 py-4;
+    }
+
+    .form-section {
+        @apply p-4;
+    }
+
+    .modal-footer {
+        @apply px-4 py-3 flex-col-reverse space-x-0 space-y-2 space-y-reverse;
+    }
+
+    .btn-cancel,
+    .btn-submit {
+        @apply w-full;
+    }
+}
