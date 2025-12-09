@@ -25,6 +25,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { UsuarioService } from '../../../../core/services/usuario.service';
 import { ProveedorService } from '../../../../core/services/proveedor.service';
 import { ApicultorService } from '../../../../core/services/apicultor.service';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 // Modelos
 import {
@@ -56,6 +57,7 @@ export class UsuarioFormComponent implements OnInit {
     private usuarioService = inject(UsuarioService);
     private proveedorService = inject(ProveedorService);
     private apicultorService = inject(ApicultorService);
+    private notificationService = inject(NotificationService);
     private fb = inject(FormBuilder);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
@@ -85,6 +87,9 @@ export class UsuarioFormComponent implements OnInit {
 
     /** Errores de validación de contraseña */
     passwordErrors = signal<string[]>([]);
+
+    /** Rol seleccionado (signal para reactividad) */
+    selectedRoleSignal = signal<UserRole | null>(null);
 
     /** Listas para selects */
     proveedores = signal<ProveedorAPI[]>([]);
@@ -116,17 +121,10 @@ export class UsuarioFormComponent implements OnInit {
     });
 
     /**
-     * Rol seleccionado en el formulario
-     */
-    selectedRole = computed(() => {
-        return this.usuarioForm?.value.role as UserRole || null;
-    });
-
-    /**
      * ¿Mostrar campo proveedorId?
      */
     showProveedorField = computed(() => {
-        const role = this.selectedRole();
+        const role = this.selectedRoleSignal();
         return role === 'ACOPIADOR' || role === 'MIELERA';
     });
 
@@ -134,7 +132,7 @@ export class UsuarioFormComponent implements OnInit {
      * ¿Mostrar campo apicultorId?
      */
     showApicultorField = computed(() => {
-        const role = this.selectedRole();
+        const role = this.selectedRoleSignal();
         return role === 'APICULTOR';
     });
 
@@ -142,7 +140,7 @@ export class UsuarioFormComponent implements OnInit {
      * ¿Mostrar campo verificadorId?
      */
     showVerificadorField = computed(() => {
-        const role = this.selectedRole();
+        const role = this.selectedRoleSignal();
         return role === 'VERIFICADOR';
     });
 
@@ -209,19 +207,51 @@ export class UsuarioFormComponent implements OnInit {
                 }
             });
 
-        // Limpiar campos condicionales cuando cambia el rol
+        // Actualizar validaciones cuando cambia el rol
         this.usuarioForm.get('role')?.valueChanges
             .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(() => {
+            .subscribe((role: UserRole) => {
+                // Actualizar signal del rol para reactividad en computed
+                this.selectedRoleSignal.set(role);
+
+                // Limpiar campos condicionales
                 this.usuarioForm.patchValue({
                     proveedorId: null,
                     apicultorId: null,
                     verificadorId: null
                 });
+
+                // Actualizar validaciones según el rol
+                this.updateConditionalValidators(role);
             });
 
         // Initial state
         this.formValid.set(this.usuarioForm.valid);
+    }
+
+    /**
+     * Actualizar validadores condicionales según el rol
+     */
+    private updateConditionalValidators(role: UserRole): void {
+        const proveedorIdControl = this.usuarioForm.get('proveedorId');
+        const apicultorIdControl = this.usuarioForm.get('apicultorId');
+
+        // Limpiar validadores previos
+        proveedorIdControl?.clearValidators();
+        apicultorIdControl?.clearValidators();
+
+        // Agregar validadores según el rol
+        if (role === 'ACOPIADOR' || role === 'MIELERA') {
+            proveedorIdControl?.setValidators([Validators.required]);
+        }
+
+        if (role === 'APICULTOR') {
+            apicultorIdControl?.setValidators([Validators.required]);
+        }
+
+        // Actualizar estado de validación
+        proveedorIdControl?.updateValueAndValidity();
+        apicultorIdControl?.updateValueAndValidity();
     }
 
     /**
@@ -256,6 +286,11 @@ export class UsuarioFormComponent implements OnInit {
             .subscribe({
                 next: (user) => {
                     this.currentUser.set(user);
+
+                    // Actualizar signal del rol ANTES de patchValue
+                    this.selectedRoleSignal.set(user.role);
+                    this.updateConditionalValidators(user.role);
+
                     this.usuarioForm.patchValue({
                         username: user.username,
                         email: user.email || '',
@@ -332,7 +367,8 @@ export class UsuarioFormComponent implements OnInit {
             password: formValue.password,
             nombre: formValue.nombre,
             role: formValue.role,
-            proveedorId: formValue.proveedorId || undefined,
+            // proveedorId es number (int), asegurar tipo correcto
+            proveedorId: formValue.proveedorId ? Number(formValue.proveedorId) : undefined,
             apicultorId: formValue.apicultorId || undefined,
             verificadorId: formValue.verificadorId || undefined
         };
@@ -341,11 +377,13 @@ export class UsuarioFormComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: () => {
+                    this.notificationService.success('Usuario creado exitosamente');
                     this.router.navigate(['/admin/usuarios']);
                 },
                 error: (error) => {
                     console.error('Error al crear usuario:', error);
-                    this.errorMessage.set(error.error?.message || 'Error al crear usuario');
+                    const message = error.message || 'Error al crear usuario';
+                    this.notificationService.error(message);
                     this.isLoading.set(false);
                 }
             });
@@ -366,7 +404,8 @@ export class UsuarioFormComponent implements OnInit {
             email: formValue.email || undefined,
             nombre: formValue.nombre,
             role: formValue.role,
-            proveedorId: formValue.proveedorId || null,
+            // proveedorId es number (int), asegurar tipo correcto
+            proveedorId: formValue.proveedorId ? Number(formValue.proveedorId) : null,
             apicultorId: formValue.apicultorId || null,
             verificadorId: formValue.verificadorId || null
         };
@@ -375,11 +414,13 @@ export class UsuarioFormComponent implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: () => {
+                    this.notificationService.success('Usuario actualizado exitosamente');
                     this.router.navigate(['/admin/usuarios']);
                 },
                 error: (error) => {
                     console.error('Error al actualizar usuario:', error);
-                    this.errorMessage.set(error.error?.message || 'Error al actualizar usuario');
+                    const message = error.message || 'Error al actualizar usuario';
+                    this.notificationService.error(message);
                     this.isLoading.set(false);
                 }
             });

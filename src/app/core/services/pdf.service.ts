@@ -18,6 +18,26 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { EntradaMielDetailAPI } from '../models/index';
 
+/**
+ * Información adicional del apicultor para el PDF
+ */
+export interface ApicultorInfoPdf {
+    codigo: string;
+    curp: string;
+    rfc?: string | null;
+    direccion?: string | null;
+    idRasmiel?: string | null;
+    uppSiniiga?: string | null;
+}
+
+/**
+ * Opciones adicionales para generar el PDF de entrada
+ */
+export interface PdfEntradaOptions {
+    apicultorInfo?: ApicultorInfoPdf;
+    acopiadorNombre?: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -53,20 +73,27 @@ export class PdfService {
 
     /**
      * Genera PDF profesional de una entrada de miel
+     * @param entrada Datos de la entrada de miel
+     * @param options Opciones adicionales (info apicultor, nombre acopiador)
      */
-    generarPdfEntrada(entrada: EntradaMielDetailAPI): void {
+    generarPdfEntrada(entrada: EntradaMielDetailAPI, options?: PdfEntradaOptions): void {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
         let yPos = 15;
 
         // ========== HEADER ==========
-        yPos = this.drawHeader(doc, yPos, pageWidth);
+        yPos = this.drawHeader(doc, yPos, pageWidth, options?.acopiadorNombre);
 
         // ========== TÍTULO DEL DOCUMENTO ==========
         yPos = this.drawDocumentTitle(doc, yPos, pageWidth, 'COMPROBANTE DE ENTRADA DE MIEL');
 
         // ========== INFORMACIÓN DE LA ENTRADA ==========
         yPos = this.drawEntradaInfo(doc, yPos, pageWidth, entrada);
+
+        // ========== INFORMACIÓN DEL APICULTOR (si está disponible) ==========
+        if (options?.apicultorInfo) {
+            yPos = this.drawApicultorInfo(doc, yPos, pageWidth, entrada.apicultorNombre, options.apicultorInfo);
+        }
 
         // ========== TABLA DE DETALLES ==========
         yPos = this.drawDetallesTable(doc, yPos, entrada);
@@ -75,7 +102,7 @@ export class PdfService {
         yPos = this.drawTotales(doc, yPos, pageWidth, entrada);
 
         // ========== FOOTER ==========
-        this.drawFooter(doc, pageWidth);
+        this.drawFooter(doc, pageWidth, options?.acopiadorNombre);
 
         // ========== GUARDAR PDF ==========
         const fileName = `Entrada_${entrada.folio.replace(/\//g, '-')}_${this.formatDateForFileName(entrada.fecha)}.pdf`;
@@ -87,9 +114,9 @@ export class PdfService {
     // ============================================================================
 
     /**
-     * Dibuja el header con logo y nombre de empresa
+     * Dibuja el header con logo, nombre de empresa y acopiador
      */
-    private drawHeader(doc: jsPDF, yPos: number, pageWidth: number): number {
+    private drawHeader(doc: jsPDF, yPos: number, pageWidth: number, acopiadorNombre?: string): number {
         // Barra superior con color primario
         doc.setFillColor(...this.COLORS.primary);
         doc.rect(0, 0, pageWidth, 8, 'F');
@@ -106,12 +133,21 @@ export class PdfService {
         doc.setTextColor(...this.COLORS.text);
         doc.text('Sistema de Trazabilidad de Miel', pageWidth / 2, yPos + 14, { align: 'center' });
 
+        // Nombre del acopiador (si está disponible)
+        if (acopiadorNombre) {
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(this.FONT_SIZES.small);
+            doc.setTextColor(...this.COLORS.dark);
+            doc.text(`Acopiador: ${acopiadorNombre}`, pageWidth / 2, yPos + 20, { align: 'center' });
+        }
+
         // Línea separadora
         doc.setDrawColor(...this.COLORS.primary);
         doc.setLineWidth(0.5);
-        doc.line(15, yPos + 20, pageWidth - 15, yPos + 20);
+        const lineY = acopiadorNombre ? yPos + 26 : yPos + 20;
+        doc.line(15, lineY, pageWidth - 15, lineY);
 
-        return yPos + 28;
+        return acopiadorNombre ? yPos + 34 : yPos + 28;
     }
 
     /**
@@ -163,6 +199,74 @@ export class PdfService {
         doc.text(entrada.estado, estadoX + 10, estadoY + 4.2, { align: 'center' });
 
         return yPos + 38;
+    }
+
+    /**
+     * Dibuja la información de identificación del apicultor
+     */
+    private drawApicultorInfo(
+        doc: jsPDF,
+        yPos: number,
+        pageWidth: number,
+        apicultorNombre: string,
+        info: ApicultorInfoPdf
+    ): number {
+        const leftCol = 15;
+        const rightCol = pageWidth / 2 + 10;
+        const labelWidth = 35;
+
+        // Título de sección
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(this.FONT_SIZES.normal);
+        doc.setTextColor(...this.COLORS.dark);
+        doc.text('DATOS DEL APICULTOR', leftCol, yPos);
+        yPos += 5;
+
+        // Calcular altura según campos disponibles
+        const hasRfc = info.rfc && info.rfc.trim() !== '';
+        const hasDireccion = info.direccion && info.direccion.trim() !== '';
+        const hasRasmiel = info.idRasmiel && info.idRasmiel.trim() !== '';
+        const hasSiniiga = info.uppSiniiga && info.uppSiniiga.trim() !== '';
+
+        // Altura base para nombre, código y CURP
+        let boxHeight = 25;
+        // Agregar espacio si hay campos adicionales
+        if (hasRfc || hasDireccion) boxHeight += 7;
+        if (hasRasmiel || hasSiniiga) boxHeight += 7;
+
+        // Fondo gris claro para la sección
+        doc.setFillColor(...this.COLORS.lightGray);
+        doc.roundedRect(10, yPos - 3, pageWidth - 20, boxHeight, 3, 3, 'F');
+
+        doc.setFontSize(this.FONT_SIZES.normal);
+
+        // Fila 1: Nombre y Código
+        this.drawLabelValue(doc, leftCol, yPos + 5, 'Nombre:', apicultorNombre, labelWidth);
+        this.drawLabelValue(doc, rightCol, yPos + 5, 'Código:', info.codigo, 30);
+
+        // Fila 2: CURP y RFC
+        this.drawLabelValue(doc, leftCol, yPos + 12, 'CURP:', info.curp, labelWidth);
+        if (hasRfc) {
+            this.drawLabelValue(doc, rightCol, yPos + 12, 'RFC:', info.rfc!, 30);
+        }
+
+        let currentY = yPos + 19;
+
+        // Fila 3: Dirección (si existe)
+        if (hasDireccion) {
+            this.drawLabelValue(doc, leftCol, currentY, 'Dirección:', info.direccion!, labelWidth);
+            currentY += 7;
+        }
+
+        // Fila 4: Certificaciones (si existen)
+        if (hasRasmiel) {
+            this.drawLabelValue(doc, leftCol, currentY, 'ID-RASMIEL:', info.idRasmiel!, labelWidth);
+        }
+        if (hasSiniiga) {
+            this.drawLabelValue(doc, rightCol, currentY, 'UPPSINIIGA:', info.uppSiniiga!, 35);
+        }
+
+        return yPos + boxHeight + 5;
     }
 
     /**
@@ -316,7 +420,7 @@ export class PdfService {
     /**
      * Dibuja el footer del documento
      */
-    private drawFooter(doc: jsPDF, pageWidth: number): void {
+    private drawFooter(doc: jsPDF, pageWidth: number, acopiadorNombre?: string): void {
         const pageHeight = doc.internal.pageSize.getHeight();
         const footerY = pageHeight - 15;
 
@@ -331,8 +435,11 @@ export class PdfService {
         doc.setTextColor(107, 114, 128); // gray-500
         doc.text(`Generado el: ${this.formatDateTime(new Date())}`, 15, footerY);
 
-        // Nombre del sistema
-        doc.text('Sistema Oaxaca Miel - Trazabilidad', pageWidth / 2, footerY, { align: 'center' });
+        // Nombre del sistema o acopiador
+        const centerText = acopiadorNombre
+            ? `Generado por: ${acopiadorNombre}`
+            : 'Sistema Oaxaca Miel - Trazabilidad';
+        doc.text(centerText, pageWidth / 2, footerY, { align: 'center' });
 
         // Página
         doc.text('Página 1 de 1', pageWidth - 15, footerY, { align: 'right' });

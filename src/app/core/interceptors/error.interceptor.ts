@@ -30,7 +30,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
                 switch (error.status) {
                     case 400:
                         // Validación fallida
-                        if (error.error?.error?.details) {
+                        if (error.error?.message) {
+                            errorMessage = error.error.message;
+                        } else if (error.error?.error?.details) {
                             errorMessage = error.error.error.details;
                         } else {
                             errorMessage = 'Datos inválidos. Verifica la información enviada.';

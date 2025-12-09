@@ -241,6 +241,13 @@ export class ApicultorDetailComponent implements OnInit {
     // INITIALIZATION
     // ============================================================================
 
+    // ============================================================================
+    // CONSTANTS
+    // ============================================================================
+
+    /** Código INEGI de Yucatán (valor por defecto) */
+    private readonly DEFAULT_ESTADO_CODIGO = '31';
+
     /**
      * Inicializar formulario reactivo v2.0
      * CAMBIOS: codigo eliminado, nombre dividido, campos renombrados
@@ -257,9 +264,9 @@ export class ApicultorDetailComponent implements OnInit {
             idRasmiel: ['', [Validators.maxLength(50)]],
             uppSiniiga: ['', [Validators.maxLength(50)]],
 
-            // UBICACIÓN
-            estadoCodigo: ['', Validators.required],
-            municipioCodigo: ['', Validators.required], // NO disabled inicialmente
+            // UBICACIÓN - Yucatán (31) por defecto
+            estadoCodigo: [this.DEFAULT_ESTADO_CODIGO, Validators.required],
+            municipioCodigo: ['', Validators.required],
             direccion: ['']
         });
 
@@ -409,6 +416,7 @@ export class ApicultorDetailComponent implements OnInit {
 
     /**
      * Cargar catálogo de estados
+     * También carga los municipios del estado por defecto (Yucatán)
      */
     private loadEstados(): void {
         this.estadoService
@@ -417,9 +425,31 @@ export class ApicultorDetailComponent implements OnInit {
             .subscribe({
                 next: (estados) => {
                     this.estados.set(estadosToOptions(estados));
+
+                    // Cargar municipios del estado por defecto (Yucatán) solo en modo CREATE
+                    if (this.mode() === 'create') {
+                        this.loadMunicipiosForDefaultEstado();
+                    }
                 },
                 error: (error) => {
                     console.error('Error al cargar estados:', error);
+                }
+            });
+    }
+
+    /**
+     * Cargar municipios del estado por defecto (Yucatán)
+     */
+    private loadMunicipiosForDefaultEstado(): void {
+        this.municipioService
+            .getMunicipiosByEstado(this.DEFAULT_ESTADO_CODIGO)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (municipios) => {
+                    this.municipios.set(municipiosToOptions(municipios));
+                },
+                error: (error) => {
+                    console.error('Error al cargar municipios del estado por defecto:', error);
                 }
             });
     }

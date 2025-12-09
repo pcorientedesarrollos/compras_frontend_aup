@@ -16,16 +16,6 @@
     </div>
 
     <!-- ============================================================================ -->
-    <!-- ERROR MESSAGE -->
-    <!-- ============================================================================ -->
-    @if (errorMessage()) {
-    <div class="alert alert-error">
-        <app-icon name="exclamation-circle" size="md" />
-        <span>{{ errorMessage() }}</span>
-    </div>
-    }
-
-    <!-- ============================================================================ -->
     <!-- LOADING STATE -->
     <!-- ============================================================================ -->
     @if (isLoading() && mode() === 'edit' && !currentUser()) {
@@ -44,7 +34,90 @@
             <div class="form-grid">
 
                 <!-- ================================================================ -->
-                <!-- USUARIO (USERNAME) -->
+                <!-- 1. ROL (PRIMERO) -->
+                <!-- ================================================================ -->
+                <div class="form-group form-group-full">
+                    <label for="role" class="form-label">
+                        Rol <span class="required">*</span>
+                    </label>
+                    <select id="role" formControlName="role" class="form-select"
+                        [class.error]="hasError('role', 'required')">
+                        <option value="">Selecciona un rol</option>
+                        @for (option of roleOptions; track option.value) {
+                        <option [value]="option.value">{{ option.label }} - {{ option.description }}
+                        </option>
+                        }
+                    </select>
+
+                    <p class="help-text">Selecciona el rol del usuario en el sistema</p>
+
+                    @if (hasError('role', 'required')) {
+                    <p class="error-text">El rol es obligatorio</p>
+                    }
+                </div>
+
+                <!-- ================================================================ -->
+                <!-- CAMPOS CONDICIONALES SEGÚN ROL -->
+                <!-- ================================================================ -->
+
+                <!-- PROVEEDOR (Acopiador/Mielera) -->
+                @if (showProveedorField()) {
+                <div class="form-group form-group-full">
+                    <label for="proveedorId" class="form-label">
+                        Proveedor <span class="required">*</span>
+                    </label>
+                    <select id="proveedorId" formControlName="proveedorId" class="form-select"
+                        [class.error]="hasError('proveedorId', 'required')">
+                        <option [ngValue]="null">Selecciona un proveedor</option>
+                        @for (proveedor of proveedores(); track proveedor.idProveedor) {
+                        <option [ngValue]="proveedor.idProveedor">
+                            {{ proveedor.nombre }} - {{ proveedor.tipoDeMiel }}
+                        </option>
+                        }
+                    </select>
+                    <p class="help-text">Proveedor asociado al usuario (obligatorio para Acopiador/Mielera)</p>
+                    @if (hasError('proveedorId', 'required')) {
+                    <p class="error-text">Debes seleccionar un proveedor</p>
+                    }
+                </div>
+                }
+
+                <!-- APICULTOR -->
+                @if (showApicultorField()) {
+                <div class="form-group form-group-full">
+                    <label for="apicultorId" class="form-label">
+                        Apicultor <span class="required">*</span>
+                    </label>
+                    <select id="apicultorId" formControlName="apicultorId" class="form-select"
+                        [class.error]="hasError('apicultorId', 'required')">
+                        <option [ngValue]="null">Selecciona un apicultor</option>
+                        @for (apicultor of apicultores(); track apicultor.id) {
+                        <option [ngValue]="apicultor.id">
+                            {{ apicultor.codigo }} - {{ apicultor.nombreCompleto }}
+                        </option>
+                        }
+                    </select>
+                    <p class="help-text">Apicultor asociado al usuario</p>
+                    @if (hasError('apicultorId', 'required')) {
+                    <p class="error-text">Debes seleccionar un apicultor</p>
+                    }
+                </div>
+                }
+
+                <!-- VERIFICADOR ID -->
+                @if (showVerificadorField()) {
+                <div class="form-group form-group-full">
+                    <label for="verificadorId" class="form-label">
+                        ID de Verificador
+                    </label>
+                    <input id="verificadorId" type="text" formControlName="verificadorId"
+                        class="form-input" placeholder="Ej: VERIF-001">
+                    <p class="help-text">Identificador único del verificador (opcional)</p>
+                </div>
+                }
+
+                <!-- ================================================================ -->
+                <!-- 2. USUARIO (USERNAME) -->
                 <!-- ================================================================ -->
                 <div class="form-group">
                     <label for="username" class="form-label">
@@ -70,7 +143,7 @@
                 </div>
 
                 <!-- ================================================================ -->
-                <!-- NOMBRE COMPLETO -->
+                <!-- 3. NOMBRE COMPLETO -->
                 <!-- ================================================================ -->
                 <div class="form-group">
                     <label for="nombre" class="form-label">
@@ -91,7 +164,7 @@
                 </div>
 
                 <!-- ================================================================ -->
-                <!-- EMAIL -->
+                <!-- 4. EMAIL -->
                 <!-- ================================================================ -->
                 <div class="form-group">
                     <label for="email" class="form-label">Email</label>
@@ -106,33 +179,10 @@
                 </div>
 
                 <!-- ================================================================ -->
-                <!-- ROL -->
-                <!-- ================================================================ -->
-                <div class="form-group">
-                    <label for="role" class="form-label">
-                        Rol <span class="required">*</span>
-                    </label>
-                    <select id="role" formControlName="role" class="form-select"
-                        [class.error]="hasError('role', 'required')">
-                        <option value="">Selecciona un rol</option>
-                        @for (option of roleOptions; track option.value) {
-                        <option [value]="option.value">{{ option.label }} - {{ option.description }}
-                        </option>
-                        }
-                    </select>
-
-                    <p class="help-text">Rol del usuario en el sistema</p>
-
-                    @if (hasError('role', 'required')) {
-                    <p class="error-text">El rol es obligatorio</p>
-                    }
-                </div>
-
-                <!-- ================================================================ -->
-                <!-- CONTRASEÑA (Solo en modo creación) -->
+                <!-- 5. CONTRASEÑA (Solo en modo creación) -->
                 <!-- ================================================================ -->
                 @if (mode() === 'create') {
-                <div class="form-group form-group-full">
+                <div class="form-group">
                     <label for="password" class="form-label">
                         Contraseña <span class="required">*</span>
                     </label>
@@ -142,8 +192,7 @@
 
                     <!-- Requisitos de contraseña -->
                     <div class="password-requirements">
-                        <p class="text-sm font-medium text-gray-700 mb-2">La contraseña debe cumplir:
-                        </p>
+                        <p class="text-sm font-medium text-gray-700 mb-2">La contraseña debe cumplir:</p>
                         <ul class="space-y-1">
                             <li class="requirement"
                                 [class.valid]="!passwordErrors().includes('Mínimo 8 caracteres')">
@@ -175,60 +224,6 @@
                             </li>
                         </ul>
                     </div>
-                </div>
-                }
-
-                <!-- ================================================================ -->
-                <!-- CAMPO CONDICIONAL: PROVEEDOR (Acopiador/Mielera) -->
-                <!-- ================================================================ -->
-                @if (showProveedorField()) {
-                <div class="form-group">
-                    <label for="proveedorId" class="form-label">
-                        Proveedor (Acopiador/Mielera)
-                    </label>
-                    <select id="proveedorId" formControlName="proveedorId" class="form-select">
-                        <option [value]="null">Sin proveedor</option>
-                        @for (proveedor of proveedores(); track proveedor.idProveedor) {
-                        <option [value]="proveedor.idProveedor">
-                            {{ proveedor.nombre }} - {{ proveedor.tipoDeMiel }}
-                        </option>
-                        }
-                    </select>
-                    <p class="help-text">Proveedor asociado al usuario</p>
-                </div>
-                }
-
-                <!-- ================================================================ -->
-                <!-- CAMPO CONDICIONAL: APICULTOR -->
-                <!-- ================================================================ -->
-                @if (showApicultorField()) {
-                <div class="form-group">
-                    <label for="apicultorId" class="form-label">
-                        Apicultor
-                    </label>
-                    <select id="apicultorId" formControlName="apicultorId" class="form-select">
-                        <option [value]="null">Sin apicultor</option>
-                        @for (apicultor of apicultores(); track apicultor.id) {
-                        <option [value]="apicultor.id">
-                            {{ apicultor.nombreCompleto }} - {{ apicultor.curp }}
-                        </option>
-                        }
-                    </select>
-                    <p class="help-text">Apicultor asociado al usuario</p>
-                </div>
-                }
-
-                <!-- ================================================================ -->
-                <!-- CAMPO CONDICIONAL: VERIFICADOR ID -->
-                <!-- ================================================================ -->
-                @if (showVerificadorField()) {
-                <div class="form-group">
-                    <label for="verificadorId" class="form-label">
-                        ID de Verificador
-                    </label>
-                    <input id="verificadorId" type="text" formControlName="verificadorId"
-                        class="form-input" placeholder="Ej: VERIF-001">
-                    <p class="help-text">Identificador único del verificador</p>
                 </div>
                 }
 

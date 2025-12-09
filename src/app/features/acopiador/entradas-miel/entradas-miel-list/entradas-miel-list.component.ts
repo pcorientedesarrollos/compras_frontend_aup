@@ -32,7 +32,9 @@ import {
 
 // Servicios
 import { EntradaMielService } from '../../../../core/services/entrada-miel.service';
-import { PdfService } from '../../../../core/services/pdf.service';
+import { ApicultorService } from '../../../../core/services/apicultor.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { PdfService, PdfEntradaOptions, ApicultorInfoPdf } from '../../../../core/services/pdf.service';
 
 @Component({
     selector: 'app-entradas-miel-list',
@@ -48,6 +50,8 @@ import { PdfService } from '../../../../core/services/pdf.service';
 })
 export class EntradasMielListComponent implements OnInit {
     private entradaMielService = inject(EntradaMielService);
+    private apicultorService = inject(ApicultorService);
+    private authService = inject(AuthService);
     private pdfService = inject(PdfService);
     private router = inject(Router);
     private destroyRef = inject(DestroyRef);
@@ -498,23 +502,85 @@ export class EntradasMielListComponent implements OnInit {
 
     /**
      * Generar PDF del detalle de entrada actual
+     * Incluye información del apicultor y el nombre del acopiador logueado
      */
     generarPdfEntrada(): void {
         const entrada = this.entradaDetalle();
         if (!entrada) return;
 
-        this.pdfService.generarPdfEntrada(entrada);
+        // Obtener nombre del acopiador logueado
+        const currentUser = this.authService.getCurrentUser();
+        const acopiadorNombre = currentUser?.nombre || undefined;
+
+        // Cargar información del apicultor y generar PDF
+        this.apicultorService.getApicultorById(entrada.apicultorId)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (apicultor) => {
+                    const apicultorInfo: ApicultorInfoPdf = {
+                        codigo: apicultor.codigo,
+                        curp: apicultor.curp,
+                        rfc: apicultor.rfc,
+                        direccion: apicultor.direccion,
+                        idRasmiel: apicultor.idRasmiel,
+                        uppSiniiga: apicultor.uppSiniiga
+                    };
+
+                    const options: PdfEntradaOptions = {
+                        apicultorInfo,
+                        acopiadorNombre
+                    };
+
+                    this.pdfService.generarPdfEntrada(entrada, options);
+                },
+                error: () => {
+                    // Si falla cargar apicultor, generar PDF sin esa info
+                    const options: PdfEntradaOptions = { acopiadorNombre };
+                    this.pdfService.generarPdfEntrada(entrada, options);
+                }
+            });
     }
 
     /**
      * Generar PDF desde la tabla (carga detalle primero)
+     * Incluye información del apicultor y el nombre del acopiador logueado
      */
     generarPdfDesdeTabla(id: string): void {
         this.entradaMielService.getEntradaById(id)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
                 next: (detalle) => {
-                    this.pdfService.generarPdfEntrada(detalle);
+                    // Obtener nombre del acopiador logueado
+                    const currentUser = this.authService.getCurrentUser();
+                    const acopiadorNombre = currentUser?.nombre || undefined;
+
+                    // Cargar información del apicultor
+                    this.apicultorService.getApicultorById(detalle.apicultorId)
+                        .pipe(takeUntilDestroyed(this.destroyRef))
+                        .subscribe({
+                            next: (apicultor) => {
+                                const apicultorInfo: ApicultorInfoPdf = {
+                                    codigo: apicultor.codigo,
+                                    curp: apicultor.curp,
+                                    rfc: apicultor.rfc,
+                                    direccion: apicultor.direccion,
+                                    idRasmiel: apicultor.idRasmiel,
+                                    uppSiniiga: apicultor.uppSiniiga
+                                };
+
+                                const options: PdfEntradaOptions = {
+                                    apicultorInfo,
+                                    acopiadorNombre
+                                };
+
+                                this.pdfService.generarPdfEntrada(detalle, options);
+                            },
+                            error: () => {
+                                // Si falla cargar apicultor, generar PDF sin esa info
+                                const options: PdfEntradaOptions = { acopiadorNombre };
+                                this.pdfService.generarPdfEntrada(detalle, options);
+                            }
+                        });
                 },
                 error: () => {
                     alert('Error al generar PDF');
