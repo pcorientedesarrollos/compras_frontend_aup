@@ -169,7 +169,7 @@ export class ProveedoresListComponent implements OnInit {
                 value.toLocaleString('es-MX', { minimumFractionDigits: 2 }) : '0.00'
         },
         {
-            key: 'deleteProve',
+            key: 'activoInactivo',
             label: 'Estado',
             type: 'badge',
             sortable: true,
@@ -177,7 +177,7 @@ export class ProveedoresListComponent implements OnInit {
             align: 'center',
             badgeConfig: {
                 0: { label: 'Activo', variant: 'success' },
-                1: { label: 'Inactivo', variant: 'danger' }
+                1: { label: 'Desactivado', variant: 'danger' }
             }
         }
     ] as TableColumn[]));
@@ -257,14 +257,14 @@ export class ProveedoresListComponent implements OnInit {
             ]
         },
         {
-            key: 'activo',
+            key: 'activoInactivo',
             label: 'Estado',
             type: 'select',
             placeholder: 'Todos',
             options: [
                 { value: '', label: 'Todos' },
-                { value: '0', label: 'Activos' },     // deleteProve=0
-                { value: '1', label: 'Inactivos' }    // deleteProve=1
+                { value: '0', label: 'Activos' },        // activoInactivo=0
+                { value: '1', label: 'Desactivados' }    // activoInactivo=1
             ]
         }
     ]);
@@ -363,10 +363,10 @@ export class ProveedoresListComponent implements OnInit {
             filtered = filtered.filter(p => p.tipoDeMiel === tipoDeMielId);
         }
 
-        // ✅ FILTRO 4: Estado (deleteProve)
-        if (state['activo'] !== undefined && state['activo'] !== '') {
-            const deleteProveValue = Number(state['activo']);
-            filtered = filtered.filter(p => p.deleteProve === deleteProveValue);
+        // ✅ FILTRO 4: Estado (activoInactivo)
+        if (state['activoInactivo'] !== undefined && state['activoInactivo'] !== '') {
+            const activoInactivoValue = Number(state['activoInactivo']);
+            filtered = filtered.filter(p => p.activoInactivo === activoInactivoValue);
         }
 
         // ✅ Guardar filtrados
