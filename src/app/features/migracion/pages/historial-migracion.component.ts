@@ -128,22 +128,22 @@ import { HistorialMigracion } from '../../../core/models/migracion-tambores.mode
                     Fecha Migración
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Proveedor
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Apicultor
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tipo Miel
+                    Folio Salida
                   </th>
                   <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Tambores
                   </th>
-                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Kilos Netos
+                  <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Exitosos
+                  </th>
+                  <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Fallidos
                   </th>
                   <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Estado
+                  </th>
+                  <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ID Reporte
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Usuario
@@ -158,30 +158,33 @@ import { HistorialMigracion } from '../../../core/models/migracion-tambores.mode
                       <div class="text-xs text-gray-500">{{ item.fechaMigracion | date: 'HH:mm:ss' }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm font-medium text-gray-900">{{ item.proveedorNombre }}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm text-gray-900">{{ item.apicultorNombre }}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm text-gray-600">{{ item.tipoMiel }}</div>
+                      <div class="text-sm font-medium text-gray-900">{{ item.salidaFolio }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-center">
                       <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                         {{ item.totalTambores }}
                       </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right">
-                      <div class="text-sm font-semibold text-gray-900">
-                        {{ item.totalKilosNetos | number: '1.2-2' }} kg
-                      </div>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        {{ item.tamboresExitosos }}
+                      </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-center">
-                      @if (item.status === 'EXITOSO') {
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                            [class.bg-red-100]="item.tamboresFallidos > 0"
+                            [class.text-red-800]="item.tamboresFallidos > 0"
+                            [class.bg-gray-100]="item.tamboresFallidos === 0"
+                            [class.text-gray-600]="item.tamboresFallidos === 0">
+                        {{ item.tamboresFallidos }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      @if (item.estado === 'EXITOSO') {
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                           ✓ Exitoso
                         </span>
-                      } @else if (item.status === 'PARCIAL') {
+                      } @else if (item.estado === 'PARCIAL') {
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                           ⚠ Parcial
                         </span>
@@ -191,31 +194,22 @@ import { HistorialMigracion } from '../../../core/models/migracion-tambores.mode
                         </span>
                       }
                     </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                      <div class="text-sm text-gray-600">{{ item.idReporteDescarga }}</div>
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm text-gray-600">{{ item.usuarioMigracion }}</div>
+                      <div class="text-sm text-gray-600">{{ item.usuarioNombre }}</div>
                     </td>
                   </tr>
 
-                  <!-- Fila expandible para observaciones y errores -->
-                  @if (item.observaciones || (item.errores && item.errores.length > 0)) {
-                    <tr class="bg-gray-50">
+                  <!-- Fila expandible para errores -->
+                  @if (item.errorMensaje) {
+                    <tr class="bg-red-50">
                       <td colspan="8" class="px-6 py-3">
-                        @if (item.observaciones) {
-                          <div class="mb-2">
-                            <span class="text-xs font-semibold text-gray-700">Observaciones:</span>
-                            <p class="text-xs text-gray-600 mt-1">{{ item.observaciones }}</p>
-                          </div>
-                        }
-                        @if (item.errores && item.errores.length > 0) {
-                          <div>
-                            <span class="text-xs font-semibold text-red-700">Errores:</span>
-                            <ul class="list-disc list-inside text-xs text-red-600 mt-1 space-y-1">
-                              @for (error of item.errores; track $index) {
-                                <li>{{ error }}</li>
-                              }
-                            </ul>
-                          </div>
-                        }
+                        <div>
+                          <span class="text-xs font-semibold text-red-700">Error:</span>
+                          <p class="text-xs text-red-600 mt-1">{{ item.errorMensaje }}</p>
+                        </div>
                       </td>
                     </tr>
                   }
@@ -272,9 +266,9 @@ export class HistorialMigracionComponent implements OnInit {
    * Calcular estadísticas del historial
    */
   private calcularEstadisticas(data: HistorialMigracion[]): void {
-    const exitosas = data.filter(m => m.status === 'EXITOSO').length;
-    const parciales = data.filter(m => m.status === 'PARCIAL').length;
-    const fallidas = data.filter(m => m.status === 'FALLIDO').length;
+    const exitosas = data.filter(m => m.estado === 'EXITOSO').length;
+    const parciales = data.filter(m => m.estado === 'PARCIAL').length;
+    const fallidas = data.filter(m => m.estado === 'FALLIDO').length;
 
     this.exitosas.set(exitosas);
     this.parciales.set(parciales);

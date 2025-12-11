@@ -16,6 +16,7 @@ import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { VerificacionService } from '../../../core/services/verificacion.service';
+import { MigracionTamboresService } from '../../migracion/services/migracion-tambores.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { VerificacionResponse } from '../../../core/models/verificador.model';
 import { MigracionModalComponent } from '../../migracion/components/migracion-modal.component';
@@ -251,15 +252,26 @@ import { MigracionModalComponent } from '../../migracion/components/migracion-mo
                           Ver
                         </button>
                         <span class="text-gray-300">|</span>
-                        <button
-                          (click)="migrarVerificacion(verificacion)"
-                          class="bg-gradient-to-r from-honey-primary to-honey-dark hover:from-honey-dark hover:to-honey-primary text-white font-semibold text-xs px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 shadow-sm hover:shadow transition-all duration-200 group"
-                          title="Migrar esta verificación a AUP">
-                          <svg class="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                          Migrar
-                        </button>
+                        @if (estaMigrada(verificacion.salidaFolio)) {
+                          <!-- Ya migrada - Mostrar indicador -->
+                          <span class="inline-flex items-center gap-1.5 text-green-600 font-semibold text-xs px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Migrada
+                          </span>
+                        } @else {
+                          <!-- Pendiente de migrar - Mostrar botón -->
+                          <button
+                            (click)="migrarVerificacion(verificacion)"
+                            class="bg-gradient-to-r from-honey-primary to-honey-dark hover:from-honey-dark hover:to-honey-primary text-white font-semibold text-xs px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 shadow-sm hover:shadow transition-all duration-200 group"
+                            title="Migrar esta verificación a AUP">
+                            <svg class="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Migrar
+                          </button>
+                        }
                       </div>
                     </td>
                   </tr>
@@ -319,6 +331,7 @@ import { MigracionModalComponent } from '../../migracion/components/migracion-mo
 })
 export class VerificacionesCompletadasComponent implements OnInit {
   private verificacionService = inject(VerificacionService);
+  private migracionService = inject(MigracionTamboresService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
@@ -335,6 +348,9 @@ export class VerificacionesCompletadasComponent implements OnInit {
   // Signals para modal de migración
   mostrarModalMigracion = signal(false);
   verificacionSeleccionada = signal<VerificacionResponse | null>(null);
+
+  // Set de folios ya migrados
+  foliosMigrados = signal<Set<string>>(new Set());
 
   // Computed signals - Filtros
   verificacionesFiltradas = computed(() => {
@@ -381,6 +397,31 @@ export class VerificacionesCompletadasComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadVerificaciones();
+    this.loadFoliosMigrados();
+  }
+
+  /**
+   * Cargar folios que ya fueron migrados
+   */
+  loadFoliosMigrados(): void {
+    this.migracionService.getHistorial()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (historial) => {
+          const folios = new Set(historial.map(m => m.salidaFolio));
+          this.foliosMigrados.set(folios);
+        },
+        error: (error) => {
+          console.error('Error al cargar historial de migraciones:', error);
+        }
+      });
+  }
+
+  /**
+   * Verificar si una verificación ya fue migrada
+   */
+  estaMigrada(folio: string): boolean {
+    return this.foliosMigrados().has(folio);
   }
 
   /**
@@ -466,7 +507,7 @@ export class VerificacionesCompletadasComponent implements OnInit {
 
   /**
    * Cerrar modal de migración
-   * @param recargar - Si es true, recarga el listado de verificaciones
+   * @param recargar - Si es true, recarga el listado de verificaciones y folios migrados
    */
   cerrarModalMigracion(recargar: boolean): void {
     this.mostrarModalMigracion.set(false);
@@ -474,6 +515,7 @@ export class VerificacionesCompletadasComponent implements OnInit {
 
     if (recargar) {
       this.loadVerificaciones();
+      this.loadFoliosMigrados();
     }
   }
 }

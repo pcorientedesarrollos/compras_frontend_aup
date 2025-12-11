@@ -66,27 +66,20 @@ export interface MigracionSalidaResponse {
 }
 
 /**
- * Item del historial de migraciones
+ * Item del historial de migraciones (según API real)
  */
 export interface HistorialMigracion {
   id: string;
-  salidaVerificadaId: string;
-  status: 'EXITOSO' | 'PARCIAL' | 'FALLIDO';
+  salidaFolio: string;
   fechaMigracion: string;
-
-  // Datos resumidos
-  proveedorNombre: string;
-  apicultorNombre: string;
-  tipoMiel: string;
+  usuarioNombre: string;
   totalTambores: number;
-  totalKilosNetos: number;
-
-  // Observaciones y errores
-  observaciones?: string;
-  errores?: string[];
-
-  // Usuario que realizó la migración
-  usuarioMigracion: string;
+  tamboresExitosos: number;
+  tamboresFallidos: number;
+  estado: 'EXITOSO' | 'PARCIAL' | 'FALLIDO';
+  idReporteDescarga: number;
+  idAlmacenEncabezado: number;
+  errorMensaje: string | null;
 }
 
 /**
