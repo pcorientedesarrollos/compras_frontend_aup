@@ -126,6 +126,17 @@ export class ApiariosListComponent implements OnInit {
             width: '120px'
         },
         {
+            key: 'proveedorNombres',
+            label: 'Proveedor',
+            type: 'text',
+            sortable: true,
+            width: '200px',
+            align: 'left',
+            formatter: (value: string | null) => {
+                return value || 'Sin proveedor';
+            }
+        },
+        {
             key: 'apicultorNombre',
             label: 'Apicultor',
             type: 'text',
@@ -219,7 +230,7 @@ export class ApiariosListComponent implements OnInit {
             key: 'nombre',
             label: 'Búsqueda',
             type: 'text',
-            placeholder: 'Buscar por nombre, código de apicultor...',
+            placeholder: 'Buscar por nombre, código, apicultor, proveedor...',
             width: '300px'
         },
         // {
@@ -289,7 +300,8 @@ export class ApiariosListComponent implements OnInit {
                 return (
                     apiario.nombre?.toLowerCase().includes(searchTerm) ||
                     apiario.apicultorNombre?.toLowerCase().includes(searchTerm) ||
-                    apiario.apicultorCodigo?.toLowerCase().includes(searchTerm)
+                    apiario.apicultorCodigo?.toLowerCase().includes(searchTerm) ||
+                    apiario.proveedorNombres?.toLowerCase().includes(searchTerm)
                 );
             });
         }

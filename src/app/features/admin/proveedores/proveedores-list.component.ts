@@ -134,21 +134,21 @@ export class ProveedoresListComponent implements OnInit {
         //         'Apicultor': { label: 'Apicultor', variant: 'success', icon: 'user' }
         //     }
         // },
-        {
-            key: 'tipoDeMielNombre',
-            label: 'Tipo de Miel',
-            type: 'text',
-            sortable: true,
-            width: '150px',
-            formatter: (value: string | null) => value || 'No especificado'
-        },
-        {
-            key: 'idSagarpa',
-            label: 'Registro SAGARPA',
-            type: 'text',
-            width: '150px',
-            formatter: (value: string | null) => value || 'Sin registro'
-        },
+        // {
+        //     key: 'tipoDeMielNombre',
+        //     label: 'Tipo de Miel',
+        //     type: 'text',
+        //     sortable: true,
+        //     width: '150px',
+        //     formatter: (value: string | null) => value || 'No especificado'
+        // },
+        // {
+        //     key: 'idSagarpa',
+        //     label: 'Registro SAGARPA',
+        //     type: 'text',
+        //     width: '150px',
+        //     formatter: (value: string | null) => value || 'Sin registro'
+        // },
         {
             key: 'cantidadApicultores',
             label: 'Apicultores',
@@ -159,15 +159,62 @@ export class ProveedoresListComponent implements OnInit {
             formatter: (value: number) => value.toString()
         },
         {
-            key: 'cantidad',
-            label: 'Cantidad (kg)',
+            key: 'totalApiarios',
+            label: 'Apiarios',
             type: 'number',
             sortable: true,
-            width: '130px',
+            width: '100px',
+            align: 'center',
+            formatter: (value: number) => value?.toString() || '0'
+        },
+        {
+            key: 'totalColmenas',
+            label: 'Colmenas',
+            type: 'number',
+            sortable: true,
+            width: '110px',
+            align: 'center',
+            formatter: (value: number) => value?.toString() || '0'
+        },
+        {
+            key: 'produccionAnualTotal',
+            label: 'Producción Anual (kg)',
+            type: 'number',
+            sortable: true,
+            width: '170px',
             align: 'right',
-            formatter: (value: number | null) => value ?
+            formatter: (value: number) => value ?
                 value.toLocaleString('es-MX', { minimumFractionDigits: 2 }) : '0.00'
         },
+        {
+            key: 'totalEntradas',
+            label: 'Entradas',
+            type: 'number',
+            sortable: true,
+            width: '100px',
+            align: 'center',
+            formatter: (value: number) => value?.toString() || '0'
+        },
+        {
+            key: 'totalKilosComprados',
+            label: 'Comprados (kgs)',
+            type: 'number',
+            sortable: true,
+            width: '150px',
+            align: 'right',
+            formatter: (value: number) => value ?
+                value.toLocaleString('es-MX', { minimumFractionDigits: 2 }) : '0.00'
+        },
+        // {
+        //     key: 'cantidad',
+        //     label: 'Cantidad (kg)',
+        //     type: 'number',
+        //     sortable: true,
+        //     width: '130px',
+        //     align: 'right',
+        //     formatter: (value: number | null) => value ?
+        //         value.toLocaleString('es-MX', { minimumFractionDigits: 2 }) : '0.00'
+        // },
         {
             key: 'activoInactivo',
             label: 'Estado',

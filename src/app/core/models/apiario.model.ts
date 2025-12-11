@@ -48,6 +48,7 @@ export interface ApiarioAPI {
     fechaAlta: string;
     apicultorNombre: string;
     apicultorCodigo: string;
+    proveedorNombres?: string;      // ✅ NUEVO - Nombres de proveedores separados por coma
     apicultor: {
         codigo: string;             // Código único del apicultor (APIC-2024-001)
         nombre: string;             // Nombre completo del apicultor
