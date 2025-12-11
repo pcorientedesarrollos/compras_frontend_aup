@@ -71,6 +71,7 @@ export interface ApicultorAPI {
     updatedAt: string;                   // ISO 8601
     cantidadApiarios: number;            // Contador de apiarios
     cantidadProveedores: number;         // Contador de proveedores
+    proveedorNombres?: string;           // ✅ NUEVO - Nombres de proveedores separados por coma
     totalColmenas: number;               // NUEVO - Suma total de colmenas de todos los apiarios
     totalKilosEntregados: number;        // ✅ NUEVO - Total de kilos entregados a proveedores
     totalEntregas: number;               // ✅ NUEVO - Número total de entregas realizadas

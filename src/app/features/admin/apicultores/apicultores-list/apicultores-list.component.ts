@@ -180,21 +180,45 @@ export class ApicultoresListComponent implements OnInit {
             width: '140px'
         },
         {
+            key: 'proveedorNombres',
+            label: 'Proveedor',
+            type: 'text',
+            sortable: true,
+            width: '200px',
+            align: 'left',
+            formatter: (value: string | null) => {
+                return value || 'Sin proveedor';
+            }
+        },
+        {
             key: 'nombreCompleto',
             label: 'Nombre Completo',
             type: 'text',
             sortable: true,
             width: '250px'
         },
+        // {
+        //     key: 'estadoCodigo',
+        //     label: 'Entidad',
+        //     type: 'text',
+        //     width: '150px',
+        //     align: 'center',
+        //     formatter: (value: string | null) => {
+        //         if (!value) return 'N/A';
+        //         return this.estadosMap().get(value) || value;
+        //     }
+        // },
         {
-            key: 'estadoCodigo',
-            label: 'Entidad',
+            key: 'municipioCodigo',
+            label: 'Municipio',
             type: 'text',
-            width: '150px',
+            width: '180px',
             align: 'center',
-            formatter: (value: string | null) => {
-                if (!value) return 'N/A';
-                return this.estadosMap().get(value) || value;
+            formatter: (value: string | null, row?: any) => {
+                if (!value || !row) return 'N/A';
+                // Construir clave compuesta: "estadoCodigo-municipioCodigo"
+                const key = `${row.estadoCodigo}-${value}`;
+                return this.municipiosMap().get(key) || value;
             }
         },
         {
@@ -309,7 +333,7 @@ export class ApicultoresListComponent implements OnInit {
             key: 'nombre',
             label: 'Búsqueda',
             type: 'text',
-            placeholder: 'Buscar por nombre, código, CURP...'
+            placeholder: 'Buscar por nombre, código, CURP, proveedor...'
         },
         {
             key: 'estadoCodigo',
@@ -520,7 +544,8 @@ export class ApicultoresListComponent implements OnInit {
                     apicultor.codigo?.toLowerCase().includes(searchTerm) ||
                     apicultor.curp?.toLowerCase().includes(searchTerm) ||
                     apicultor.rfc?.toLowerCase().includes(searchTerm) ||
-                    apicultor.direccion?.toLowerCase().includes(searchTerm)
+                    apicultor.direccion?.toLowerCase().includes(searchTerm) ||
+                    apicultor.proveedorNombres?.toLowerCase().includes(searchTerm)
                 );
             });
         }

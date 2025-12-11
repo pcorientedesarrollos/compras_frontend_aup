@@ -44,6 +44,12 @@ export interface ProveedorAPI {
     latitud: number | null;             // Coordenada GPS
     longitud: number | null;            // Coordenada GPS
     cantidadApicultores: number;        // Contador calculado por backend
+    totalApiarios?: number;             // Total de apiarios de todos los apicultores
+    totalColmenas?: number;             // Total de colmenas de todos los apiarios
+    produccionAnualTotal?: number;      // Producción anual total (kg)
+    totalEntradas?: number;             // Total de entradas de miel de todos los apicultores
+    totalKilosComprados?: number;       // Total de kilos comprados de todos los apicultores (kg)
+    ultimaEntradaFecha?: Date | string | null; // Fecha de la última entrada de miel del proveedor
     deleteProve: number;
     estaActivo?: boolean;               // Helper calculado
     inventarioMiel?: InventarioMiel[];  // ✅ NUEVO: Inventario por tipo de miel
